@@ -1,0 +1,6 @@
+attempt,condition,status,stt_ms,llm_ms,tts_ms,server_total_ms,audible_reply,returned_idle,notes
+1,unknown,unmeasured,,,,,,,
+2,unknown,unmeasured,,,,,,,
+3,unknown,unmeasured,,,,,,,
+4,unknown,unmeasured,,,,,,,
+5,unknown,unmeasured,,,,,,,

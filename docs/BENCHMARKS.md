@@ -1,6 +1,6 @@
 # Honest timing protocol
 
-No real STT, LLM, TTS or end-to-end hardware latency figures have been measured. Simulation delays are artificial fixtures and must never appear in performance claims.
+No collected multi-run stage or end-to-end hardware benchmark is available. One earlier standalone GPT-OSS request took 5.29 seconds on the desktop, with loading conditions unknown; it is not a voice-pipeline benchmark. Simulation delays are artificial fixtures and must never appear in performance claims.
 
 The UI displays per-job server `perf_counter` timings in milliseconds. `stt_ms` covers CLI startup, model loading and transcription until text is read. `llm_ms` covers HTTP connection through collection of the bounded complete response. `tts_ms` covers CLI startup, voice loading and WAV creation. `tool_ms` replaces LLM timing for the deterministic tool. `server_total_ms` begins after the recording has been received/validated (or text accepted) and ends when synthesis is complete. It excludes recording, network transport, base64 transfer, playback startup and playback duration. Text-only runs have no STT measurement; clock runs have no LLM measurement. Never substitute zero for an unrun stage.
 
@@ -13,7 +13,11 @@ Measure user stop-recording → first audible response separately using a local 
 | Stage | Hardware / conditions | Sample count | Result |
 |---|---|---:|---|
 | STT | Desktop / cold and warm pending | 0 | Pending |
-| LLM | Existing desktop Ollama model pending | 0 | Pending |
-| TTS | Desktop / licensed voice pending | 0 | Pending |
+| LLM | GPT-OSS 20B / repeated samples pending | 0 | Pending |
+| TTS | Piper LJ Speech medium / repeated samples pending | 0 | Pending |
 | Stop-recording → audible reply | Real microphone + headphones pending | 0 | Pending |
 | Pi transport and client playback | Physical Pi pending | 0 | Pending |
+
+## Collection files
+
+Follow [DESKTOP_ACCEPTANCE.md](DESKTOP_ACCEPTANCE.md). The [CSV template](evidence/desktop-timings.template.csv) contains five unmeasured attempts with blank values, not zero-time results. Copy it into ignored `artifacts/` before filling it. Only publish measured data after checking conditions, failures and privacy.

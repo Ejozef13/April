@@ -2,15 +2,21 @@
 
 ## Desktop follow-up (user-observed results)
 
+### Successful real spoken interaction
+
+After pulling playback fix `c67dcf7`, Enrique reported that the live interaction works. His screenshot shows LIVE mode, the transcript “April, suggest a Python project.”, a generated Pet-Care Scheduler suggestion, Mute off, and the Speaking state. His report confirms audible playback; a screenshot alone cannot prove sound. This establishes one user-observed microphone → Whisper → GPT-OSS → Piper → browser playback interaction. It is not an independently recorded hardware benchmark or a physical Pi test.
+
+Physical Stop/cancel and subsequent retry have not been separately confirmed. Five-run stage measurements, return-to-idle evidence, a real walkthrough recording, and an in-repository live screenshot artifact remain pending. The successful screenshot was shared in chat; it has not been substituted with simulated imagery in the repository. See DESKTOP_ACCEPTANCE.md for capture steps.
+
 ### Playback failure follow-up
 
 Enrique's live-browser screenshot shows a generated text reply followed by an interrupted `play()` error. The exact Brave/Piper failure was not reproduced in the cloud; a native WAV tone played successfully. The playback update keeps a mounted media element, invalidates pending playback promises during cleanup, preserves the first media error, and offers an explicit **Play reply** retry when automatic playback is blocked/interrupted. A retry reuses the current audio and remains subject to the server playback deadline; no extra model request is made.
 
-`python scripts/browser_playback_check.py` passed Chromium checks for actual WAV tone playback, injected autoplay denial followed by user retry, completion while `play()` remains pending, injected media error followed by teardown, and Stop followed by successful recovery. The fault injections exercise browser lifecycle handling; the fixture backend is not Piper, Ollama, or physical hardware. JavaScript syntax and diff checks pass. Actual Brave + generated Piper audio acceptance remains pending.
+`python scripts/browser_playback_check.py` passed Chromium checks for actual WAV tone playback, injected autoplay denial followed by user retry, completion while `play()` remains pending, injected media error followed by teardown, and Stop followed by successful recovery. The fault injections exercise browser lifecycle handling; the fixture backend is not Piper, Ollama, or physical hardware. JavaScript syntax and diff checks pass. Actual Brave + generated Piper audio was subsequently reported successful as described above; repeated acceptance and physical cancellation measurements remain pending.
 
 Enrique reported successful microphone recording/playback and Piper LJ Speech synthesis on CachyOS. His screenshots show actual Whisper `base.en` transcription of the bundled JFK sample and an actual GPT-OSS 20B answer through Ollama 0.40.13. Ollama reported 100% GPU placement and a 4096-token context. One HTTP request took 5.29 seconds with loading/warmth not established; this is not an end-to-end voice benchmark. The LJ Speech model card lists its dataset as public domain; retain the separate Piper software license obligations.
 
-The desktop integration update adds configurable reasoning effort/context, a bounded 512-token profile for GPT-OSS, exclusion of separate reasoning from final-answer output, and the tested desktop model paths. All 17 automated fixture tests pass after this update; JavaScript syntax and diff checks pass. The complete browser microphone → Whisper → GPT-OSS → Piper → selected output workflow, its cancellation behavior on physical hardware, and Pi acceptance remain pending. The cloud-instance results below remain historical cloud results, not claims about desktop hardware.
+The desktop integration update adds configurable reasoning effort/context, a bounded 512-token profile for GPT-OSS, exclusion of separate reasoning from final-answer output, and the tested desktop model paths. All 17 automated fixture tests pass after this update; JavaScript syntax and diff checks pass. The complete spoken workflow was subsequently reported successful; cancellation behavior on physical hardware and Pi acceptance remain pending. The cloud-instance results below remain historical cloud results, not claims about desktop hardware.
 
 The initial checkout contained no files or commits (symbolic unborn `work` branch). No existing application or user changes were overwritten. Implementation was explicitly requested after onboarding began. No commit or push was performed during initial validation; the user subsequently authorized publishing this prototype to GitHub.
 
@@ -48,4 +54,4 @@ Screenshots are reviewable project assets. The labeled walkthrough is included a
 
 Draft persistence confirmed: `install_script`, `start_skill`, and the additional custom network destination `huggingface.co`. Existing package-manager presets are preserved. No secret requirement was added. Review and save in environment settings, then publish; saving the draft did not apply networking, publish a snapshot, or validate a new restored task. Artifact redirect hosts may need separate diagnosis after Hugging Face origin access works.
 
-The current-instance simulation and development workflow are verified. Live voice readiness is blocked on model access/license/integrity checks, an available local Ollama model, and actual device acceptance. Optional features are frozen while those prerequisites remain outstanding.
+The current-instance simulation and development workflow are verified. The cloud still lacks speech models, Ollama and physical devices; those cloud limitations do not invalidate the later user-observed desktop interaction. Desktop repeatability, model integrity provenance, real benchmark evidence, cancellation acceptance and Pi tests remain outstanding. Optional features are frozen while evidence is collected.

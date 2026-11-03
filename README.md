@@ -2,7 +2,7 @@
 
 A local push-to-talk companion with an original cartoon Jack Russell face. Built by Enrique, a George Mason University computer science student expecting to graduate in May 2028. APRIL focuses on interactive systems, audio boundaries, hardware integration, and reliable software design. It uses pretrained models; it does not train or fine-tune them.
 
-**Current milestone:** working browser/Python simulation demo with real microphone capture code, replaceable local backend adapters, cancellation, and a deterministic clock tool. Real voice conversation on Enrique’s desktop and physical Pi tests are **pending**. The simulation badge stays visible; simulated transcripts/replies are labeled. There is no simulated audible speech.
+**Current milestone:** Enrique reports a successful real desktop voice interaction: microphone → CPU Whisper → local GPT-OSS 20B → CPU Piper → audible browser playback. His live screenshot shows the transcript, generated answer, and Speaking state. Automated tests use fixtures and are documented separately. Physical cancellation/retry confirmation, five-run timing data, a recorded real walkthrough, and Pi hardware acceptance remain pending. Follow the [desktop evidence checklist](docs/DESKTOP_ACCEPTANCE.md).
 
 ![Actual browser screenshot: simulation reply](docs/evidence/simulation-reply.png)
 
@@ -22,12 +22,12 @@ The face states are idle, listening, transcribing, thinking, speaking and error.
 
 ## Enable local speech
 
-For Enrique's verified desktop components, use `april.desktop.example.toml` as the starting profile. It selects GPT-OSS 20B with low reasoning effort, a 4096-token context and a 512-token generation budget, CPU Whisper `base.en`, and Piper's LJ Speech medium voice. Copy it to ignored `april.local.toml` without overwriting existing local settings. Launch from the project root with `APRIL_MODE=live .venv/bin/python -m april.server` to override any simulation environment setting. First unmute and send typed text to check LLM → TTS → playback, then record a short sentence and press Finish recording. The voice flow submits automatically; Send belongs only to the typed-text form. Complete desktop acceptance remains pending even though the components were tested individually.
+For Enrique's verified desktop components, use `april.desktop.example.toml` as the starting profile. It selects GPT-OSS 20B with low reasoning effort, a 4096-token context and a 512-token generation budget, CPU Whisper `base.en`, and Piper's LJ Speech medium voice. Copy it to ignored `april.local.toml` without overwriting existing local settings. Launch from the project root with `APRIL_MODE=live .venv/bin/python -m april.server` to override any simulation environment setting. First unmute and send typed text to check LLM → TTS → playback, then record a short sentence and press Finish recording. The voice flow submits automatically; Send belongs only to the typed-text form. A real spoken turn has been reported successful; repeatable acceptance and measurements are tracked separately.
 
 1. Run `bash scripts/setup_speech.sh` to build CPU whisper.cpp. A C/C++ compiler and Make are prerequisites. Piper installs into `.venv` with setup. See [stack and licensing](docs/STACK.md) before downloading a voice.
 2. Copy `april.example.toml` to `april.local.toml`. Set absolute `whisper_cli`, `stt_model`, `piper_cli` (typically the project’s `.venv/bin/piper`), and `voice` paths. The Piper `.onnx.json` must accompany the `.onnx` file. The example paths are placeholders, not bundled models.
 3. Check `ollama list` and `ollama ps` on your desktop. Reuse a suitable installed model; change `model` to its exact tag. The suggested 3B tag is not a claim it is installed. Check RAM, VRAM and existing AM activity before loading anything. Do not restart or unload AM’s services/models. CPU STT and TTS keep their model data out of GPU VRAM; Ollama decides its own placement.
-4. With `mode = "live"`, run `.venv/bin/python -m april.server`. First submit text to isolate Ollama/TTS. Then record one short sentence through your real microphone, confirm the transcript, hear the reply on headphones, and verify idle. Stop during another request and retry. This physical test has not been performed here.
+4. With `mode = "live"`, run `.venv/bin/python -m april.server`. First submit text to isolate Ollama/TTS. Then record one short sentence through your real microphone, confirm the transcript, hear the reply on headphones, and verify idle. Stop during another request and retry. The spoken interaction has been reported successful on Enrique’s desktop; the cloud has no physical audio hardware.
 
 One job runs at a time across all clients; overlapping jobs are rejected with no application queue. Recording defaults to 15 seconds, model generation to 120 tokens / 600 characters, processing to 90 seconds. Stop closes our HTTP request and terminates our speech process group. Ollama cancellation/resource release depends on the shared server; APRIL never stops that service or forces model unloading. Speech processes exit after each turn, freeing their CPU memory at the cost of cold-start latency.
 
@@ -35,8 +35,8 @@ One job runs at a time across all clients; overlapping jobs are rejected with no
 
 | Component | Intended role | Verification |
 |---|---|---|
-| CachyOS desktop, Ryzen 7 9700X, RX 9070 XT 16 GB, 32 GB RAM | Python server, CPU STT/TTS, Ollama | User-provided specification; OS/device/ROCm availability pending |
-| Gaming microphone, headphones | Initial input/output | Device enumeration and real capture/playback pending |
+| CachyOS desktop, Ryzen 7 9700X, RX 9070 XT 16 GB, 32 GB RAM | Python server, CPU STT/TTS, Ollama | Specification supplied by Enrique; desktop speech reported successful; Ollama screenshot reports GPT-OSS 100% GPU placement. Driver/runtime details not collected. |
+| Razer Seiren Mini, existing output/headphones | Initial input/output | PipeWire enumeration observed; microphone recording/playback and live APRIL response reported successful |
 | Raspberry Pi 5, 16 GB | Browser face and audio client over SSH tunnel | OS, architecture, SSH, browser and physical audio pending |
 | Cloud Linux x86_64, Python 3.12, ~32.5 GiB reported RAM | Tests, CPU tool build and simulation UI | Verified; no `/dev/snd`, `/dev/dri`, or Ollama |
 | Dedicated face display, speaker, enclosure | Later | Not owned; not required |

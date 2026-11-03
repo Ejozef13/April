@@ -2,6 +2,8 @@
 
 Documentation inspected on November 3, 2026. Builds and local CLI help were checked separately from inference. No reference dog photo was provided or inspected; the SVG is original and replaceable through `april/web/index.html` and CSS.
 
+Desktop follow-up: Enrique successfully used CPU Whisper `base.en`, existing `gpt-oss:20b` through Ollama 0.40.13, and CPU Piper `en_US-ljspeech-medium` in a real spoken interaction. Ollama reported 100% GPU placement; exact driver/runtime details and memory overhead remain uncollected. The LJ Speech voice's model card lists public-domain dataset licensing; this does not replace Piper's GPL-3.0-or-later obligations. The earlier Lessac candidate below was not selected. The desktop profile is `april.desktop.example.toml`; historical cloud restrictions below apply to the cloud instance.
+
 | Choice | Why | License / download / compatibility |
 |---|---|---|
 | Python + FastAPI + WebSocket + plain browser JS | Small modules; one long-lived cancellable interaction; no frontend build system | Python 3.11+, pinned package versions in `requirements.lock`; cloud validated on 3.12 / x86_64 |
@@ -30,7 +32,7 @@ After reviewing licenses and available disk/RAM:
 # From the pinned whisper.cpp source directory created by setup_speech.sh:
 bash models/download-ggml-model.sh base.en
 # From the APRIL project directory:
-.venv/bin/python -m piper.download_voices --data-dir models en_US-lessac-medium
+.venv/bin/python -m piper.download_voices --data-dir models en_US-ljspeech-medium
 ```
 
 Use the actual resulting absolute paths in `april.local.toml`. Model download destinations include `huggingface.co` and whatever artifact redirect host that service returns. The cloud request to Hugging Face returned a policy 403; only the identified origin domain is requested in the draft. Additional redirect destinations must be diagnosed after origin access works. Do not disable checksums/signatures/TLS or replace expected hashes to force a download.

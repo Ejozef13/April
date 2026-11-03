@@ -1,6 +1,6 @@
 # Explain APRIL in an interview
 
-“APRIL explores an interactive audio system with an expressive dog interface. Python coordinates replaceable local speech and model backends, while a browser handles devices. The current verified demo uses labeled simulation fixtures; real desktop and Pi acceptance are pending.” Update that last sentence only after verified results.
+“APRIL explores an interactive audio system with an expressive dog interface. Python coordinates replaceable local speech and model backends, while a browser handles devices. Enrique has completed a real spoken interaction on his desktop; automated tests use fixtures. Repeatable physical acceptance, timing evidence and Pi testing remain pending.”
 
 Walk through one turn: browser permission and selected input → bounded recording → resampled mono PCM16 WAV → validated server input → CPU STT → visible transcript → streamed local Ollama response → CPU TTS → browser output selection → actual playback acknowledgment → idle. Explain how text fallback isolates model/synthesis failures from capture/STT failures.
 
@@ -16,7 +16,9 @@ Demonstrate failure recovery and cancellation rather than adding wake words or h
 
 Resume bullet drafts supported by current evidence:
 
+- Implemented and user-tested a local push-to-talk voice pipeline combining CPU Whisper transcription, GPT-OSS 20B through Ollama, and CPU Piper synthesis with a browser dog interface.
+
 - Built a Python/WebSocket companion prototype with an original SVG dog interface, explicit interaction states, bounded recordings and response limits, and replaceable local STT/LLM/TTS adapters.
 - Verified cancellation, process cleanup, tool validation and failure recovery with automated fixture-based tests; exercised the browser workflow with a fake microphone and captured a labeled simulation walkthrough.
 
-Do not yet claim production deployment, end-to-end local speech, Pi hardware integration, AMD GPU acceleration, latency improvements, training, or fine-tuning. Performance numbers and physical validation remain pending.
+A real end-to-end local voice interaction can now be described as user-tested on Enrique’s desktop. Ollama reported GPU placement; do not generalize that into driver certification or performance claims. Do not yet claim production deployment, Pi hardware integration, latency improvements, model training, or fine-tuning. Performance samples and physical cancellation/retry evidence remain pending.
