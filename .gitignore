@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+april.local.toml
+models/
+artifacts/
+.tools/
+*.egg-info/
+build/
+dist/

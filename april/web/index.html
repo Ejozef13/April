@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>APRIL · Local companion</title><link rel="stylesheet" href="/static/style.css"></head>
+<body><main>
+<header><div><span class="eyebrow">A LITTLE DOG. A LITTLE HELP.</span><h1>Meet April<span>●</span></h1></div><span id="mode" class="badge">Connecting</span></header>
+<section class="stage" aria-label="April's face"><div class="orbit"></div>
+<svg id="face" viewBox="0 0 600 400" role="img" aria-label="An original cartoon Jack Russell terrier">
+ <ellipse cx="300" cy="359" rx="128" ry="14" fill="#cbd0c1"/>
+ <g id="dog"><path d="M193 130 Q129 78 121 126 Q113 202 167 239 L203 185" fill="#8d573b" stroke="#35392f" stroke-width="5"/>
+ <path d="M407 130 Q471 78 479 126 Q487 202 433 239 L397 185" fill="#8d573b" stroke="#35392f" stroke-width="5"/>
+ <path d="M185 170 Q192 83 300 91 Q408 83 415 170 L422 259 Q411 342 300 348 Q189 342 178 259Z" fill="#fffaf0" stroke="#35392f" stroke-width="5"/>
+ <path d="M335 96 Q407 96 415 171 L414 241 Q356 265 331 213 Q306 159 335 96" fill="#b8784a"/>
+ <g class="eyes" fill="#30362f"><ellipse cx="243" cy="211" rx="13" ry="18"/><ellipse cx="358" cy="211" rx="13" ry="18"/></g>
+ <g fill="white"><circle cx="247" cy="205" r="4"/><circle cx="362" cy="205" r="4"/></g>
+ <path d="M220 177 Q241 167 258 178 M343 176 Q365 166 381 177" fill="none" stroke="#35392f" stroke-width="5" stroke-linecap="round"/>
+ <ellipse cx="300" cy="275" rx="61" ry="43" fill="#f3ecdf"/>
+ <path d="M279 257 Q300 247 321 257 Q321 277 300 283 Q279 277 279 257" fill="#30362f"/>
+ <path d="M300 281 L300 296 Q279 315 263 296 M300 296 Q321 315 337 296" fill="none" stroke="#30362f" stroke-width="5" stroke-linecap="round"/>
+ <path id="tongue" d="M286 307 Q300 324 314 307 L314 323 Q300 344 286 323Z" fill="#dc7d7b"/>
+ <path d="M240 346 Q300 364 360 346" fill="none" stroke="#c16b47" stroke-width="12"/><circle cx="300" cy="354" r="12" fill="#efc76c"/>
+ </g>
+</svg><div class="state-line"><span id="state-dot"></span><strong id="state" role="status">Connecting</strong></div><p id="activity">Your local companion, one request at a time.</p></section>
+<section class="console"><div class="toolbar"><button id="record" disabled>● Start recording</button><button id="stop" class="secondary">Stop / cancel</button><button id="mute" class="secondary" aria-pressed="false">Mute off</button><button id="time" class="secondary">Current time</button></div>
+<p id="mic" class="small">Microphone: not enabled. Press record to request permission. Shortcut: Alt+R.</p>
+<div class="devices"><label>Microphone<select id="input"><option value="default">System default</option></select></label><label>Output<select id="output"><option value="default">System default</option></select></label><button id="devices" class="secondary">Enable / refresh devices</button></div>
+<form id="text-form"><label for="text">Or type a message</label><div class="entry"><input id="text" maxlength="2000" placeholder="What shall we tackle today?" autocomplete="off" required><button id="send">Send ↗</button></div></form>
+<p id="error" role="alert"></p><div class="conversation"><article><span class="eyebrow">YOU SAID</span><p id="transcript">Your transcript will appear here.</p></article><article><span class="eyebrow">APRIL</span><p id="reply">Ready when you are.</p></article></div>
+<details><summary>Session timing · no transcript history saved</summary><pre id="timings">No measurements yet.</pre></details></section>
+<footer>LOCAL FIRST · PUSH TO TALK · JACK RUSSELL ENERGY <span>APRIL / 01</span></footer>
+</main><script type="module" src="/static/app.js"></script></body></html>
