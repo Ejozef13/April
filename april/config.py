@@ -22,6 +22,8 @@ class Config:
     max_record_seconds: int = 15
     max_response_chars: int = 600
     max_response_tokens: int = 120
+    context_tokens: int = 2048
+    reasoning_effort: str = "default"
     display_width: int = 640
     display_height: int = 480
     input_device_id: str = "default"
@@ -38,8 +40,12 @@ class Config:
             raise ValueError("Ollama must use a local HTTP endpoint (or local SSH tunnel)")
         if not 1 <= self.max_record_seconds <= 30 or not 1 <= self.timeout_seconds <= 180:
             raise ValueError("Recording limit must be 1–30s; request timeout 1–180s")
-        if not 1 <= self.port <= 65535 or not 1 <= self.max_response_tokens <= 256:
+        if not 1 <= self.port <= 65535 or not 1 <= self.max_response_tokens <= 1024:
             raise ValueError("Invalid port or response token bound")
+        if not 512 <= self.context_tokens <= 8192:
+            raise ValueError("Context token limit must be 512–8192")
+        if self.reasoning_effort not in {"default", "low", "medium", "high"}:
+            raise ValueError("Reasoning effort must be default, low, medium or high")
         if not 40 <= self.max_response_chars <= 2000:
             raise ValueError("Response character limit must be 40–2000")
         if not 1 <= self.playback_timeout_seconds <= 180:

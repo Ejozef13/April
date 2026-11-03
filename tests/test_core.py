@@ -54,6 +54,17 @@ class CoreTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 Config(**overrides)
 
+    def test_reasoning_configuration_and_desktop_profile(self):
+        import tomllib
+        from pathlib import Path
+        profile = Path(__file__).resolve().parents[1] / 'april.desktop.example.toml'
+        config = Config(**tomllib.loads(profile.read_text()))
+        self.assertEqual(config.model, 'gpt-oss:20b')
+        self.assertEqual(config.max_response_tokens, 512)
+        for overrides in [{'max_response_tokens':1025}, {'context_tokens':8193}, {'reasoning_effort':'unbounded'}]:
+            with self.assertRaises(ValueError):
+                Config(**overrides)
+
     def test_http_and_websocket_origins(self):
         with TestClient(create_app(Config(mode='simulation')), base_url='http://localhost') as client:
             self.assertEqual(client.get('/').status_code, 200)

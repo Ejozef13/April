@@ -11,6 +11,7 @@ const send = message => { if (socket.readyState === 1) socket.send(JSON.stringif
 const descriptions = {idle:'Ready when you are.',listening:'Microphone is recording. Press again to finish.',transcribing:'Turning recorded audio into text.',thinking:'Waiting for a local response or preparing speech.',speaking:'Playing April’s response.',error:'Something went wrong. You can try again.'};
 function showState(value) {
   state = value; document.body.dataset.state = value; $('state').textContent = value;
+  if (value === 'idle' && !recording) $('mic').textContent = 'Microphone: off';
   $('activity').textContent = descriptions[value];
   const busy = !['idle', 'error'].includes(value);
   $('record').disabled = !connected || (busy && value !== 'listening');

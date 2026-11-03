@@ -22,6 +22,8 @@ The face states are idle, listening, transcribing, thinking, speaking and error.
 
 ## Enable local speech
 
+For Enrique's verified desktop components, use `april.desktop.example.toml` as the starting profile. It selects GPT-OSS 20B with low reasoning effort, a 4096-token context and a 512-token generation budget, CPU Whisper `base.en`, and Piper's LJ Speech medium voice. Copy it to ignored `april.local.toml` without overwriting existing local settings. Launch from the project root with `APRIL_MODE=live .venv/bin/python -m april.server` to override any simulation environment setting. First unmute and send typed text to check LLM → TTS → playback, then record a short sentence and press Finish recording. The voice flow submits automatically; Send belongs only to the typed-text form. Complete desktop acceptance remains pending even though the components were tested individually.
+
 1. Run `bash scripts/setup_speech.sh` to build CPU whisper.cpp. A C/C++ compiler and Make are prerequisites. Piper installs into `.venv` with setup. See [stack and licensing](docs/STACK.md) before downloading a voice.
 2. Copy `april.example.toml` to `april.local.toml`. Set absolute `whisper_cli`, `stt_model`, `piper_cli` (typically the project’s `.venv/bin/piper`), and `voice` paths. The Piper `.onnx.json` must accompany the `.onnx` file. The example paths are placeholders, not bundled models.
 3. Check `ollama list` and `ollama ps` on your desktop. Reuse a suitable installed model; change `model` to its exact tag. The suggested 3B tag is not a claim it is installed. Check RAM, VRAM and existing AM activity before loading anything. Do not restart or unload AM’s services/models. CPU STT and TTS keep their model data out of GPU VRAM; Ollama decides its own placement.

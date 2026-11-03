@@ -55,8 +55,12 @@ class LocalBackends:
                 {"role": "system", "content": "You are April, a playful, curious, affectionate Jack Russell companion. Give useful answers in 1–3 short sentences. Do not claim to access tools, devices, live facts or memory. No barking in every answer."},
                 {"role": "user", "content": text},
             ],
-            "options": {"num_predict": self.config.max_response_tokens, "num_ctx": 2048},
+            "options": {"num_predict": self.config.max_response_tokens, "num_ctx": self.config.context_tokens},
         }
+        # GPT-OSS supports effort levels. Omit this field for other models unless
+        # explicitly configured; their supported thinking settings can differ.
+        if self.config.reasoning_effort != "default":
+            payload["think"] = self.config.reasoning_effort
         result = ""
         # Local requests must not traverse the cloud's external HTTP proxy.
         async with httpx.AsyncClient(trust_env=False, timeout=self.config.timeout_seconds) as client:
@@ -69,6 +73,8 @@ class LocalBackends:
                         item = json.loads(line)
                         if "error" in item:
                             raise RuntimeError("Ollama could not generate a response")
+                        # Only the final answer is displayed or spoken. Never
+                        # collect or persist the separate `thinking` field.
                         result += item.get("message", {}).get("content", "")
                         if len(result) >= self.config.max_response_chars:
                             break

@@ -26,6 +26,7 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/x-ndjson')
                 self.end_headers()
+                self.wfile.write((json.dumps({'message':{'thinking':'Private fixture reasoning','content':''},'done':False})+'\n').encode())
                 self.wfile.write((json.dumps({'message':{'content':'Useful response. '*20},'done':True})+'\n').encode())
             def log_message(self, *args):
                 pass
@@ -40,8 +41,20 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(path, '/api/chat')
             self.assertTrue(body['stream'])
             self.assertEqual(body['options']['num_predict'], 120)
+            self.assertNotIn('think', body)
+            self.assertNotIn('Private fixture', reply)
             self.assertNotIn('tools', body)
             self.assertNotIn('keep_alive', body) # Never force-unload a shared model.
+            gpt = LocalBackends(Config(
+                ollama_url=f'http://127.0.0.1:{server.server_port}',
+                model='gpt-oss:20b', reasoning_effort='low',
+                context_tokens=4096, max_response_tokens=512))
+            final = await gpt.respond('Hello')
+            gpt_body = observed[1][1]
+            self.assertEqual(gpt_body['think'], 'low')
+            self.assertEqual(gpt_body['options'], {'num_predict':512,'num_ctx':4096})
+            self.assertTrue(final.startswith('Useful response.'))
+            self.assertNotIn('Private fixture', final)
         finally:
             await asyncio.to_thread(server.shutdown)
             server.server_close()

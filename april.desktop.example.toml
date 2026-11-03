@@ -1,0 +1,22 @@
+# Desktop profile based on Enrique's individually verified components.
+# Copy to ignored april.local.toml; run the server from the project root.
+# The complete browser voice interaction still requires acceptance testing.
+mode = "live"
+host = "127.0.0.1"
+port = 8765
+ollama_url = "http://127.0.0.1:11434"
+model = "gpt-oss:20b"
+reasoning_effort = "low"
+context_tokens = 4096
+max_response_tokens = 512 # Includes reasoning; spoken text is separately bounded.
+max_response_chars = 600
+whisper_cli = ".tools/whisper.cpp/build/bin/whisper-cli"
+stt_model = ".tools/whisper.cpp/models/ggml-base.en.bin"
+piper_cli = ".venv/bin/piper"
+voice = "models/en_US-ljspeech-medium.onnx"
+timeout_seconds = 90
+playback_timeout_seconds = 60
+max_record_seconds = 15
+input_device_id = "default"
+output_device_id = "default"
+timezone = "America/New_York"

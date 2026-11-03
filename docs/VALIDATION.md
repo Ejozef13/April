@@ -1,5 +1,11 @@
 # Validation record — November 3, 2026
 
+## Desktop follow-up (user-observed results)
+
+Enrique reported successful microphone recording/playback and Piper LJ Speech synthesis on CachyOS. His screenshots show actual Whisper `base.en` transcription of the bundled JFK sample and an actual GPT-OSS 20B answer through Ollama 0.40.13. Ollama reported 100% GPU placement and a 4096-token context. One HTTP request took 5.29 seconds with loading/warmth not established; this is not an end-to-end voice benchmark. The LJ Speech model card lists its dataset as public domain; retain the separate Piper software license obligations.
+
+The desktop integration update adds configurable reasoning effort/context, a bounded 512-token profile for GPT-OSS, exclusion of separate reasoning from final-answer output, and the tested desktop model paths. All 17 automated fixture tests pass after this update; JavaScript syntax and diff checks pass. The complete browser microphone → Whisper → GPT-OSS → Piper → selected output workflow, its cancellation behavior on physical hardware, and Pi acceptance remain pending. The cloud-instance results below remain historical cloud results, not claims about desktop hardware.
+
 The initial checkout contained no files or commits (symbolic unborn `work` branch). No existing application or user changes were overwritten. Implementation was explicitly requested after onboarding began. No commit or push was performed during initial validation; the user subsequently authorized publishing this prototype to GitHub.
 
 | Check | Outcome | What it establishes |
