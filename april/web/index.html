@@ -20,6 +20,8 @@
  </g>
 </svg><div class="state-line"><span id="state-dot"></span><strong id="state" role="status">Connecting</strong></div><p id="activity">Your local companion, one request at a time.</p></section>
 <section class="console"><div class="toolbar"><button id="record" disabled>● Start recording</button><button id="stop" class="secondary">Stop / cancel</button><button id="mute" class="secondary" aria-pressed="false">Mute off</button><button id="time" class="secondary">Current time</button></div>
+<button id="play-reply" class="secondary" hidden>Play reply</button>
+<audio id="response-audio" preload="auto" hidden></audio>
 <p id="mic" class="small">Microphone: not enabled. Press record to request permission. Shortcut: Alt+R.</p>
 <div class="devices"><label>Microphone<select id="input"><option value="default">System default</option></select></label><label>Output<select id="output"><option value="default">System default</option></select></label><button id="devices" class="secondary">Enable / refresh devices</button></div>
 <form id="text-form"><label for="text">Or type a message</label><div class="entry"><input id="text" maxlength="2000" placeholder="What shall we tackle today?" autocomplete="off" required><button id="send">Send ↗</button></div></form>

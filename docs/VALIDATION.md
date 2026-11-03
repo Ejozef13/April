@@ -2,6 +2,12 @@
 
 ## Desktop follow-up (user-observed results)
 
+### Playback failure follow-up
+
+Enrique's live-browser screenshot shows a generated text reply followed by an interrupted `play()` error. The exact Brave/Piper failure was not reproduced in the cloud; a native WAV tone played successfully. The playback update keeps a mounted media element, invalidates pending playback promises during cleanup, preserves the first media error, and offers an explicit **Play reply** retry when automatic playback is blocked/interrupted. A retry reuses the current audio and remains subject to the server playback deadline; no extra model request is made.
+
+`python scripts/browser_playback_check.py` passed Chromium checks for actual WAV tone playback, injected autoplay denial followed by user retry, completion while `play()` remains pending, injected media error followed by teardown, and Stop followed by successful recovery. The fault injections exercise browser lifecycle handling; the fixture backend is not Piper, Ollama, or physical hardware. JavaScript syntax and diff checks pass. Actual Brave + generated Piper audio acceptance remains pending.
+
 Enrique reported successful microphone recording/playback and Piper LJ Speech synthesis on CachyOS. His screenshots show actual Whisper `base.en` transcription of the bundled JFK sample and an actual GPT-OSS 20B answer through Ollama 0.40.13. Ollama reported 100% GPU placement and a 4096-token context. One HTTP request took 5.29 seconds with loading/warmth not established; this is not an end-to-end voice benchmark. The LJ Speech model card lists its dataset as public domain; retain the separate Piper software license obligations.
 
 The desktop integration update adds configurable reasoning effort/context, a bounded 512-token profile for GPT-OSS, exclusion of separate reasoning from final-answer output, and the tested desktop model paths. All 17 automated fixture tests pass after this update; JavaScript syntax and diff checks pass. The complete browser microphone → Whisper → GPT-OSS → Piper → selected output workflow, its cancellation behavior on physical hardware, and Pi acceptance remain pending. The cloud-instance results below remain historical cloud results, not claims about desktop hardware.

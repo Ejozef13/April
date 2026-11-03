@@ -6,6 +6,7 @@ $('mode').textContent = config.mode === 'simulation' ? 'SIMULATION · no models 
 let state = 'idle', muted = false, recording = null, player = null, audioURL = null;
 let generation = 0, recordPending = false, connected = false, playbackPending = false;
 let suppress = false;
+let playbackVersion = 0, retryPlayback = null;
 const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
 const send = message => { if (socket.readyState === 1) socket.send(JSON.stringify(message)); };
 const descriptions = {idle:'Ready when you are.',listening:'Microphone is recording. Press again to finish.',transcribing:'Turning recorded audio into text.',thinking:'Waiting for a local response or preparing speech.',speaking:'Playing April’s response.',error:'Something went wrong. You can try again.'};
@@ -20,7 +21,11 @@ function showState(value) {
 }
 function error(message) { $('error').textContent = message; }
 function stopPlayback() {
-  if (player) { player.onended = player.onerror = player.onplaying = null; player.pause(); player.src = ''; player = null; }
+  playbackVersion++; retryPlayback = null; $('play-reply').hidden = true;
+  if (player) {
+    player.onended = player.onerror = player.onplaying = null;
+    player.pause(); player.removeAttribute('src'); player.load(); player = null;
+  }
   if (audioURL) { URL.revokeObjectURL(audioURL); audioURL = null; }
 }
 async function releaseCapture() {
@@ -56,22 +61,52 @@ socket.onmessage = async event => {
   if (message.type === 'simulation') $('activity').textContent = message.message;
   if (message.type === 'audio') {
     if (muted) { send({type:'cancel'}); return; }
+    stopPlayback();
     const epoch = generation; playbackPending = true;
+    const version = playbackVersion;
+    const current = () => epoch === generation && version === playbackVersion;
+    const fail = message => { if (current()) { error(message); cancel(); } };
     try {
       const bytes = Uint8Array.from(atob(message.audio), c => c.charCodeAt(0));
       audioURL = URL.createObjectURL(new Blob([bytes], {type:'audio/wav'}));
-      const audio = new Audio(audioURL); player = audio;
+      // Keep one mounted media element across turns. Reset only after its
+      // handlers have been detached; an empty src can load the document URL.
+      const audio = $('response-audio'); player = audio; audio.src = audioURL;
       if ($('output').value !== 'default') {
         if (!audio.setSinkId) throw new Error('Output selection is unsupported here. Use the system default.');
         await audio.setSinkId($('output').value);
       }
-      if (epoch !== generation) return;
-      audio.onplaying = () => send({type:'playback_started'});
-      audio.onended = () => { stopPlayback(); playbackPending = false; send({type:'played'}); };
-      audio.onerror = () => { error('Playback failed. Check your selected output.'); cancel(); };
-      await audio.play();
-      if (epoch !== generation) stopPlayback();
-    } catch (exc) { if (epoch === generation) { error(`Playback: ${exc.message}`); cancel(); } }
+      if (!current()) return;
+      audio.onplaying = () => {
+        if (current()) { error(''); $('play-reply').hidden = true; send({type:'playback_started'}); }
+      };
+      audio.onended = () => {
+        if (current()) { stopPlayback(); playbackPending = false; send({type:'played'}); }
+      };
+      audio.onerror = () => {
+        const code = audio.error?.code;
+        fail(code === 3 || code === 4
+          ? `Playback: generated audio could not be decoded (media error ${code}). Check the Piper WAV output.`
+          : `Playback: audio loading failed (media error ${code ?? 'unknown'}). Check the selected output.`);
+      };
+      const play = async () => {
+        if (!current()) return;
+        try {
+          await audio.play();
+        } catch (exc) {
+          // Stop, mute, completion and a newer turn intentionally invalidate
+          // this promise. Their cleanup must not become a new playback error.
+          if (!current()) return;
+          if (exc.name === 'NotAllowedError' || exc.name === 'AbortError') {
+            error('Playback did not start. Press Play reply to retry, or Stop to cancel.');
+            retryPlayback = play; $('play-reply').hidden = false;
+          } else {
+            fail('Playback failed. Check the selected output or try the system default.');
+          }
+        }
+      };
+      await play();
+    } catch (exc) { fail(`Playback setup: ${exc.message}`); }
   }
 };
 async function devices() {
@@ -142,6 +177,7 @@ $('record').onclick = () => {
   else if (['idle','error'].includes(state)) { recordPending = true; send({type:'record'}); }
 };
 $('stop').onclick = cancel;
+$('play-reply').onclick = () => { if (retryPlayback) retryPlayback(); };
 $('mute').onclick = () => { muted = !muted; $('mute').textContent = `Mute ${muted?'on':'off'}`; $('mute').setAttribute('aria-pressed',String(muted)); if (muted && (player || playbackPending)) cancel(); };
 $('text-form').onsubmit = event => { event.preventDefault(); error(''); send({type:'text',text:$('text').value}); };
 $('time').onclick = () => { error(''); send({type:'time',arguments:{}}); };

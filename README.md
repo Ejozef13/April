@@ -49,6 +49,8 @@ USB/3.5 mm adapters do not establish a compatible ADC/DAC. Device visibility doe
 .venv/bin/python -m unittest discover -s tests -v
 # Optional UI harness: requires Playwright, Chromium and FFmpeg in its Python environment.
 python scripts/browser_smoke.py
+# Playback regression harness: starts its own fixture server and plays a WAV tone.
+python scripts/browser_playback_check.py
 ```
 
 The [recorded simulation walkthrough](docs/evidence/simulation-walkthrough.webm) is included in this repository. The browser harness uses fake microphone data and simulation backends. It saves actual screenshots to `docs/evidence/` and an ignored short video to `artifacts/simulation-walkthrough.webm`. [Validation report](docs/VALIDATION.md) distinguishes these checks from real models and hardware. [Timing protocol](docs/BENCHMARKS.md) describes measurements without inventing results.
@@ -65,6 +67,7 @@ Configuration uses ignored `april.local.toml` or `APRIL_CONFIG`; `APRIL_MODE=sim
 |---|---|
 | Microphone unavailable | Use localhost or HTTPS, allow browser permission, select a real input. Plain LAN HTTP is not a secure context. |
 | No or wrong audio output | Unmute, check OS routing, select output after granting device permission. Some browsers lack `setSinkId`; use system default. |
+| Playback interrupted or blocked | Press **Play reply** if offered; it retries the received audio without another model request. Stop cancels the pending reply. If the error mentions decoding, check the generated Piper WAV; a visible text reply alone does not prove speech playback. |
 | Speech binary/model missing | Check absolute paths and execute `whisper-cli --help` / `.venv/bin/piper --help`. |
 | Local backend failed | Check `ollama list`, `ollama ps`, model path/voice config compatibility; try text first. |
 | Request timeout | Shorten recording/prompt, inspect resource contention and existing AM load. Never assume GPU capacity is available. |
