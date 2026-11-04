@@ -171,6 +171,28 @@ class SessionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.session.machine.state, State.ERROR)
         self.assertFalse(any(m['type']=='reply' for m in self.messages))
 
+    async def test_spoken_and_typed_time_use_actual_clock_without_model(self):
+        from unittest.mock import AsyncMock,patch
+        from april.tools import is_time_request
+        for text in ['Tell me the time','April, what time is it?']:
+            self.assertTrue(is_time_request(text))
+            self.messages.clear()
+            with patch.object(self.session.backends,'respond',AsyncMock(side_effect=AssertionError('Clock must not call the LLM'))):
+                await self.session.handle({'type':'text','text':text})
+                await self.session.task
+            self.assertTrue(any(m.get('source')=='current_time' for m in self.messages))
+            self.assertTrue(any(m.get('type')=='transcript' and m['text']==text for m in self.messages))
+        self.assertFalse(is_time_request('Explain how time travel works'))
+        self.assertTrue(is_time_request('April, can you tell me the time please?'))
+        self.messages.clear()
+        with patch.object(self.session.backends,'transcribe',AsyncMock(return_value='April, tell me the time')), \
+             patch.object(self.session.backends,'respond',AsyncMock(side_effect=AssertionError('Clock must not call the LLM'))):
+            await self.session.handle({'type':'record'})
+            await self.session.handle({'type':'audio','audio':base64.b64encode(wav_bytes()).decode()})
+            await self.session.task
+        self.assertTrue(any(m.get('source')=='current_time' for m in self.messages))
+        self.assertTrue(any(m.get('type')=='transcript' and m['text']=='April, tell me the time' for m in self.messages))
+
     async def test_cancel_terminates_owned_subprocess(self):
         import tempfile
         from pathlib import Path

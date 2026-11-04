@@ -29,6 +29,11 @@ class Config:
     input_device_id: str = "default"
     output_device_id: str = "default"
     timezone: str = "America/New_York"
+    document_roots: tuple[str, ...] = ()
+    documents_index_path: str = 'artifacts/documents.sqlite3'
+    web_api_key_env: str = 'APRIL_BRAVE_API_KEY'
+    web_key_path: str = '~/.config/april/brave-key'
+    gmail_token_path: str = '~/.local/share/april/gmail-token.json'
 
     def __post_init__(self):
         if self.mode not in {"live", "simulation"}:
@@ -54,6 +59,11 @@ class Config:
             raise ValueError("Display dimensions must be within 240–1920 by 240–1080")
         from zoneinfo import ZoneInfo
         ZoneInfo(self.timezone)
+        if not isinstance(self.document_roots, (list, tuple)) or any(not isinstance(root, str) or not root.strip() for root in self.document_roots):
+            raise ValueError('document_roots must be a list of explicitly approved folders')
+        import re
+        if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', self.web_api_key_env):
+            raise ValueError('web_api_key_env must name an environment variable, not contain a credential')
 
 
 def load_config() -> Config:

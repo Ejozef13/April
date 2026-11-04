@@ -12,9 +12,9 @@ Verify the actual Raspberry Pi OS 64-bit installation, storage, active cooling, 
 
 Move coordination to the Pi and add explicit local/desktop inference selection. Authenticate the desktop service, keep external exposure closed and show the selected mode. At turn start choose exactly one backend; never submit duplicate turns. If the desktop disappears mid-turn, report it and offer a local retry. Desktop-only actions remain unavailable offline. Test startup, shutdown, cancellation and connection loss before describing automatic fallback as working.
 
-## Later: useful bounded tools
+## Read-only grounding foundation; then useful bounded tools
 
-Start with read-only search in explicitly selected desktop folders. Treat file contents as untrusted data; exclude credential stores by default. Add Navidrome through its supported API after identifying the actual server, authentication and intended playback endpoint. File changes, deletion and other consequential operations require reviewable proposals/confirmation initially. No unrestricted root agent or arbitrary model-generated shell execution.
+The new opt-in foundation implements approved-folder lexical RAG, Brave Search, read-only Gmail OAuth, and spoken clock routing. Fixture checks are separate from real authentication/private-data acceptance, which remains pending. Start live acceptance with only `~/Documents/aprilfiles`, then configured web/Gmail queries as described in INTEGRATIONS.md. Treat file contents as untrusted data; exclude credential stores by default. Add Navidrome through its supported API after identifying the actual server, authentication and intended playback endpoint. File changes, deletion and other consequential operations require reviewable proposals/confirmation initially. No unrestricted root agent or arbitrary model-generated shell execution.
 
 ## Finally: robot appliance and physical presentation
 

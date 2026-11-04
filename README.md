@@ -59,9 +59,17 @@ Change settings in ignored `april.local.toml` or select another config through `
 3. Read the transcript and response. April enters Speaking only after browser playback begins. **Play reply** retries blocked/interrupted playback using the same audio.
 4. **Stop / cancel** or Escape releases recording/playback and cancels the owned job. Mute suppresses audio; a completed generated response still appears as text.
 5. Use **Face view** for a full-screen presentation with Record, Stop, Mute and clock controls available. Return with Show controls. Reduced-motion settings are respected.
-6. **Current time** calls a deterministic read-only function. The model does not execute shell commands or select arbitrary tools.
+6. **Current time**, “April, what time is it?” and “Tell me the time” call the deterministic clock rather than asking the model. The transcript is preserved. The model does not execute shell commands or select arbitrary tools.
 
 States: idle, listening, transcribing, thinking, speaking, error. Thinking means waiting on a response or preparing its voice; expressions do not reveal model reasoning. Mouth animation follows the speaking state, not phoneme-accurate lip sync. One global job runs at a time, with no application backlog. A new attempt can recover after a failure without restarting APRIL.
+
+## Read-only integration preview
+
+[INTEGRATIONS.md](docs/INTEGRATIONS.md) contains the setup for the requested `~/Documents/aprilfiles` folder, Brave Search and Gmail read-only OAuth. They are opt-in and **not connected to your personal accounts by this code update**. APIs/folder boundaries are fixture-tested; real provider authentication and private-data acceptance must be completed on your desktop. Private/external retrieval is disabled in simulation.
+
+Use explicit “search my files for …”, “search my emails for …”, “search the web for …” or the corresponding search buttons. Retrieved sources appear in a review panel and are passed only to the local model. A narrow current-fact router requests a web source instead of silently guessing from old model weights. Missing credentials/service produce actionable errors. Web queries go to Brave; private excerpts never automatically fall back to web search. No mail sending/deletion, source-file changes, background mailbox crawl or arbitrary system access is provided.
+
+Document RAG uses SQLite keyword retrieval over approved UTF-8 text formats; PDFs/Word/embedding search are not implemented. The index retains private excerpts locally. Gmail tokens/search keys persist outside Git with private permissions; Google browser consent and your own provider key are required. Normal conversation and the clock remain offline-capable.
 
 ## Diagnostics and evidence
 
@@ -93,9 +101,9 @@ The goal is **Pi-first standalone assistance plus authenticated desktop accelera
 
 ## Privacy, limits and troubleshooting
 
-No persistent conversation memory, transcript database, automatic audio archive or browser local storage is enabled. Browser memory and private temporary job files support the CLI stages; files are deleted on completion, failure or cancellation. A hard kill/power loss can leave OS temporary files. Use a RAM-backed `TMPDIR` when desired. Timing download, copying a transcript and screen recording are explicit retention actions. Clear your tab to remove its displayed exchange.
+No persistent conversation memory, transcript database, automatic audio archive or browser local storage is enabled. Browser memory and private temporary job files support the CLI stages; files are deleted on completion, failure or cancellation. A hard kill/power loss can leave OS temporary files. Use a RAM-backed `TMPDIR` when desired. Timing download, copying a transcript and screen recording are explicit retention actions. Clear your tab to remove its displayed exchange and retrieved excerpts. Explicit document indexing persists a private local SQLite index; Gmail/search credentials persist in private files outside the repository. Review retention and disconnect steps in INTEGRATIONS.md.
 
-Default binding and Ollama endpoints are loopback-only. Host/origin checks, no CORS, restrictive content policy and no external UI assets reduce unintended browser access. This remains a single-user local prototype. The clock tool validates its empty arguments; filesystem/system control, Navidrome, wake words, motors and autonomous actions are not part of this release. Model answers can be inaccurate and are not authoritative live facts.
+Default binding and Ollama endpoints are loopback-only. Host/origin checks, no CORS, restrictive content policy and no external UI assets reduce unintended browser access. This remains a single-user local prototype. The clock validates its empty arguments. Opt-in read-only retrieval is distinct from filesystem/system control; Navidrome, wake words, motors and autonomous actions are not implemented. Model answers can be inaccurate and are not authoritative live facts.
 
 | Symptom | Action |
 |---|---|
@@ -116,6 +124,8 @@ Default binding and Ollama endpoints are loopback-only. Host/origin checks, no C
 | `april/config.py`, `*.example.toml` | Runtime settings outside application logic |
 | `april/state.py`, `april/session.py` | Explicit states, bounded serial jobs, cancellation and timing |
 | `april/audio.py`, `april/backends.py`, `april/errors.py` | Audio validation, replaceable local adapters and redacted actionable errors |
-| `april/server.py`, `april/tools.py` | Local API lifecycle, origin boundary and validated clock |
+| `april/server.py`, `april/tools.py` | Local API lifecycle, origin boundary and spoken/button clock |
+| `april/documents.py`, `april/knowledge.py`, `april/gmail.py`, `april/integrations.py` | Opt-in bounded retrieval and secure local account setup |
+| `april/evaluate.py`, `april/evaluation_cases.json` | Text-only baseline with human rubrics; no automatic accuracy claim |
 | `april/web/` | Photo-inspired SVG, accessible controls, capture worklet and playback |
 | `tests/`, `scripts/`, `docs/` | Reliability checks, repeatable setup, architecture and honest evidence |

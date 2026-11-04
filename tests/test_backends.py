@@ -55,6 +55,13 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(gpt_body['options'], {'num_predict':512,'num_ctx':4096})
             self.assertTrue(final.startswith('Useful response.'))
             self.assertNotIn('Private fixture', final)
+            await gpt.respond('What does this source say?',sources=[{
+                'title':'Approved source','excerpt':'PRIVATE_REFERENCE_FIXTURE: April wears purple.',
+                'kind':'document','url':None}])
+            grounded=observed[2][1]
+            self.assertIn('untrusted data',grounded['messages'][0]['content'])
+            self.assertIn('PRIVATE_REFERENCE_FIXTURE',grounded['messages'][1]['content'])
+            self.assertEqual(grounded['messages'][2]['content'],'What does this source say?')
         finally:
             await asyncio.to_thread(server.shutdown)
             server.server_close()

@@ -1,6 +1,6 @@
 # Improving answers without assuming Internet fixes them
 
-APRIL's desktop can be connected to the Internet while the model itself has no browsing capability. The current application sends the latest transcript and a short system instruction to local Ollama. It does not search the web, retrieve desktop files, query Navidrome, or include earlier conversational turns. Those capabilities must be implemented explicitly. Normal conversation can remain offline.
+APRIL sends the latest question to local Ollama; earlier dialogue is not included automatically. Spoken time now routes to the real clock. Opt-in Brave Search, approved-folder retrieval and read-only Gmail adapters supply bounded excerpts when explicitly configured; they are not automatically connected to personal accounts. Navidrome and arbitrary desktop control remain unimplemented. Normal conversation can remain offline. See [INTEGRATIONS.md](INTEGRATIONS.md).
 
 ## Diagnose before replacing the model
 
@@ -28,3 +28,16 @@ Start with one useful source and a small evaluation set. Do not enable unrestric
 1. Review actual wrong-answer examples; finish real timing exports, cancellation/retry observations and a short live walkthrough.
 2. Implement/evaluate the smallest missing context or grounded-data capability supported by those examples.
 3. Verify the Pi OS/hardware and benchmark small local models with speech active, then add authenticated desktop acceleration. Offline Pi usefulness remains a requirement.
+
+
+## Text-only baseline
+
+Stop APRIL’s voice server for this run; do not stop shared Ollama or AM. This isolates model output from capture/recognition/synthesis and does not invoke the retrieval coordinator:
+
+```bash
+.venv/bin/python -m april.evaluate --output artifacts/accuracy-baseline.jsonl
+```
+
+Six public test cases cover stable facts, programming and honest capability limits. Each saved final answer remains **unreviewed** until a person compares it with the rubric/reference. A completed HTTP request is not a passing answer. The runner records failed/unrun cases, never emits an accuracy score, excludes reasoning and audio, refuses simulation, and never overwrites a report. It stops early on an unavailable/rejected service rather than retrying the same failure. Output is deliberately retained locally and ignored by Git. Use a new output filename for another run.
+
+Reference links are reviewer starting points, not a claim that pages were freshly fetched during the baseline. Times include any model loading and exclude speech; loading conditions default to unknown. Keep actual failure examples separate from this standard test set. No real accuracy results have been measured by adding the runner.

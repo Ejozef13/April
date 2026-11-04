@@ -8,6 +8,7 @@ import math
 import socket
 import struct
 import sys
+import tempfile
 import wave
 from pathlib import Path
 
@@ -16,12 +17,13 @@ import uvicorn
 from playwright.async_api import async_playwright
 from april.config import Config
 from april.server import create_app
+from april.documents import build_index
 
 
 class ToneBackend:
-    async def respond(self, text):
+    async def respond(self, text, *, sources=None):
         await asyncio.sleep(.1)
-        return 'Fixture reply; audio is a test tone.'
+        return 'Fixture source-backed reply [1].' if sources else 'Fixture reply; audio is a test tone.'
 
     async def synthesize(self, text, output):
         with wave.open(str(output), 'wb') as wav:
@@ -29,14 +31,19 @@ class ToneBackend:
             wav.setsampwidth(2)
             wav.setframerate(16000)
             wav.writeframes(b''.join(struct.pack('<h', int(1000 * math.sin(i * math.tau * 440 / 16000)))
-                                     for i in range(16000)))
+                                     for i in range(32000)))
 
 
 async def main():
+    temporary=tempfile.TemporaryDirectory(prefix='april-browser-docs-')
+    folder=Path(temporary.name)/'aprilfiles';folder.mkdir()
+    (folder/'project.md').write_text('April wears a purple collar. This is a public test fixture.')
     listener = socket.socket()
     listener.bind(('127.0.0.1', 0))
     port = listener.getsockname()[1]
-    server = uvicorn.Server(uvicorn.Config(create_app(Config(port=port), ToneBackend()), log_level='warning'))
+    config=Config(port=port,document_roots=[str(folder)],documents_index_path=str(Path(temporary.name)/'index.sqlite3'))
+    build_index(config)
+    server = uvicorn.Server(uvicorn.Config(create_app(config, ToneBackend()), log_level='warning'))
     server_task = asyncio.create_task(server.serve(sockets=[listener]))
     try:
         while not server.started:
@@ -143,12 +150,24 @@ async def main():
                 assert not await page.locator('#error').inner_text()
                 assert not errors, errors
                 print('Stop during playback, then successful retry passed.')
+                await page.locator('#knowledge-panel summary').click()
+                await page.locator('#text').fill('purple collar')
+                await page.locator('#search-documents').click()
+                await page.wait_for_function("() => document.querySelector('#sources').textContent.includes('project.md')")
+                await page.locator('#sources-panel summary').click()
+                assert 'purple collar' in await page.locator('#sources').inner_text()
+                await page.wait_for_function("() => document.body.dataset.state === 'speaking'")
+                await page.wait_for_function("() => document.body.dataset.state === 'idle'")
+                assert '[1]' in await page.locator('#reply').inner_text()
+                assert not await page.locator('#error').inner_text()
+                print('Approved-folder retrieval -> visible source -> fixture answer -> WAV playback passed.')
             finally:
                 await browser.close()
     finally:
         server.should_exit = True
         await server_task
         listener.close()
+        temporary.cleanup()
 
 
 asyncio.run(main())

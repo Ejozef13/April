@@ -11,12 +11,13 @@ dependencies = ["fastapi==0.141.1", "uvicorn==0.52.1", "httpx==0.28.1", "websock
 
 [project.optional-dependencies]
 speech = ["piper-tts==1.8.0"]
+gmail = ["google-auth-oauthlib==1.5.0"]
 
 [project.scripts]
 april = "april.launch:main"
 
 [tool.setuptools.package-data]
-april = ["web/*"]
+april = ["web/*", "evaluation_cases.json"]
 
 [tool.setuptools.packages.find]
 include = ["april*"]

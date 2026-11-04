@@ -92,3 +92,16 @@ Tail silhouette replacement: the latest supplied illustration supersedes the pre
 
 
 Final tail-tip refinement: the existing width, brown base and white upper section are preserved; the pointed end is shortened and replaced with a diagonal top edge for the requested cropped-tail cartoon silhouette. Browser capture, wagging, reduced-motion and responsive checks passed; screenshots/video refreshed.
+
+
+## Read-only grounding preview — November 4, 2026
+
+Enrique reported two concrete errors: a stale presidential answer and no useful spoken-time response, then requested web/Gmail/private-file access. He selected Gmail/Workspace and `~/Documents/aprilfiles`. The implementation now routes recognized spoken/typed clock requests to the actual clock, keeps the real transcript, and requires web evidence for narrowly recognized current-fact queries rather than silently falling back to stale model weights.
+
+Opt-in Brave Search, explicit approved-folder SQLite FTS5 RAG, and read-only Gmail OAuth/search adapters are implemented. UI controls show actual retrieved excerpts separately from generated text. Local document indexing stores bounded private excerpts with explicit retention and scope checks; credentials live outside Git with private file permissions. Simulation refuses real private/external retrieval. The model does not issue commands or recursively fetch data; no mail sending/deletion, source-file modification or Navidrome control was added.
+
+The API/folder tests use temporary public fixtures, not Enrique’s actual documents or email account. A real SQLite index/search and the browser path from approved fixture source through visible citations and WAV playback passed. The existing simulation UI/capture/export harness passed. The optional installed Google OAuth helper’s PKCE/loopback signatures were inspected; the actual Google consent flow was not run. Official Gmail/Brave documentation endpoints returned 403 from the cloud, so provider setup is linked for desktop review and live authentication remains pending.
+
+A text-only evaluation runner and six public cases were added with human rubrics, unknown loading conditions, explicit failed/unrun outcomes and no automatic accuracy grade. Its cloud smoke run correctly recorded one unavailable-model failure and five unrun cases, with zero correctness reviews; no live accuracy improvement or model score is claimed. Real Brave authentication/search, Gmail consent/mail search, private `aprilfiles` indexing and physical spoken-time acceptance require desktop setup. See INTEGRATIONS.md and ACCURACY.md.
+
+Final grounding validation: 39 Python tests passed, followed by the affected 13 integration-boundary tests after strict Google endpoint refinement. Browser simulation and approved-folder/source/WAV playback harnesses passed. Optional dependency consistency, packaged module/case inclusion, JavaScript syntax, local documentation links and diff checks passed. No real personal Gmail/Brave authentication or numerical accuracy score was obtained.

@@ -3,6 +3,7 @@ const config = await fetch('/api/config').then(r => r.json());
 $('face').style.width = `min(100%, ${config.display_width}px)`;
 $('face').style.height = `${Math.round(config.display_height * .65)}px`;
 $('mode').textContent = config.mode === 'simulation' ? 'SIMULATION · no models / speech' : 'LIVE · local backends';
+$('integration-status').textContent = config.mode === 'simulation' ? 'External/private retrieval is disabled in simulation.' : Object.entries(config.integrations || {}).map(([name,configured]) => `${name}: ${configured ? 'configured (not yet verified)' : 'setup needed'}`).join(' · ');
 let state = 'idle', muted = false, recording = null, player = null, audioURL = null;
 let generation = 0, recordPending = false, connected = false, playbackPending = false;
 let suppress = false;
@@ -18,6 +19,7 @@ function showState(value) {
   const busy = !['idle', 'error'].includes(value);
   $('record').disabled = !connected || (busy && value !== 'listening');
   $('send').disabled = $('time').disabled = !connected || busy;
+  for (const id of ['search-web','search-documents','search-gmail']) $(id).disabled = !connected || busy;
   $('stop').disabled = !connected || !busy;
   $('record').textContent = value === 'listening' ? '■ Finish recording' : '● Start recording';
 }
@@ -26,6 +28,7 @@ function prepareTurn() {
   error(''); lastTiming = null; $('export-timing').disabled = true;
   $('timings').textContent = 'Waiting for this turn’s measurements.';
   $('reply').textContent = 'Waiting for April…';
+  $('sources').replaceChildren(); $('sources-panel').hidden = true;
 }
 function setPlaybackResult(value) { if (lastTiming) lastTiming.playback = value; }
 function stopPlayback() {
@@ -68,6 +71,24 @@ socket.onmessage = async event => {
   if (message.type === 'error') error(message.message);
   if (message.type === 'transcript') $('transcript').textContent = message.text;
   if (message.type === 'reply') $('reply').textContent = message.text;
+  if (message.type === 'sources') {
+    $('sources').replaceChildren(...message.sources.map(source => {
+      const item=document.createElement('li');
+      let heading=document.createElement('strong'); heading.textContent=source.title;
+      if (source.url) {
+        try {
+          const url=new URL(source.url);
+          if (['http:','https:'].includes(url.protocol) && !url.username) {
+            heading=document.createElement('a'); heading.textContent=source.title; heading.href=url.href;
+            heading.target='_blank'; heading.rel='noopener noreferrer';
+          }
+        } catch { /* Invalid URLs remain plain text; never execute provider markup. */ }
+      }
+      const excerpt=document.createElement('p'); excerpt.textContent=source.excerpt;
+      item.append(heading,excerpt); return item;
+    }));
+    $('sources-panel').hidden=message.sources.length===0;
+  }
   if (message.type === 'timings') {
     lastTiming = {schema_version:1, recorded_at:new Date().toISOString(), mode:config.mode,
       model:config.model, context_tokens:config.context_tokens, reasoning_effort:config.reasoning_effort,
@@ -215,6 +236,14 @@ $('text-form').onsubmit = event => {
   prepareTurn(); send({type:'text',text:$('text').value});
 };
 $('time').onclick = () => { prepareTurn(); send({type:'time',arguments:{}}); };
+for (const action of ['web','documents','gmail']) {
+  $(`search-${action}`).onclick=()=>{
+    const text=$('text').value.trim();
+    if (!text) { error('Type a search query in the message box first.'); $('text').focus(); return; }
+    if (!connected || !['idle','error'].includes(state)) return;
+    prepareTurn(); send({type:action,text});
+  };
+}
 $('devices').onclick = async () => {
   try { const stream = await navigator.mediaDevices.getUserMedia({audio:true}); stream.getTracks().forEach(t => t.stop()); await devices(); $('mic').textContent = 'Microphone: permission granted · not recording'; }
   catch (exc) { error(`Devices: ${exc.message}`); }

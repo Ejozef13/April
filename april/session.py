@@ -7,8 +7,9 @@ from pathlib import Path
 
 from .audio import validate_wav
 from .state import State, StateMachine
-from .tools import current_time
+from .tools import current_time, is_time_request
 from .errors import BackendError
+from .knowledge import route_knowledge, retrieve
 
 
 class Session:
@@ -91,17 +92,17 @@ class Session:
                 return
             await self.state(State.TRANSCRIBING)
             self.task = asyncio.create_task(self.run(audio=data))
-        elif action in {"text", "time"}:
+        elif action in {"text", "time", "web", "documents", "gmail"}:
             text = message.get("text", "")
-            if action == "text" and (not isinstance(text, str) or not text.strip() or len(text) > 2000):
+            if action != "time" and (not isinstance(text, str) or not text.strip() or len(text) > 2000):
                 await self.send({"type": "error", "message": "Enter 1–2000 characters."})
                 return
             if await self.begin():
-                self.task = asyncio.create_task(self.run(text=text.strip(), tool=action == "time", arguments=message.get("arguments", {})))
+                self.task = asyncio.create_task(self.run(text=text.strip(), tool=action == "time", arguments=message.get("arguments", {}),search_action=action if action in {'web','documents','gmail'} else None))
         else:
             await self.send({"type": "error", "message": "Unknown or out-of-order action."})
 
-    async def run(self, text="", audio=None, tool=False, arguments=None):
+    async def run(self, text="", audio=None, tool=False, arguments=None,search_action=None):
         timings = {}
         started = time.perf_counter()
         try:
@@ -115,11 +116,36 @@ class Session:
                         text = await self.backends.transcribe(recording)
                         timings["stt_ms"] = round((time.perf_counter() - tick) * 1000, 1)
                     await self.send({"type": "transcript", "text": "What time is it?" if tool else text})
+                    # Spoken/typed clock queries must use the actual clock,
+                    # not the model's training data. Preserve the real transcript.
+                    if not tool and not search_action and is_time_request(text):
+                        tool, arguments = True, {}
                     await self.state(State.THINKING)
                     tick = time.perf_counter()
-                    reply = current_time(arguments, self.config.timezone) if tool else await self.backends.respond(text)
-                    timings["tool_ms" if tool else "llm_ms"] = round((time.perf_counter() - tick) * 1000, 1)
-                    await self.send({"type": "reply", "text": reply, "source": "current_time" if tool else self.config.mode})
+                    sources=[]
+                    model_called=False
+                    if not tool:
+                        detected,query=route_knowledge(text)
+                        action=search_action or detected
+                        if action:
+                            if self.config.mode=='simulation':
+                                raise BackendError('simulation_search_disabled','Private/external retrieval is disabled in simulation. Use live mode after local setup.')
+                            query=text if search_action else query
+                            sources=await retrieve(self.config,action,query)
+                            timings['retrieval_ms']=round((time.perf_counter()-tick)*1000,1)
+                            await self.send({'type':'sources','sources':sources})
+                            tick=time.perf_counter()
+                            if sources:
+                                reply=await self.backends.respond(text,sources=sources)
+                                model_called=True
+                            else:reply='No matching sources were returned. I cannot verify an answer from this search.'
+                        else:
+                            reply=await self.backends.respond(text)
+                            model_called=True
+                    else:reply=current_time(arguments,self.config.timezone)
+                    if tool or model_called:
+                        timings["tool_ms" if tool else "llm_ms"] = round((time.perf_counter() - tick) * 1000, 1)
+                    await self.send({"type": "reply", "text": reply, "source": "current_time" if tool else ('retrieval' if action else self.config.mode)})
                     output = root / "reply.wav"
                     tick = time.perf_counter()
                     await self.backends.synthesize(reply, output)
