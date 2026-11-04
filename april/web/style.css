@@ -31,6 +31,6 @@ button{box-shadow:0 0 0 1px #c0ed8718}.secondary{box-shadow:inset 0 0 0 1px #375
 @media(max-width:640px){h1{font-size:30px;white-space:nowrap}.devices label{flex:1 1 calc(50% - 6px);min-width:120px}.devices button{width:100%}}
 
 /* Wag on captured input signal or actual response playback, never at idle. */
-#tail{transform-box:view-box;transform-origin:410px 376px;transform:rotate(-8deg)}
+#tail{transform-box:view-box;transform-origin:410px 392px;transform:rotate(-8deg)}
 body[data-state=listening].input-active #tail,body[data-state=speaking] #tail{animation:tail-wag .12s ease-in-out infinite alternate}
 @keyframes tail-wag{from{transform:rotate(-24deg)}to{transform:rotate(23deg)}}
