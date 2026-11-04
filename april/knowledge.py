@@ -12,17 +12,28 @@ from .errors import BackendError
 from .tools import normalize_request
 
 
-def route_knowledge(text):
+def private_request(text):
+    """Conservative routing cues, not a general-purpose personal-data detector."""
+    normalized=normalize_request(text)
+    return bool(re.search(
+        r'\b(?:my|our)\s+(?:e-?mails?|gmail|inbox|mailbox|mail|files?|folders?|documents?|aprilfiles|'
+        r'account|password|secret|token|private key|api key|desktop|computer|server|address|phone|calendar|contacts|name)\b'
+        r'|\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b|(?:/home/|~/|[A-Z]:\\)|-----BEGIN .*PRIVATE KEY-----',
+        normalized,re.I))
+
+
+def route_knowledge(text,automatic_web_search=False):
     normalized=normalize_request(text)
     for action,pattern in [
-        ('web',r'(?:search (?:the )?web|look (?:it )?up online)(?: for)?\s+(.+)'),
+        ('web',r'(?:search (?:the )?(?:web|internet)|check (?:on )?(?:the )?(?:internet|web)|look (?:it )?up online)(?: for)?[\s,:.!?]+(.+)'),
         ('documents',r'(?:search|find in) my (?:files|documents)(?: for)?\s+(.+)'),
         ('gmail',r'(?:search|find in) my (?:gmail|emails?|mail)(?: for)?\s+(.+)')]:
         match=re.fullmatch(pattern,normalized)
         if match:return action,match[1]
     # Specific current-fact intents must not quietly fall back to stale weights.
-    if not re.search(r'\bmy (?:emails?|mail|files|documents)\b',normalized) and re.search(r'\bcurrent president\b|\bwho is (?:the )?president\b|\blatest news\b',normalized):
-        return 'web',text
+    if private_request(text):return None,text
+    if automatic_web_search or re.search(r'\bcurrent president\b|\bwho is (?:the )?president\b|\blatest news\b',normalized):
+        return 'web',normalized
     return None,text
 
 

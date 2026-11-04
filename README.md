@@ -131,3 +131,30 @@ Default binding and Ollama endpoints are loopback-only. Host/origin checks, no C
 | `april/evaluate.py`, `april/evaluation_cases.json` | Text-only baseline with human rubrics; no automatic accuracy claim |
 | `april/web/` | Photo-inspired SVG, accessible controls, capture worklet and playback |
 | `tests/`, `scripts/`, `docs/` | Reliability checks, repeatable setup, architecture and honest evidence |
+
+
+### Automatic web lookup
+
+Ordinary live voice and text requests now search the configured provider before
+generating a response. Clock requests use the real local clock; explicit file and
+Gmail searches keep their dedicated routes. Common private cues (such as “my
+emails”, home paths and email addresses) suppress automatic web lookup. This is a
+routing heuristic, not a complete detector of sensitive information: ordinary
+prompts go to upstream search engines, so avoid including secrets. Retrieved
+private excerpts are never automatically forwarded to web search.
+
+The UI reports lookup progress and shows actual retrieved sources separately
+from model prose. Failed or empty searches do not fall back to an unsupported
+model answer. Search snippets can still be incomplete or wrong; review sources.
+“Check on the internet” is now recognized as an explicit search request.
+
+Set `automatic_web_search = false` in ignored `april.local.toml` and restart to
+use local conversation with explicit search controls (also suitable for offline
+operation). Current-fact guards still require retrieval. Simulation never
+performs automatic searches.
+
+If startup says Docker is unavailable or inaccessible, run
+`sudo systemctl start docker`, then
+`docker --host=unix:///var/run/docker.sock info --format '{{.ServerVersion}}'`.
+If the second command fails, inspect its printed error before changing socket
+permissions. Do not run APRIL or the whole setup helper as root.

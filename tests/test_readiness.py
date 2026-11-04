@@ -57,7 +57,7 @@ class ReadinessTests(unittest.IsolatedAsyncioTestCase):
         messages=[]
         async def send(message):
             messages.append(message)
-        session=Session(Config(),backend,send,asyncio.Lock())
+        session=Session(Config(automatic_web_search=False),backend,send,asyncio.Lock())
         with patch.object(backend,'_respond',AsyncMock(side_effect=httpx.ConnectError('private URL/secret'))):
             await session.handle({'type':'text','text':'hello'})
             await session.task

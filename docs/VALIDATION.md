@@ -118,3 +118,16 @@ Actual `/healthz` and `/search` returned 200; JSON search results were empty wit
 All 45 Python tests passed, including local POST/JSON contract, no credential forwarding, explicit no-paid-fallback behavior, disabled-JSON/engine failures, private repeatable initialization, and settings-preserving provider switches. Browser regressions and final file/package checks are recorded separately. The user’s reply to the desktop Docker check repeated the commands rather than supplying runtime output; actual CachyOS Docker readiness is still unknown and the helper checks it without installing or changing shared services.
 
 SearXNG final checks: all 45 Python tests, the browser playback/document-source harness, shell/JavaScript syntax, documentation links, Compose validation and package-module checks passed. The actual service helper completed healthy repeat startup and scoped stop/start. Upstream search and quality remain unverified on the desktop; cloud test lookups reported engine errors rather than model-generated facts.
+
+
+Automatic-search regression coverage uses mocked retrieval and models: normal
+questions, explicit internet wording, clock/private exclusions, manual and
+simulation modes, and failed/empty-search refusal. Browser source-status checks
+use a temporary local document and generated audio tone. No successful desktop
+SearXNG search is claimed; the latest desktop report indicates Docker is not
+available to the helper. Real upstream lookup remains pending.
+
+Latest automatic-search verification: 51 unit tests passed. Chromium regression
+passed WAV playback, blocked-autoplay retry, pending-play completion, media-error
+preservation, cancellation/retry and approved-folder source/status rendering.
+These are fixture tests, not physical microphone or live search-engine tests.

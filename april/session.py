@@ -125,12 +125,14 @@ class Session:
                     sources=[]
                     model_called=False
                     if not tool:
-                        detected,query=route_knowledge(text)
+                        detected,query=route_knowledge(text,automatic_web_search=self.config.automatic_web_search and self.config.mode=='live')
                         action=search_action or detected
                         if action:
                             if self.config.mode=='simulation':
                                 raise BackendError('simulation_search_disabled','Private/external retrieval is disabled in simulation. Use live mode after local setup.')
                             query=text if search_action else query
+                            await self.send({'type':'lookup','state':'searching','kind':action,
+                                             'provider':self.config.web_provider if action=='web' else action})
                             sources=await retrieve(self.config,action,query)
                             timings['retrieval_ms']=round((time.perf_counter()-tick)*1000,1)
                             await self.send({'type':'sources','sources':sources})
@@ -140,9 +142,13 @@ class Session:
                                 model_called=True
                             else:reply='No matching sources were returned. I cannot verify an answer from this search.'
                         else:
+                            await self.send({'type':'lookup','state':'skipped','kind':'local',
+                                             'reason':'Web lookup not selected for this request.'})
                             reply=await self.backends.respond(text)
                             model_called=True
-                    else:reply=current_time(arguments,self.config.timezone)
+                    else:
+                        await self.send({'type':'lookup','state':'clock','kind':'local'})
+                        reply=current_time(arguments,self.config.timezone)
                     if tool or model_called:
                         timings["tool_ms" if tool else "llm_ms"] = round((time.perf_counter() - tick) * 1000, 1)
                     await self.send({"type": "reply", "text": reply, "source": "current_time" if tool else ('retrieval' if action else self.config.mode)})

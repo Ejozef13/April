@@ -24,3 +24,6 @@ timezone = "America/New_York"
 # Local metasearch; Brave can be explicitly selected later.
 web_provider = "searxng"
 searxng_url = "http://127.0.0.1:8888"
+
+# Ordinary live requests search the web; false keeps manual search controls.
+automatic_web_search = true

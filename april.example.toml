@@ -23,3 +23,6 @@ timezone = "America/New_York"
 
 web_provider = "searxng" # Alternative: "brave" with a configured API key.
 searxng_url = "http://127.0.0.1:8888"
+
+# Ordinary live requests search the web; false keeps manual search controls.
+automatic_web_search = true

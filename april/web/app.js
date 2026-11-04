@@ -9,6 +9,8 @@ let generation = 0, recordPending = false, connected = false, playbackPending = 
 let suppress = false;
 let playbackVersion = 0, retryPlayback = null;
 let lastTiming = null;
+let lookupPending = false;
+$('lookup-status').textContent = config.mode === 'simulation' ? 'Simulation: no private or external searches.' : (config.automatic_web_search ? 'Automatic web lookup on · clock and private requests use dedicated routes.' : 'Automatic web lookup off · use explicit search controls.');
 const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
 const send = message => { if (socket.readyState === 1) socket.send(JSON.stringify(message)); };
 const descriptions = {idle:'Ready when you are.',listening:'Microphone is recording. Press again to finish.',transcribing:'Turning recorded audio into text.',thinking:'Waiting for a local response or preparing speech.',speaking:'Playing April’s response.',error:'Something went wrong. You can try again.'};
@@ -29,6 +31,7 @@ function prepareTurn() {
   $('timings').textContent = 'Waiting for this turn’s measurements.';
   $('reply').textContent = 'Waiting for April…';
   $('sources').replaceChildren(); $('sources-panel').hidden = true;
+  lookupPending=false; $('lookup-status').textContent='Preparing request…';
 }
 function setPlaybackResult(value) { if (lastTiming) lastTiming.playback = value; }
 function stopPlayback() {
@@ -50,6 +53,8 @@ async function releaseCapture() {
   return item;
 }
 async function cancel() {
+  if (lookupPending) $('lookup-status').textContent='Lookup cancelled.';
+  lookupPending=false;
   if (lastTiming && ['pending', 'playing'].includes(lastTiming.playback)) setPlaybackResult('cancelled');
   generation++; suppress = true; recordPending = false; playbackPending = false;
   stopPlayback(); await releaseCapture(); send({type:'cancel'});
@@ -68,10 +73,19 @@ socket.onmessage = async event => {
     if (message.state === 'listening' && recordPending) { recordPending = false; startCapture(); }
     if (message.state === 'error') { setPlaybackResult('failed'); generation++; stopPlayback(); await releaseCapture(); $('mic').textContent = 'Microphone: off'; }
   }
-  if (message.type === 'error') error(message.message);
+  if (message.type === 'error') {
+    if (lookupPending) $('lookup-status').textContent='Lookup failed · no web answer verified.';
+    lookupPending=false; error(message.message);
+  }
+  if (message.type === 'lookup') {
+    lookupPending=message.state==='searching';
+    $('lookup-status').textContent=message.state==='searching' ? `Searching ${message.kind} via ${message.provider}…` : (message.state==='clock' ? 'Using the actual local clock · no web search needed.' : 'No web lookup · local/private request or manual mode.');
+  }
   if (message.type === 'transcript') $('transcript').textContent = message.text;
   if (message.type === 'reply') $('reply').textContent = message.text;
   if (message.type === 'sources') {
+    lookupPending=false;
+    $('lookup-status').textContent=message.sources.length ? `Lookup complete · ${message.sources.length} source${message.sources.length===1?'':'s'} retrieved. Review excerpts below.` : 'Lookup completed with no matching sources · no answer verified.';
     $('sources').replaceChildren(...message.sources.map(source => {
       const item=document.createElement('li');
       let heading=document.createElement('strong'); heading.textContent=source.title;

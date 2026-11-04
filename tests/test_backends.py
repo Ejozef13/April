@@ -94,7 +94,7 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
             async def synthesize(self,text,output):
                 output.write_bytes(wav_bytes())
         gate = asyncio.Lock()
-        session = Session(Config(),Backend(),send,gate)
+        session = Session(Config(automatic_web_search=False),Backend(),send,gate)
         try:
             await session.handle({'type':'text','text':'hello'})
             job = session.task

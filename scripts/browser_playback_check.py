@@ -41,7 +41,7 @@ async def main():
     listener = socket.socket()
     listener.bind(('127.0.0.1', 0))
     port = listener.getsockname()[1]
-    config=Config(port=port,document_roots=[str(folder)],documents_index_path=str(Path(temporary.name)/'index.sqlite3'))
+    config=Config(automatic_web_search=False,port=port,document_roots=[str(folder)],documents_index_path=str(Path(temporary.name)/'index.sqlite3'))
     build_index(config)
     server = uvicorn.Server(uvicorn.Config(create_app(config, ToneBackend()), log_level='warning'))
     server_task = asyncio.create_task(server.serve(sockets=[listener]))
@@ -156,6 +156,7 @@ async def main():
                 await page.wait_for_function("() => document.querySelector('#sources').textContent.includes('project.md')")
                 await page.locator('#sources-panel summary').click()
                 assert 'purple collar' in await page.locator('#sources').inner_text()
+                assert 'Lookup complete' in await page.locator('#lookup-status').inner_text()
                 await page.wait_for_function("() => document.body.dataset.state === 'speaking'")
                 await page.wait_for_function("() => document.body.dataset.state === 'idle'")
                 assert '[1]' in await page.locator('#reply').inner_text()
