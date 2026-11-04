@@ -7,19 +7,27 @@ let state = 'idle', muted = false, recording = null, player = null, audioURL = n
 let generation = 0, recordPending = false, connected = false, playbackPending = false;
 let suppress = false;
 let playbackVersion = 0, retryPlayback = null;
+let lastTiming = null;
 const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
 const send = message => { if (socket.readyState === 1) socket.send(JSON.stringify(message)); };
 const descriptions = {idle:'Ready when you are.',listening:'Microphone is recording. Press again to finish.',transcribing:'Turning recorded audio into text.',thinking:'Waiting for a local response or preparing speech.',speaking:'Playing April’s response.',error:'Something went wrong. You can try again.'};
 function showState(value) {
   state = value; document.body.dataset.state = value; $('state').textContent = value;
-  if (value === 'idle' && !recording) $('mic').textContent = 'Microphone: off';
+  if (!recording && value !== 'listening') $('mic').textContent = 'Microphone: off';
   $('activity').textContent = descriptions[value];
   const busy = !['idle', 'error'].includes(value);
   $('record').disabled = !connected || (busy && value !== 'listening');
   $('send').disabled = $('time').disabled = !connected || busy;
+  $('stop').disabled = !connected || !busy;
   $('record').textContent = value === 'listening' ? '■ Finish recording' : '● Start recording';
 }
 function error(message) { $('error').textContent = message; }
+function prepareTurn() {
+  error(''); lastTiming = null; $('export-timing').disabled = true;
+  $('timings').textContent = 'Waiting for this turn’s measurements.';
+  $('reply').textContent = 'Waiting for April…';
+}
+function setPlaybackResult(value) { if (lastTiming) lastTiming.playback = value; }
 function stopPlayback() {
   playbackVersion++; retryPlayback = null; $('play-reply').hidden = true;
   if (player) {
@@ -32,11 +40,13 @@ async function releaseCapture() {
   const item = recording; recording = null;
   if (!item) return;
   clearTimeout(item.timer); item.node.disconnect(); item.source.disconnect();
+  $('mic-level').value = 0; $('mic-level-label').textContent = 'Input inactive';
   item.stream.getTracks().forEach(t => t.stop());
   await item.context.close();
   return item;
 }
 async function cancel() {
+  if (lastTiming && ['pending', 'playing'].includes(lastTiming.playback)) setPlaybackResult('cancelled');
   generation++; suppress = true; recordPending = false; playbackPending = false;
   stopPlayback(); await releaseCapture(); send({type:'cancel'});
   $('mic').textContent = 'Microphone: off';
@@ -52,20 +62,28 @@ socket.onmessage = async event => {
   if (message.type === 'state') {
     showState(message.state);
     if (message.state === 'listening' && recordPending) { recordPending = false; startCapture(); }
-    if (message.state === 'error') { generation++; stopPlayback(); await releaseCapture(); $('mic').textContent = 'Microphone: off'; }
+    if (message.state === 'error') { setPlaybackResult('failed'); generation++; stopPlayback(); await releaseCapture(); $('mic').textContent = 'Microphone: off'; }
   }
   if (message.type === 'error') error(message.message);
   if (message.type === 'transcript') $('transcript').textContent = message.text;
   if (message.type === 'reply') $('reply').textContent = message.text;
-  if (message.type === 'timings') $('timings').textContent = JSON.stringify(message, null, 2) + '\nServer total excludes capture, network transport and playback. Simulation timings are not performance evidence.';
-  if (message.type === 'simulation') $('activity').textContent = message.message;
+  if (message.type === 'timings') {
+    lastTiming = {schema_version:1, recorded_at:new Date().toISOString(), mode:config.mode,
+      model:config.model, context_tokens:config.context_tokens, reasoning_effort:config.reasoning_effort,
+      max_response_tokens:config.max_response_tokens, values:message.values,
+      playback:'pending', transcript_included:false, audio_included:false,
+      condition:'unknown', boundaries:'Server only; excludes capture, transport, playback startup and playback duration.'};
+    $('timings').textContent = JSON.stringify(message, null, 2) + '\nServer total excludes capture, network transport and playback. Simulation timings are not performance evidence.';
+    $('export-timing').disabled = false;
+  }
+  if (message.type === 'simulation') { setPlaybackResult('simulated'); $('activity').textContent = message.message; }
   if (message.type === 'audio') {
-    if (muted) { send({type:'cancel'}); return; }
+    if (muted) { setPlaybackResult('muted'); send({type:'cancel'}); return; }
     stopPlayback();
     const epoch = generation; playbackPending = true;
     const version = playbackVersion;
     const current = () => epoch === generation && version === playbackVersion;
-    const fail = message => { if (current()) { error(message); cancel(); } };
+    const fail = message => { if (current()) { setPlaybackResult('failed'); error(message); cancel(); } };
     try {
       const bytes = Uint8Array.from(atob(message.audio), c => c.charCodeAt(0));
       audioURL = URL.createObjectURL(new Blob([bytes], {type:'audio/wav'}));
@@ -78,10 +96,10 @@ socket.onmessage = async event => {
       }
       if (!current()) return;
       audio.onplaying = () => {
-        if (current()) { error(''); $('play-reply').hidden = true; send({type:'playback_started'}); }
+        if (current()) { setPlaybackResult('playing'); error(''); $('play-reply').hidden = true; send({type:'playback_started'}); }
       };
       audio.onended = () => {
-        if (current()) { stopPlayback(); playbackPending = false; send({type:'played'}); }
+        if (current()) { setPlaybackResult('completed'); stopPlayback(); playbackPending = false; send({type:'played'}); }
       };
       audio.onerror = () => {
         const code = audio.error?.code;
@@ -124,6 +142,7 @@ async function devices() {
 async function startCapture() {
   const epoch = generation; let stream, context;
   try {
+    $('mic').textContent = 'Microphone: requesting permission…';
     if (!navigator.mediaDevices || !window.isSecureContext) throw new Error('Microphone requires localhost or HTTPS.');
     stream = await navigator.mediaDevices.getUserMedia({audio:{deviceId:$('input').value === 'default' ? undefined : {exact:$('input').value},channelCount:1,echoCancellation:true},video:false});
     if (epoch !== generation) { stream.getTracks().forEach(t => t.stop()); return; }
@@ -134,6 +153,12 @@ async function startCapture() {
     const item = {stream,context,source,node,chunks:[],samples:0}; recording = item;
     node.port.onmessage = event => {
       if (recording !== item) return;
+      let energy = 0;
+      for (const value of event.data) energy += value * value;
+      const rms = Math.sqrt(energy / event.data.length);
+      const level = Math.max(0, Math.min(1, (20 * Math.log10(Math.max(rms, .001)) + 60) / 60));
+      $('mic-level').value = level;
+      $('mic-level-label').textContent = `Input ${Math.round(level * 100)}% · ${Math.floor(item.samples / context.sampleRate)}s / ${config.max_record_seconds}s`;
       if (item.samples + event.data.length > context.sampleRate * config.max_record_seconds) { finishCapture(); return; }
       item.chunks.push(event.data); item.samples += event.data.length;
     };
@@ -171,16 +196,19 @@ async function finishCapture() {
   send({type:'audio',audio:btoa(binary)});
 }
 $('record').onclick = () => {
-  error('');
   if (recording) finishCapture();
   else if (state === 'listening') cancel();
-  else if (['idle','error'].includes(state)) { recordPending = true; send({type:'record'}); }
+  else if (['idle','error'].includes(state)) { prepareTurn(); recordPending = true; send({type:'record'}); }
 };
 $('stop').onclick = cancel;
 $('play-reply').onclick = () => { if (retryPlayback) retryPlayback(); };
 $('mute').onclick = () => { muted = !muted; $('mute').textContent = `Mute ${muted?'on':'off'}`; $('mute').setAttribute('aria-pressed',String(muted)); if (muted && (player || playbackPending)) cancel(); };
-$('text-form').onsubmit = event => { event.preventDefault(); error(''); send({type:'text',text:$('text').value}); };
-$('time').onclick = () => { error(''); send({type:'time',arguments:{}}); };
+$('text-form').onsubmit = event => {
+  event.preventDefault();
+  if (!connected || !['idle','error'].includes(state)) return;
+  prepareTurn(); send({type:'text',text:$('text').value});
+};
+$('time').onclick = () => { prepareTurn(); send({type:'time',arguments:{}}); };
 $('devices').onclick = async () => {
   try { const stream = await navigator.mediaDevices.getUserMedia({audio:true}); stream.getTracks().forEach(t => t.stop()); await devices(); $('mic').textContent = 'Microphone: permission granted · not recording'; }
   catch (exc) { error(`Devices: ${exc.message}`); }
@@ -188,3 +216,44 @@ $('devices').onclick = async () => {
 document.addEventListener('keydown', event => { if (event.altKey && event.code === 'KeyR' && !event.repeat) { event.preventDefault(); $('record').click(); } if (event.code === 'Escape') cancel(); });
 window.addEventListener('pagehide', () => { generation++; stopPlayback(); if (recording) recording.stream.getTracks().forEach(t => t.stop()); socket.close(); });
 devices().catch(() => {});
+
+async function checkSetup() {
+  $('check-setup').disabled = true;
+  try {
+    const response = await fetch('/api/readiness');
+    if (!response.ok) throw new Error('Request failed');
+    const result = await response.json();
+    $('setup-results').replaceChildren(...result.checks.map(check => {
+      const item = document.createElement('li');
+      item.textContent = `${check.ready ? '✓' : 'Needs attention'} · ${check.component}: ${check.message}`;
+      return item;
+    }));
+  } catch { $('setup-results').textContent = 'Setup check unavailable. Run bash april.sh --check in the project terminal.'; }
+  finally { $('check-setup').disabled = false; }
+}
+$('check-setup').onclick = checkSetup;
+
+$('export-timing').onclick = () => {
+  if (!lastTiming) return;
+  const url = URL.createObjectURL(new Blob([JSON.stringify(lastTiming, null, 2)], {type:'application/json'}));
+  const link = document.createElement('a'); link.href = url;
+  link.download = `april-${config.mode}-timing-${Date.now()}.json`;
+  document.body.append(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+$('face-view').onclick = async () => {
+  const active = !document.body.classList.contains('face-view');
+  document.body.classList.toggle('face-view', active);
+  $('face-view').setAttribute('aria-pressed', String(active));
+  $('face-view').textContent = active ? 'Show controls' : 'Face view';
+  try {
+    if (active) await document.documentElement.requestFullscreen();
+    else if (document.fullscreenElement) await document.exitFullscreen();
+  } catch { /* Face view remains usable when browser fullscreen is unavailable. */ }
+};
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) {
+    document.body.classList.remove('face-view');
+    $('face-view').setAttribute('aria-pressed', 'false'); $('face-view').textContent = 'Face view';
+  }
+});

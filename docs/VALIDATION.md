@@ -1,5 +1,16 @@
 # Validation record — November 3, 2026
 
+## Desktop v0.1 polish — November 4, 2026
+
+Enrique authorized a polished desktop release and a redesign using his actual dog photograph. The current original SVG reflects the tan head, dark folded ears, white muzzle/chest, dark collar and paw tag; the photograph itself is not published. Current screenshots are actual labeled simulation renders of that design. Mouth animation is state-driven, not a claim of phoneme/audio-amplitude synchronization.
+
+The one-command launcher checks local prerequisites without changing services. Fixture tests distinguish unavailable Ollama, missing model names, speech failures, redacted errors, preserved configuration and successful retry. The source code cannot establish the cause of the latest remote desktop failure; the new checks make it diagnosable on that desktop. Physical confirmation of that repair remains pending.
+
+The browser harness passed actual fake-device capture with nonzero input level, mobile overflow checks, full-screen face controls, readiness UI, and timing JSON export with simulation labeling and no transcript/audio. The separate playback harness passed real WAV-tone playback, injected permission retry, pending-play cleanup, media-error preservation, and Stop followed by successful retry. Real model/hardware results remain as separately reported below. Final setup validation passed 24 Python tests; the wheel built successfully and its assets/modules were inspected; no physical performance results have been inferred from these fixtures.
+
+Timing exports are explicit user downloads, include playback outcome and leave loading conditions unknown. Five successful desktop sessions were reported earlier, but the actual five-run numerical samples, real screen/audio walkthrough, and separate physical cancellation observations have not been supplied. Those items remain pending rather than substituted with the new simulated artifacts.
+
+
 ## Desktop follow-up (user-observed results)
 
 ### Successful real spoken interaction
@@ -42,7 +53,8 @@ Initial issues fixed: the sandbox blocked socket creation (approved execution pa
 
 ## Evidence
 
-- `docs/evidence/simulation-idle.png`: actual browser idle face.
+- `docs/evidence/simulation-idle.png`: actual browser idle face with the photo-inspired design.
+- `docs/evidence/simulation-face-view.png`, `simulation-mobile.png`: actual full-screen/mobile simulation layouts.
 - `docs/evidence/simulation-listening.png`: actual browser with Chromium’s fake microphone.
 - `docs/evidence/simulation-reply.png`: actual browser with labeled fixture response.
 - `docs/evidence/simulation-walkthrough.webm`: retained copy of the actual automated browser session, originally generated under ignored `artifacts/`. No real voice, model inference or narration.

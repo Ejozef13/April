@@ -8,7 +8,7 @@ import wave
 
 from fastapi.testclient import TestClient
 
-from april.audio import validate_wav
+from april.audio import validate_wav, validate_speech_wav
 from april.backends import SimulationBackends, run_process
 from april.config import Config
 from april.server import create_app
@@ -48,6 +48,18 @@ class CoreTests(unittest.TestCase):
         for bad in [b'not wav', wav_bytes(1)[:-8], wav_bytes(16)]:
             with self.assertRaises(ValueError):
                 validate_wav(bad, 15)
+
+    def test_generated_audio_is_validated_before_playback(self):
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as directory:
+            output=Path(directory)/'reply.wav'
+            output.write_bytes(wav_bytes())
+            validate_speech_wav(output,60)
+            for data in [b'not audio',wav_bytes(0),wav_bytes()[:-8]]:
+                output.write_bytes(data)
+                with self.assertRaises(ValueError):
+                    validate_speech_wav(output,60)
 
     def test_local_configuration_only(self):
         for overrides in [{'host':'0.0.0.0'}, {'ollama_url':'https://example.com'}, {'max_record_seconds':31}]:

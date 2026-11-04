@@ -1,5 +1,7 @@
 # Pi browser client and desktop server
 
+This is an intermediate client/tunnel experiment. The revised final goal is standalone Pi inference plus authenticated desktop acceleration; see ROADMAP.md. That routing/fallback is future work, not a capability of this desktop release.
+
 **Physical Pi validation is pending.** Its OS, 64-bit architecture, browser, audio stack, SSH client and connected hardware have not been observed. The user-provided 16 GB specification does not establish any of these. No dedicated display or audio purchase is required: start on the desktop, then use existing monitor/headphones only if the Pi actually supports them.
 
 The client is the existing static browser UI; no heavy models run on the Pi. Verify on the Pi with `cat /etc/os-release`, `uname -m`, `command -v chromium`, and the OS audio-device listing (`wpctl status` on PipeWire, otherwise `arecord -l` / `aplay -l` when available). Do not assume the Pi has analog microphone input. A 3.5 mm adapter without a sound interface cannot add one.

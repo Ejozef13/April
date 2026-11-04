@@ -47,11 +47,16 @@ def create_app(config=None, backends=None):
 
     @app.get("/api/config")
     async def settings():
-        return {k: getattr(config, k) for k in ("mode", "max_record_seconds", "display_width", "display_height", "input_device_id", "output_device_id")}
+        return {k: getattr(config, k) for k in ("mode", "model", "context_tokens", "reasoning_effort", "max_response_tokens", "max_record_seconds", "display_width", "display_height", "input_device_id", "output_device_id")}
 
     @app.get("/health")
     async def health():
         return {"status": "ok", "mode": config.mode, "backend_verified": False}
+
+    @app.get('/api/readiness')
+    async def readiness():
+        from .readiness import check_readiness
+        return await check_readiness(config)
 
     @app.websocket("/ws")
     async def socket(ws: WebSocket):

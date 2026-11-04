@@ -1,31 +1,55 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>APRIL · Local companion</title><link rel="stylesheet" href="/static/style.css"></head>
 <body><main>
-<header><div><span class="eyebrow">A LITTLE DOG. A LITTLE HELP.</span><h1>Meet April<span>●</span></h1></div><span id="mode" class="badge">Connecting</span></header>
-<section class="stage" aria-label="April's face"><div class="orbit"></div>
-<svg id="face" viewBox="0 0 600 400" role="img" aria-label="An original cartoon Jack Russell terrier">
- <ellipse cx="300" cy="359" rx="128" ry="14" fill="#cbd0c1"/>
- <g id="dog"><path d="M193 130 Q129 78 121 126 Q113 202 167 239 L203 185" fill="#8d573b" stroke="#35392f" stroke-width="5"/>
- <path d="M407 130 Q471 78 479 126 Q487 202 433 239 L397 185" fill="#8d573b" stroke="#35392f" stroke-width="5"/>
- <path d="M185 170 Q192 83 300 91 Q408 83 415 170 L422 259 Q411 342 300 348 Q189 342 178 259Z" fill="#fffaf0" stroke="#35392f" stroke-width="5"/>
- <path d="M335 96 Q407 96 415 171 L414 241 Q356 265 331 213 Q306 159 335 96" fill="#b8784a"/>
- <g class="eyes" fill="#30362f"><ellipse cx="243" cy="211" rx="13" ry="18"/><ellipse cx="358" cy="211" rx="13" ry="18"/></g>
- <g fill="white"><circle cx="247" cy="205" r="4"/><circle cx="362" cy="205" r="4"/></g>
- <path d="M220 177 Q241 167 258 178 M343 176 Q365 166 381 177" fill="none" stroke="#35392f" stroke-width="5" stroke-linecap="round"/>
- <ellipse cx="300" cy="275" rx="61" ry="43" fill="#f3ecdf"/>
- <path d="M279 257 Q300 247 321 257 Q321 277 300 283 Q279 277 279 257" fill="#30362f"/>
- <path d="M300 281 L300 296 Q279 315 263 296 M300 296 Q321 315 337 296" fill="none" stroke="#30362f" stroke-width="5" stroke-linecap="round"/>
- <path id="tongue" d="M286 307 Q300 324 314 307 L314 323 Q300 344 286 323Z" fill="#dc7d7b"/>
- <path d="M240 346 Q300 364 360 346" fill="none" stroke="#c16b47" stroke-width="12"/><circle cx="300" cy="354" r="12" fill="#efc76c"/>
+<header><div><span class="eyebrow">A LITTLE DOG. A LITTLE HELP.</span><h1>Meet April<span>●</span></h1></div><div class="header-actions"><span id="mode" class="badge">Connecting</span><button id="face-view" class="secondary" aria-pressed="false">Face view</button></div></header>
+<section class="stage" aria-label="April's face"><div class="orbit"></div><span class="stage-note">YOUR LITTLE LOCAL COMPANION</span>
+<svg id="face" viewBox="0 0 600 450" role="img" aria-labelledby="dog-title dog-description">
+<title id="dog-title">April, Enrique’s Jack Russell</title>
+<desc id="dog-description">A photo-inspired cartoon with a tan head, folded dark brown ears, bright dark eyes, white whiskered muzzle, white chest and a dark collar with a paw tag.</desc>
+<defs>
+ <linearGradient id="tan" x2="0.2" y2="1"><stop stop-color="#bc8757"/><stop offset="1" stop-color="#98643f"/></linearGradient>
+ <linearGradient id="chest" x2="0" y2="1"><stop stop-color="#fffdf5"/><stop offset="1" stop-color="#e8e3d8"/></linearGradient>
+</defs>
+<ellipse cx="300" cy="410" rx="128" ry="14" fill="#394838" opacity=".10"/>
+<g id="dog">
+ <path d="M223 303 Q186 325 181 395 Q211 419 300 420 Q389 419 419 395 Q414 325 377 303Z" fill="url(#chest)" stroke="#514233" stroke-width="4"/>
+ <path d="M208 115 Q241 72 300 78 Q359 72 392 115 L410 234 Q405 308 349 337 Q300 360 251 337 Q195 308 190 234Z" fill="url(#tan)" stroke="#514233" stroke-width="4"/>
+ <path d="M213 112 Q177 86 153 130 Q152 176 187 212 Q208 189 226 123Z" fill="#69442f" stroke="#49382c" stroke-width="4"/>
+ <path d="M387 112 Q423 86 447 130 Q448 176 413 212 Q392 189 374 123Z" fill="#69442f" stroke="#49382c" stroke-width="4"/>
+ <path d="M164 133 Q166 171 187 192 L211 125" fill="#805235"/>
+ <path d="M436 133 Q434 171 413 192 L389 125" fill="#805235"/>
+ <path d="M286 99 Q297 92 312 98" stroke="#cf9a69" stroke-width="6" stroke-linecap="round" fill="none"/>
+ <path class="brows" d="M222 176 Q239 165 256 175 M344 175 Q361 165 378 176" stroke="#6a472f" stroke-width="6" stroke-linecap="round" fill="none"/>
+ <g class="eyes">
+  <ellipse cx="241" cy="210" rx="25" ry="28" fill="#68442e"/>
+  <ellipse cx="359" cy="210" rx="25" ry="28" fill="#68442e"/>
+  <ellipse cx="241" cy="212" rx="20" ry="23" fill="#1d211f"/>
+  <ellipse cx="359" cy="212" rx="20" ry="23" fill="#1d211f"/>
+  <circle cx="234" cy="203" r="7" fill="#fffaf0"/><circle cx="352" cy="203" r="7" fill="#fffaf0"/>
+  <circle cx="249" cy="221" r="3" fill="#c5b9a0"/><circle cx="367" cy="221" r="3" fill="#c5b9a0"/>
  </g>
-</svg><div class="state-line"><span id="state-dot"></span><strong id="state" role="status">Connecting</strong></div><p id="activity">Your local companion, one request at a time.</p></section>
+ <path d="M238 267 Q257 259 276 251 Q300 242 324 251 Q343 259 362 267 Q375 297 352 321 Q300 354 248 321 Q225 297 238 267Z" fill="#f4f0e7"/>
+ <path d="M281 246 Q300 236 319 246 L326 260 Q321 278 300 280 Q279 278 274 260Z" fill="#252824"/>
+ <path d="M285 248 Q295 244 305 247" stroke="#62645a" stroke-width="4" stroke-linecap="round" fill="none"/>
+ <path d="M300 279 L300 295 M300 295 Q279 310 263 296 M300 295 Q321 310 337 296" fill="none" stroke="#45463c" stroke-width="4" stroke-linecap="round"/>
+ <g id="mouth"><path d="M279 300 Q300 313 321 300 Q322 330 300 332 Q278 330 279 300Z" fill="#4e322e"/><path id="tongue" d="M288 315 Q300 309 312 315 L311 328 Q300 338 289 328Z" fill="#d88d89"/></g>
+ <g fill="#8b8170" opacity=".7"><circle cx="257" cy="281" r="2"/><circle cx="266" cy="286" r="2"/><circle cx="250" cy="292" r="2"/><circle cx="343" cy="281" r="2"/><circle cx="334" cy="286" r="2"/><circle cx="350" cy="292" r="2"/></g>
+ <g stroke="#d6cbbb" stroke-width="2" stroke-linecap="round"><path d="M246 306 L222 301 M247 314 L225 316 M354 306 L378 301 M353 314 L375 316"/></g>
+ <path d="M230 331 Q300 363 370 331 L365 353 Q300 383 235 353Z" fill="#303c36" stroke="#354038" stroke-width="3"/>
+ <path d="M245 344 L258 349 M274 354 L287 356 M310 356 L323 354 M339 350 L352 345" stroke="#77816d" stroke-width="3"/>
+ <rect x="322" y="350" width="20" height="19" rx="3" fill="none" stroke="#b7b5a3" stroke-width="4"/>
+ <circle cx="350" cy="365" r="6" fill="none" stroke="#969c8e" stroke-width="3"/>
+ <g transform="rotate(13 354 387)"><ellipse cx="354" cy="388" rx="18" ry="23" fill="#d2cdbd" stroke="#969c8e" stroke-width="2"/>
+ <g fill="#4a4e43"><ellipse cx="354" cy="394" rx="8" ry="6"/><ellipse cx="344" cy="383" rx="3" ry="4"/><ellipse cx="351" cy="378" rx="3" ry="4"/><ellipse cx="359" cy="378" rx="3" ry="4"/><ellipse cx="365" cy="384" rx="3" ry="4"/></g></g>
+</g></svg><div class="state-line"><span id="state-dot"></span><strong id="state" role="status">Connecting</strong></div><p id="activity">Your local companion, one request at a time.</p></section>
 <section class="console"><div class="toolbar"><button id="record" disabled>● Start recording</button><button id="stop" class="secondary">Stop / cancel</button><button id="mute" class="secondary" aria-pressed="false">Mute off</button><button id="time" class="secondary">Current time</button></div>
 <button id="play-reply" class="secondary" hidden>Play reply</button>
 <audio id="response-audio" preload="auto" hidden></audio>
+<div class="input-meter"><meter id="mic-level" min="0" max="1" value="0" aria-label="Microphone input level"></meter><span id="mic-level-label">Input inactive</span></div>
 <p id="mic" class="small">Microphone: not enabled. Press record to request permission. Shortcut: Alt+R.</p>
 <div class="devices"><label>Microphone<select id="input"><option value="default">System default</option></select></label><label>Output<select id="output"><option value="default">System default</option></select></label><button id="devices" class="secondary">Enable / refresh devices</button></div>
-<form id="text-form"><label for="text">Or type a message</label><div class="entry"><input id="text" maxlength="2000" placeholder="What shall we tackle today?" autocomplete="off" required><button id="send">Send ↗</button></div></form>
-<p id="error" role="alert"></p><div class="conversation"><article><span class="eyebrow">YOU SAID</span><p id="transcript">Your transcript will appear here.</p></article><article><span class="eyebrow">APRIL</span><p id="reply">Ready when you are.</p></article></div>
-<details><summary>Session timing · no transcript history saved</summary><pre id="timings">No measurements yet.</pre></details></section>
-<footer>LOCAL FIRST · PUSH TO TALK · JACK RUSSELL ENERGY <span>APRIL / 01</span></footer>
+<form id="text-form"><label for="text">Or type a message</label><div class="entry"><input id="text" maxlength="2000" placeholder="What shall we tackle today?" autocomplete="off" required><button id="send">Send</button></div></form>
+<p id="error" role="alert"></p><details class="setup-panel"><summary>Setup &amp; local services</summary><button id="check-setup" class="secondary">Check setup</button><ul id="setup-results"><li>Run a read-only check if a local service is unavailable.</li></ul></details><div class="conversation"><article><span class="eyebrow">YOU SAID</span><p id="transcript">Your transcript will appear here.</p></article><article><span class="eyebrow">APRIL</span><p id="reply">Ready when you are.</p></article></div>
+<details><summary>Session timing · no transcript history saved</summary><button id="export-timing" class="secondary" disabled>Save timing JSON</button><p class="small">Optional export includes timings and model settings, never your transcript or audio. Server time excludes recording, transport and playback.</p><pre id="timings">No measurements yet.</pre></details></section>
+<footer>LOCAL FIRST · PUSH TO TALK · JACK RUSSELL ENERGY <span>APRIL / DESKTOP 0.1</span></footer>
 </main><script type="module" src="/static/app.js"></script></body></html>

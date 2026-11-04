@@ -25,7 +25,7 @@ Record CPU/GPU specifications, input/output hardware, browser version, whether A
 
 1. Say the same question each time: **“April, suggest a Python project.”** Press Finish recording; do not press Send.
 2. After playback ends, verify the transcript, visible reply, audible speech and return to Idle.
-3. Expand Session timing and copy its complete JSON before starting another turn. Keep all five attempts, including failures. If a failed attempt has no timings, record the failure with blank timings rather than dropping it or substituting zero.
+3. Expand Session timing and click **Save timing JSON** after playback finishes, before starting another turn. The explicit download excludes transcripts/audio, includes model settings, and labels playback as completed/muted/cancelled/failed/simulated as observed. Keep all five attempts, including failures. If a failed attempt has no timings, record the failure with blank timings rather than dropping it or substituting zero. Do not mistake processing completion for successful playback.
 4. Record loading conditions as **unknown** unless observed. If `ollama ps` immediately before a run shows the model loaded, label that run **LLM resident**. Speech subprocesses still reload their models each turn; OS-cache warmth is not measured.
 5. Do not describe these five attempts as five cold runs, or as a completed cold/warm benchmark. Do not infer end-to-end audible latency from server processing time.
 

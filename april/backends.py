@@ -12,6 +12,8 @@ from pathlib import Path
 import httpx
 
 from .config import Config
+from .errors import BackendError
+from .audio import validate_speech_wav
 
 
 async def run_process(*args: str, input_data: bytes | None = None):
@@ -24,14 +26,20 @@ async def run_process(*args: str, input_data: bytes | None = None):
         await process.communicate(input_data)
         code = process.returncode
         if code:
-            raise RuntimeError("Speech process failed; check binary/model compatibility")
+            raise BackendError('speech_process_failed', 'Speech process failed. Check binary/model compatibility with the stage shown above.')
     finally:
         if process.returncode is None:
-            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
             try:
                 await asyncio.wait_for(process.wait(), 2)
             except TimeoutError:
-                os.killpg(process.pid, signal.SIGKILL)
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
                 await process.wait()
 
 
@@ -41,18 +49,35 @@ class LocalBackends:
 
     async def transcribe(self, audio: Path) -> str:
         output = audio.parent / "transcript"
-        await run_process(self.config.whisper_cli, "-m", self.config.stt_model,
-                          "-f", str(audio), "-otxt", "-of", str(output), "-nt", "-t", "4")
+        try:
+            await run_process(self.config.whisper_cli, "-m", self.config.stt_model,
+                              "-f", str(audio), "-otxt", "-of", str(output), "-nt", "-t", "4")
+        except (FileNotFoundError, BackendError) as exc:
+            raise BackendError('stt_failed', 'Whisper could not transcribe. Run bash april.sh --check and verify the Whisper executable and model paths.') from exc
         text = output.with_suffix(".txt").read_text().strip()
         if not text:
             raise ValueError("No speech recognized. Check the microphone and try again")
         return text[:2000]
 
     async def respond(self, text: str) -> str:
+        try:
+            return await self._respond(text)
+        except httpx.ConnectError as exc:
+            raise BackendError('ollama_unavailable', 'Ollama is not reachable. Check systemctl status ollama; if stopped, run sudo systemctl start ollama, then retry. APRIL does not start or stop shared services.') from exc
+        except httpx.TimeoutException as exc:
+            raise BackendError('ollama_timeout', 'Ollama timed out. Check existing model workloads and retry a shorter question.') from exc
+        except httpx.HTTPStatusError as exc:
+            message = ('The configured Ollama model was not found. Run ollama list and check model in april.local.toml.'
+                       if exc.response.status_code == 404 else 'Ollama rejected this request. Check the model, reasoning settings and Ollama version.')
+            raise BackendError('ollama_request_failed', message) from exc
+        except (ValueError, TypeError, AttributeError) as exc:
+            raise BackendError('ollama_invalid_output', 'Ollama returned no usable final answer. Check reasoning_effort and the bounded generation budget in april.local.toml, then retry.') from exc
+
+    async def _respond(self, text: str) -> str:
         payload = {
             "model": self.config.model, "stream": True,
             "messages": [
-                {"role": "system", "content": "You are April, a playful, curious, affectionate Jack Russell companion. Give useful answers in 1–3 short sentences. Do not claim to access tools, devices, live facts or memory. No barking in every answer."},
+                {"role": "system", "content": "You are April, a playful, curious, affectionate Jack Russell companion. Give useful answers in 1–3 short sentences, using plain spoken language without Markdown or emoji. If you are unsure, say so. Do not claim to access tools, devices, live facts or memory. No barking in every answer."},
                 {"role": "user", "content": text},
             ],
             "options": {"num_predict": self.config.max_response_tokens, "num_ctx": self.config.context_tokens},
@@ -72,7 +97,7 @@ class LocalBackends:
                     if line:
                         item = json.loads(line)
                         if "error" in item:
-                            raise RuntimeError("Ollama could not generate a response")
+                            raise BackendError('ollama_generation_failed', 'Ollama could not generate an answer. Check the installed model and current resource use; then retry.')
                         # Only the final answer is displayed or spoken. Never
                         # collect or persist the separate `thinking` field.
                         result += item.get("message", {}).get("content", "")
@@ -83,10 +108,17 @@ class LocalBackends:
         return result.strip()[:self.config.max_response_chars]
 
     async def synthesize(self, text: str, output: Path):
-        await run_process(self.config.piper_cli, "--model", self.config.voice,
-                          "--output_file", str(output), input_data=text.encode())
+        try:
+            await run_process(self.config.piper_cli, "--model", self.config.voice,
+                              "--output_file", str(output), input_data=text.encode())
+        except (FileNotFoundError, BackendError) as exc:
+            raise BackendError('tts_failed', 'Piper could not speak the reply. Run bash april.sh --check; verify the executable, voice .onnx and matching .onnx.json.') from exc
         if not output.exists() or output.stat().st_size > 8_000_000:
-            raise ValueError("Missing or oversized synthesized audio")
+            raise BackendError('tts_invalid_audio', 'Piper output was missing or too large. Check the voice files and reduce response length.')
+        try:
+            validate_speech_wav(output, self.config.playback_timeout_seconds)
+        except ValueError as exc:
+            raise BackendError('tts_invalid_audio', 'Piper produced an empty, invalid or overlong WAV. Check the matching voice files and response/playback limits.') from exc
 
 
 class SimulationBackends:

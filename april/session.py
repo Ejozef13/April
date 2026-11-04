@@ -8,6 +8,7 @@ from pathlib import Path
 from .audio import validate_wav
 from .state import State, StateMachine
 from .tools import current_time
+from .errors import BackendError
 
 
 class Session:
@@ -41,10 +42,10 @@ class Session:
         self.release()
         await self.state(State.IDLE)
 
-    async def error(self, message):
+    async def error(self, message, code='interaction_failed'):
         self.release()
         await self.state(State.ERROR)
-        await self.send({"type": "error", "message": message})
+        await self.send({"type": "error", "message": message, "code": code})
 
     async def begin(self, recording=False):
         if self.owns_gate or self.gate.locked():
@@ -136,6 +137,8 @@ class Session:
                         self.task = asyncio.create_task(self.playback_deadline())
         except asyncio.CancelledError:
             raise
+        except BackendError as exc:
+            await self.error(str(exc), exc.code)
         except Exception as exc:
             # Never expose exception bodies, prompts, paths or remote responses.
             hints = {FileNotFoundError: "Speech binary or model missing. Check local configuration.",

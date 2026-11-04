@@ -37,8 +37,34 @@ async def main():
         await page.wait_for_function("() => document.querySelector('#reply').textContent.includes('[Simulated reply]')")
         await page.wait_for_function("() => document.body.dataset.state === 'idle'")
         await page.screenshot(path=str(evidence / 'simulation-reply.png'), full_page=True)
+        await page.locator('#timings').locator('..').locator('summary').click()
+        async with page.expect_download() as download_event:
+            await page.locator('#export-timing').click()
+        download = await download_event.value
+        saved = artifacts / 'fixture-timing-export.json'
+        await download.save_as(str(saved))
+        sample = json.loads(saved.read_text())
+        assert sample['mode'] == 'simulation'
+        assert sample['playback'] == 'simulated'
+        assert sample['transcript_included'] is False and sample['audio_included'] is False
+        assert 'Help me choose' not in saved.read_text()
+        await page.locator('#face-view').click()
+        await page.wait_for_function("() => document.body.classList.contains('face-view')")
+        assert await page.locator('#stop').is_visible()
+        assert await page.locator('#mute').is_visible()
+        await page.screenshot(path=str(evidence / 'simulation-face-view.png'), full_page=True)
+        await page.locator('#face-view').click()
+        await page.wait_for_function("() => !document.body.classList.contains('face-view')")
+        await page.set_viewport_size({'width':390,'height':844})
+        await page.screenshot(path=str(evidence / 'simulation-mobile.png'), full_page=True)
+        assert await page.evaluate('() => document.documentElement.scrollWidth <= innerWidth')
+        await page.set_viewport_size({'width':1100,'height':1050})
+        await page.locator('.setup-panel summary').click()
+        await page.locator('#check-setup').click()
+        await page.wait_for_function("() => document.querySelector('#setup-results').textContent.includes('Fixtures only')")
         await page.locator('#record').click()
         await page.wait_for_function("() => document.querySelector('#mic').textContent.includes('recording ·')")
+        await page.wait_for_function("() => document.querySelector('#mic-level').value > 0")
         await page.screenshot(path=str(evidence / 'simulation-listening.png'), full_page=True)
         await asyncio.sleep(.8)
         await page.locator('#record').click()

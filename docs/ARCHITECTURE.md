@@ -1,5 +1,7 @@
 # Audio and interaction architecture
 
+Desktop v0.1 starts through `april.sh` → `april.launch` → read-only `april.readiness` checks → existing server. Live checks list Ollama models and check local speech files; they never start a shared service or load/unload models. A UI readiness endpoint repeats these checks on demand. `BackendError` exposes fixed codes and actionable text, never raw remote responses. Piper WAV output is validated before browser handoff. This is desktop architecture; Pi-first routing is described as future work in ROADMAP.md.
+
 ```mermaid
 flowchart LR
     Mic[Selected microphone] --> Worklet[Browser AudioWorklet]

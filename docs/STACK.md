@@ -1,6 +1,6 @@
 # Stack decisions and primary sources
 
-Documentation inspected on November 3, 2026. Builds and local CLI help were checked separately from inference. No reference dog photo was provided or inspected; the SVG is original and replaceable through `april/web/index.html` and CSS.
+Documentation initially inspected on November 3, 2026. Builds and local CLI help were checked separately from inference. Enrique later supplied a real dog photograph: the current original SVG uses its tan head, folded dark ears, white muzzle/chest, dark collar and paw tag. The original photo is not bundled. Assets remain replaceable through `april/web/index.html` and CSS.
 
 Desktop follow-up: Enrique successfully used CPU Whisper `base.en`, existing `gpt-oss:20b` through Ollama 0.40.13, and CPU Piper `en_US-ljspeech-medium` in a real spoken interaction. Ollama reported 100% GPU placement; exact driver/runtime details and memory overhead remain uncollected. The LJ Speech voice's model card lists public-domain dataset licensing; this does not replace Piper's GPL-3.0-or-later obligations. The earlier Lessac candidate below was not selected. The desktop profile is `april.desktop.example.toml`; historical cloud restrictions below apply to the cloud instance.
 

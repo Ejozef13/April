@@ -1,92 +1,119 @@
-# APRIL
+# APRIL · Desktop v0.1
 
-A local push-to-talk companion with an original cartoon Jack Russell face. Built by Enrique, a George Mason University computer science student expecting to graduate in May 2028. APRIL focuses on interactive systems, audio boundaries, hardware integration, and reliable software design. It uses pretrained models; it does not train or fine-tune them.
+A local voice companion inspired by Enrique’s Jack Russell. Built by Enrique, a George Mason University computer science student expecting to graduate in May 2028. APRIL demonstrates interactive systems, audio integration, and reliable software design using pretrained models—not model training or fine-tuning.
 
-**Current milestone:** Enrique reports a successful real desktop voice interaction: microphone → CPU Whisper → local GPT-OSS 20B → CPU Piper → audible browser playback. His live screenshot shows the transcript, generated answer, and Speaking state. Automated tests use fixtures and are documented separately. Physical cancellation/retry confirmation, five-run timing data, a recorded real walkthrough, and Pi hardware acceptance remain pending. Follow the [desktop evidence checklist](docs/DESKTOP_ACCEPTANCE.md).
+**Verified desktop milestone:** Enrique reported five successful real voice sessions on CachyOS: microphone → CPU Whisper → local GPT-OSS 20B → CPU Piper → audible browser playback. A live screenshot and his report confirm the interaction; the five numerical timing samples and physical cancellation observations were not supplied. Automated cloud tests use fixtures. Pi operation and automatic desktop offloading are not implemented yet.
 
-![Actual browser screenshot: simulation reply](docs/evidence/simulation-reply.png)
+![Photo-inspired April design shown in a labeled simulation browser session](docs/evidence/simulation-idle.png)
 
-## Start the demo
+The SVG now follows the supplied dog photo: tan head, dark folded ears, bright dark eyes, white muzzle/chest, dark collar, and paw tag. It is original code-rendered artwork; the personal photo is not bundled. Above is an actual **simulation** UI screenshot, not fabricated live evidence. [Full-screen face](docs/evidence/simulation-face-view.png) · [Labeled simulation walkthrough](docs/evidence/simulation-walkthrough.webm).
 
-Requires Python 3.11+ (validated with 3.12), Git, and a modern browser. No hardware purchases or API keys needed.
+## Start on your already-configured desktop
 
 ```bash
-cd April
-bash scripts/setup.sh
-APRIL_MODE=simulation .venv/bin/python -m april.server
+cd ~/Projects/April
+bash april.sh
 ```
 
-Open the local address printed by the server on **your own desktop**. In the cloud, use internal checks; this onboarding environment does not provide a localhost preview. Type a message, or request microphone permission and press Record twice. Alt+R toggles recording; Escape and Stop cancel. Mute suppresses response playback. The clock button calls an actual read-only server tool, bypassing the LLM.
+One command checks executable/model/voice files and the configured model in Ollama, then starts **LIVE** mode. It never starts/stops shared services or loads/unloads models during checks. Existing `april.local.toml` is preserved; if absent, the desktop profile is copied into that ignored file. Checks establish prerequisites, not successful inference or model integrity. They can’t predict whether a service will disappear later.
 
-The face states are idle, listening, transcribing, thinking, speaking and error. “Thinking” means waiting for the local response or preparing its audio, not a visualization of model reasoning. Speaking starts on the browser’s actual playback event. Simulation skips speaking and reports that playback was simulated.
+If Ollama is stopped, the launcher tells you to check `systemctl status ollama` and start your existing service with `sudo systemctl start ollama`. Resolve the reported issue and rerun the same APRIL command. This addresses the previously undiagnosed generic backend failure without assuming its cause on your desktop.
 
-## Enable local speech
+```bash
+bash april.sh --check               # Read-only checks, no server
+bash april.sh --simulation          # Explicit canned replies; no speech/models
+```
 
-For Enrique's verified desktop components, use `april.desktop.example.toml` as the starting profile. It selects GPT-OSS 20B with low reasoning effort, a 4096-token context and a 512-token generation budget, CPU Whisper `base.en`, and Piper's LJ Speech medium voice. Copy it to ignored `april.local.toml` without overwriting existing local settings. Launch from the project root with `APRIL_MODE=live .venv/bin/python -m april.server` to override any simulation environment setting. First unmute and send typed text to check LLM → TTS → playback, then record a short sentence and press Finish recording. The voice flow submits automatically; Send belongs only to the typed-text form. A real spoken turn has been reported successful; repeatable acceptance and measurements are tracked separately.
+Open the local address printed in your desktop terminal. Refresh after updates. Cloud onboarding does not provide a localhost web preview. Stop only APRIL with Ctrl+C; leave shared AM/Ollama services intact.
 
-1. Run `bash scripts/setup_speech.sh` to build CPU whisper.cpp. A C/C++ compiler and Make are prerequisites. Piper installs into `.venv` with setup. See [stack and licensing](docs/STACK.md) before downloading a voice.
-2. Copy `april.example.toml` to `april.local.toml`. Set absolute `whisper_cli`, `stt_model`, `piper_cli` (typically the project’s `.venv/bin/piper`), and `voice` paths. The Piper `.onnx.json` must accompany the `.onnx` file. The example paths are placeholders, not bundled models.
-3. Check `ollama list` and `ollama ps` on your desktop. Reuse a suitable installed model; change `model` to its exact tag. The suggested 3B tag is not a claim it is installed. Check RAM, VRAM and existing AM activity before loading anything. Do not restart or unload AM’s services/models. CPU STT and TTS keep their model data out of GPU VRAM; Ollama decides its own placement.
-4. With `mode = "live"`, run `.venv/bin/python -m april.server`. First submit text to isolate Ollama/TTS. Then record one short sentence through your real microphone, confirm the transcript, hear the reply on headphones, and verify idle. Stop during another request and retry. The spoken interaction has been reported successful on Enrique’s desktop; the cloud has no physical audio hardware.
+## First installation
 
-One job runs at a time across all clients; overlapping jobs are rejected with no application queue. Recording defaults to 15 seconds, model generation to 120 tokens / 600 characters, processing to 90 seconds. Stop closes our HTTP request and terminates our speech process group. Ollama cancellation/resource release depends on the shared server; APRIL never stops that service or forces model unloading. Speech processes exit after each turn, freeing their CPU memory at the cost of cold-start latency.
+Requires Git, a modern browser, and Python 3.12 for the tested dependency set. `uv` can install a separate Python 3.12 without changing CachyOS system Python. Existing virtual environments are preserved. No purchases or API keys are needed.
 
-## Hardware status
+```bash
+git clone https://github.com/Ejozef13/April.git
+cd April
+bash scripts/setup.sh
+bash scripts/setup_speech.sh
+```
 
-| Component | Intended role | Verification |
-|---|---|---|
-| CachyOS desktop, Ryzen 7 9700X, RX 9070 XT 16 GB, 32 GB RAM | Python server, CPU STT/TTS, Ollama | Specification supplied by Enrique; desktop speech reported successful; Ollama screenshot reports GPT-OSS 100% GPU placement. Driver/runtime details not collected. |
-| Razer Seiren Mini, existing output/headphones | Initial input/output | PipeWire enumeration observed; microphone recording/playback and live APRIL response reported successful |
-| Raspberry Pi 5, 16 GB | Browser face and audio client over SSH tunnel | OS, architecture, SSH, browser and physical audio pending |
-| Cloud Linux x86_64, Python 3.12, ~32.5 GiB reported RAM | Tests, CPU tool build and simulation UI | Verified; no `/dev/snd`, `/dev/dri`, or Ollama |
-| Dedicated face display, speaker, enclosure | Later | Not owned; not required |
+The speech script needs a C/C++ compiler and Make, and builds CPU-only whisper.cpp with four workers. Prepare the model files using [STACK.md](docs/STACK.md). The launcher’s desktop profile expects:
 
-USB/3.5 mm adapters do not establish a compatible ADC/DAC. Device visibility does not prove recording quality or output routing. Test the actual microphone and headphones before buying anything.
+| Component | Default desktop configuration |
+|---|---|
+| LLM | Existing `gpt-oss:20b` in loopback Ollama; low reasoning, 4096-token context, 512-token generation budget |
+| STT | `.tools/whisper.cpp/build/bin/whisper-cli`, `.tools/whisper.cpp/models/ggml-base.en.bin` |
+| TTS | `.venv/bin/piper`, `models/en_US-ljspeech-medium.onnx` and matching `.onnx.json` |
+| Audio | Browser-selected microphone/output, 15-second recording maximum |
+| Response | Maximum 600 visible/spoken characters; generation budget includes reasoning |
+| Timeouts | 90-second processing deadline, 60-second playback deadline |
 
-## Checks and evidence
+Change settings in ignored `april.local.toml` or select another config through `APRIL_CONFIG`. Resolve relative paths from the project directory. Inspect `ollama list`, `ollama ps`, available RAM/VRAM and existing AM workloads before changing models. Never assume several models fit simultaneously. Use [april.example.toml](april.example.toml) for other backends; the supported desktop starting profile is [april.desktop.example.toml](april.desktop.example.toml).
+
+## Use April
+
+1. Grant microphone permission with **Enable / refresh devices** and select a real input. The level meter shows captured signal while recording; it does not prove recognition accuracy.
+2. Press **Start recording**, speak, then **Finish recording**. Alt+R is the keyboard fallback. Submission is automatic—Send belongs to typed text only.
+3. Read the transcript and response. April enters Speaking only after browser playback begins. **Play reply** retries blocked/interrupted playback using the same audio.
+4. **Stop / cancel** or Escape releases recording/playback and cancels the owned job. Mute suppresses audio; a completed generated response still appears as text.
+5. Use **Face view** for a full-screen presentation with Record, Stop, Mute and clock controls available. Return with Show controls. Reduced-motion settings are respected.
+6. **Current time** calls a deterministic read-only function. The model does not execute shell commands or select arbitrary tools.
+
+States: idle, listening, transcribing, thinking, speaking, error. Thinking means waiting on a response or preparing its voice; expressions do not reveal model reasoning. Mouth animation follows the speaking state, not phoneme-accurate lip sync. One global job runs at a time, with no application backlog. A new attempt can recover after a failure without restarting APRIL.
+
+## Diagnostics and evidence
+
+Open **Setup & local services** to repeat read-only checks. Errors distinguish unavailable Ollama, missing models, unusable generation output, Whisper/Piper failures and invalid synthesized WAV. Prompt text, remote error bodies and reasoning are not emitted as diagnostics.
+
+Open **Session timing** after a turn. **Save timing JSON** is an explicit local download containing stage timings, model settings, simulation/live labeling and playback outcome. It excludes transcripts and audio, defaults loading conditions to unknown, and never uploads data. Export after playback completes; cancelled/muted/failed playback must not be labeled successful. Server total excludes capture, transport and playback. See [benchmark boundaries](docs/BENCHMARKS.md).
+
+Follow the [desktop acceptance and real-walkthrough checklist](docs/DESKTOP_ACCEPTANCE.md). Five successful sessions were reported, but numerical measurements, a real recorded walkthrough and separately confirmed physical cancellation/retry remain pending. Do not replace them with fixture results.
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
-# Optional UI harness: requires Playwright, Chromium and FFmpeg in its Python environment.
-python scripts/browser_smoke.py
-# Playback regression harness: starts its own fixture server and plays a WAV tone.
-python scripts/browser_playback_check.py
+# Optional: invoking Python needs Playwright; system needs Chromium and FFmpeg.
+python scripts/browser_smoke.py          # Requires the simulation server running
+python scripts/browser_playback_check.py # Starts its own WAV-tone fixture server
 ```
 
-The [recorded simulation walkthrough](docs/evidence/simulation-walkthrough.webm) is included in this repository. The browser harness uses fake microphone data and simulation backends. It saves actual screenshots to `docs/evidence/` and an ignored short video to `artifacts/simulation-walkthrough.webm`. [Validation report](docs/VALIDATION.md) distinguishes these checks from real models and hardware. [Timing protocol](docs/BENCHMARKS.md) describes measurements without inventing results.
+[Validation record](docs/VALIDATION.md) · [Desktop release notes](docs/RELEASE_v0.1.md) · [Interview guide](docs/INTERVIEW.md).
 
-## Privacy and deployment
+## Hardware and roadmap
 
-Audio is held in browser memory and private temporary job files required by the CLI; temporary audio/text are deleted on success, failure or cancellation. There is no audio archive, transcript database, conversation history, browser local storage or transcript logging. Abrupt power loss/process kill can leave OS temporary files; use a RAM-backed temporary directory via `TMPDIR` when desired. Text remains visibly in this tab until reload. Retention is opt-in by manually copying/exporting your own exchange or recording a walkthrough; no automatic retention feature is enabled. Dependencies and model downloads require Internet access; configured inference stays local.
-
-Configuration uses ignored `april.local.toml` or `APRIL_CONFIG`; `APRIL_MODE=simulation` explicitly overrides the mode. Never commit secrets. Default binding and Ollama endpoint are loopback only. HTTP/WebSocket host checks, strict browser-origin checks, no CORS, no external assets and a restrictive content policy reduce accidental cross-site access. This is a single-user local app, not an Internet service. [Pi deployment](docs/PI.md) uses authenticated SSH forwarding rather than exposing APRIL or Ollama on the LAN.
-
-## Troubleshooting
-
-| Symptom | Next check |
+| Hardware | Observed status |
 |---|---|
-| Microphone unavailable | Use localhost or HTTPS, allow browser permission, select a real input. Plain LAN HTTP is not a secure context. |
-| No or wrong audio output | Unmute, check OS routing, select output after granting device permission. Some browsers lack `setSinkId`; use system default. |
-| Playback interrupted or blocked | Press **Play reply** if offered; it retries the received audio without another model request. Stop cancels the pending reply. If the error mentions decoding, check the generated Piper WAV; a visible text reply alone does not prove speech playback. |
-| Speech binary/model missing | Check absolute paths and execute `whisper-cli --help` / `.venv/bin/piper --help`. |
-| Local backend failed | Check `ollama list`, `ollama ps`, model path/voice config compatibility; try text first. |
-| Request timeout | Shorten recording/prompt, inspect resource contention and existing AM load. Never assume GPU capacity is available. |
-| Busy | Stop the active interaction; APRIL deliberately has no backlog. |
-| Connection closed | Restart the server and reload the tab. Disconnect cancels its active job. |
-| Hugging Face 403 | Cloud model downloads require environment network settings; never disable TLS or use a policy bypass. |
+| CachyOS, Ryzen 7 9700X, RX 9070 XT 16 GB, 32 GB RAM | Specifications supplied by Enrique; speech interaction reported successful. Ollama screenshot reported GPT-OSS 100% GPU placement. Exact driver/runtime and contention measurements pending. |
+| Razer Seiren Mini and existing output/headphones | PipeWire enumeration seen; independent recording/playback and APRIL speech reported successful |
+| Raspberry Pi 5 16 GB with active cooler | User-owned; Raspberry Pi OS 64-bit selected. Actual installed OS, storage, audio, local model speed and fallback not verified. |
+| Dedicated display, USB audio and enclosure | Not required for desktop release; purchases and compatibility remain user decisions |
+
+The goal is **Pi-first standalone assistance plus authenticated desktop acceleration**, not a permanently desktop-dependent face terminal. The [roadmap](docs/ROADMAP.md) separates that future work from Desktop v0.1. Read [PI.md](docs/PI.md) for the existing tunnel/client experiment; that experiment does not implement local Pi inference or automatic fallback.
+
+## Privacy, limits and troubleshooting
+
+No persistent conversation memory, transcript database, automatic audio archive or browser local storage is enabled. Browser memory and private temporary job files support the CLI stages; files are deleted on completion, failure or cancellation. A hard kill/power loss can leave OS temporary files. Use a RAM-backed `TMPDIR` when desired. Timing download, copying a transcript and screen recording are explicit retention actions. Clear your tab to remove its displayed exchange.
+
+Default binding and Ollama endpoints are loopback-only. Host/origin checks, no CORS, restrictive content policy and no external UI assets reduce unintended browser access. This remains a single-user local prototype. The clock tool validates its empty arguments; filesystem/system control, Navidrome, wake words, motors and autonomous actions are not part of this release. Model answers can be inaccurate and are not authoritative live facts.
+
+| Symptom | Action |
+|---|---|
+| Canned transcript or no model speech | Check the badge; `bash april.sh` starts live, `--simulation` intentionally uses fixtures |
+| Ollama unavailable | Check existing service; start it if stopped, then retry. No reinstall or APRIL restart normally needed. |
+| Model not found | Match `model` to `ollama list`; don’t download duplicates blindly |
+| Microphone unavailable | Use localhost/HTTPS, grant permission, select actual input. Adapters alone do not establish ADC/DAC hardware. |
+| Output missing/blocked | Unmute, check system routing, try Play reply or system-default output. Browser output selection support varies. |
+| Speech failure | Use Check setup; validate matching speech binary/model/voice configuration |
+| Timeout or busy | Shorten input, inspect contention, cancel the active turn. APRIL never force-unloads shared models. |
+| Browser connection closed | Restart APRIL if necessary and reload; socket loss cancels its job |
 
 ## Project map
 
 | Path | Responsibility |
 |---|---|
-| `april/config.py`, `april.example.toml` | Validated runtime settings |
-| `april/state.py`, `april/session.py` | State transitions, serial jobs, cancellation, timing |
-| `april/audio.py` | WAV format and duration validation |
-| `april/backends.py` | STT subprocess, streamed Ollama, TTS subprocess, explicit fixtures |
-| `april/server.py` | Local HTTP/WebSocket boundary and lifecycle |
-| `april/tools.py` | Validated deterministic clock |
-| `april/web/` | SVG face, capture worklet, resampling, selected-output playback |
-| `tests/`, `scripts/` | Reliability checks, repeatable setup and evidence capture |
-| `docs/` | Architecture, stack, Pi deployment, results and interview guide |
-
-First-release optional features are frozen. Wake words, motors, cameras, autonomous actions, persistent personality memory, custom photo assets and enclosure design are deferred.
+| `april.sh`, `april/launch.py`, `april/readiness.py` | One-command startup and read-only prerequisite checks |
+| `april/config.py`, `*.example.toml` | Runtime settings outside application logic |
+| `april/state.py`, `april/session.py` | Explicit states, bounded serial jobs, cancellation and timing |
+| `april/audio.py`, `april/backends.py`, `april/errors.py` | Audio validation, replaceable local adapters and redacted actionable errors |
+| `april/server.py`, `april/tools.py` | Local API lifecycle, origin boundary and validated clock |
+| `april/web/` | Photo-inspired SVG, accessible controls, capture worklet and playback |
+| `tests/`, `scripts/`, `docs/` | Reliability checks, repeatable setup, architecture and honest evidence |
