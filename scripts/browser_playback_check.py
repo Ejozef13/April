@@ -82,6 +82,11 @@ async def main():
                 # Previously cleanup's src reset could surface as the user's
                 # misleading "media was removed" rejection after completion.
                 await page.evaluate('''() => {
+                    window.aprilRaceStates = [];
+                    window.aprilRaceObserver = new MutationObserver(() => {
+                        window.aprilRaceStates.push(document.body.dataset.state);
+                    });
+                    window.aprilRaceObserver.observe(document.body, {attributes:true, attributeFilter:['data-state']});
                     HTMLMediaElement.prototype.play = function() {
                         return new Promise((resolve, reject) => {
                             setTimeout(() => {
@@ -95,8 +100,10 @@ async def main():
                     };
                 }''')
                 await page.locator('#send').click()
-                await page.wait_for_function("() => document.body.dataset.state === 'speaking'")
-                await page.wait_for_function("() => document.body.dataset.state === 'idle'")
+                # The injected speaking state lasts only 50ms. Observe changes
+                # rather than relying on animation-frame polling to catch it.
+                await page.wait_for_function("() => window.aprilRaceStates.includes('speaking') && document.body.dataset.state === 'idle'")
+                await page.evaluate('() => window.aprilRaceObserver.disconnect()')
                 await asyncio.sleep(.15)
                 assert not await page.locator('#error').inner_text()
                 assert await page.locator('#play-reply').is_hidden()

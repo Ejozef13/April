@@ -1,46 +1,49 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>APRIL · Local companion</title><link rel="stylesheet" href="/static/style.css"></head>
-<body><main>
-<header><div><span class="eyebrow">A LITTLE DOG. A LITTLE HELP.</span><h1>Meet April<span>●</span></h1></div><div class="header-actions"><span id="mode" class="badge">Connecting</span><button id="face-view" class="secondary" aria-pressed="false">Face view</button></div></header>
-<section class="stage" aria-label="April's face"><div class="orbit"></div><span class="stage-note">YOUR LITTLE LOCAL COMPANION</span>
+<body><div class="circuit-board" aria-hidden="true"><svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMin slice"><g class="circuit-traces"><path d="M 35 0 L 132 94 H 740 L 805 159 V 900"/><path d="M 54 0 L 152 111 H 778 L 843 176 V 900"/><path d="M 73 0 L 172 128 H 816 L 881 193 V 900"/><path d="M 92 0 L 192 145 H 854 L 919 210 V 900"/><path d="M 111 0 L 212 162 H 892 L 957 227 V 900"/><path d="M 130 0 L 232 179 H 930 L 995 244 V 900"/><path d="M 149 0 L 252 196 H 968 L 1033 261 V 900"/><path d="M 168 0 L 272 213 H 1006 L 1071 278 V 900"/><path d="M 187 0 L 292 230 H 1044 L 1109 295 V 900"/><path d="M 206 0 L 312 247 H 1082 L 1147 312 V 900"/><path d="M 1550 0 V 165 L 1498 217 H 1170 L 1100 287 V 900"/><path d="M 1526 0 V 193 L 1474 245 H 1125 L 1055 315 V 900"/><path d="M 1502 0 V 221 L 1450 273 H 1080 L 1010 343 V 900"/><path d="M 1478 0 V 249 L 1426 301 H 1035 L 965 371 V 900"/><path d="M 1454 0 V 277 L 1402 329 H 990 L 920 399 V 900"/><path d="M 1430 0 V 305 L 1378 357 H 945 L 875 427 V 900"/></g><g class="circuit-pulses"><path d="M 35 0 L 132 94 H 740 L 805 159 V 900"/><path d="M 54 0 L 152 111 H 778 L 843 176 V 900"/><path d="M 73 0 L 172 128 H 816 L 881 193 V 900"/><path d="M 92 0 L 192 145 H 854 L 919 210 V 900"/><path d="M 111 0 L 212 162 H 892 L 957 227 V 900"/><path d="M 130 0 L 232 179 H 930 L 995 244 V 900"/><path d="M 149 0 L 252 196 H 968 L 1033 261 V 900"/><path d="M 168 0 L 272 213 H 1006 L 1071 278 V 900"/><path d="M 187 0 L 292 230 H 1044 L 1109 295 V 900"/><path d="M 206 0 L 312 247 H 1082 L 1147 312 V 900"/><path d="M 1550 0 V 165 L 1498 217 H 1170 L 1100 287 V 900"/><path d="M 1526 0 V 193 L 1474 245 H 1125 L 1055 315 V 900"/><path d="M 1502 0 V 221 L 1450 273 H 1080 L 1010 343 V 900"/><path d="M 1478 0 V 249 L 1426 301 H 1035 L 965 371 V 900"/><path d="M 1454 0 V 277 L 1402 329 H 990 L 920 399 V 900"/><path d="M 1430 0 V 305 L 1378 357 H 945 L 875 427 V 900"/></g><g class="circuit-nodes"><circle cx="132" cy="94" r="4"/><circle cx="1160" cy="268" r="4"/><circle cx="968" cy="650" r="4"/></g></svg></div><main>
+<header><div><span class="eyebrow">APRIL / LOCAL COMPANION</span><h1>Meet April<span>●</span></h1></div><div class="header-actions"><span id="mode" class="badge">Connecting</span><button id="face-view" class="secondary" aria-pressed="false">Face view</button></div></header>
+<section class="stage" aria-label="April's face"><div class="orbit"></div><span class="stage-note">A FAMILIAR FACE. A LITTLE JACK RUSSELL ENERGY.</span>
 <svg id="face" viewBox="0 0 600 450" role="img" aria-labelledby="dog-title dog-description">
 <title id="dog-title">April, Enrique’s Jack Russell</title>
-<desc id="dog-description">A photo-inspired cartoon with a tan head, folded dark brown ears, bright dark eyes, white whiskered muzzle, white chest and a dark collar with a paw tag.</desc>
+<desc id="dog-description">Cartoon based on April’s primary portrait: broad tan forehead, tapered cheeks, large folded brown ears, dark almond eyes, white whiskered muzzle and chest, and a purple collar. Her tongue peeks out while listening and thinking; her mouth is closed at idle.</desc>
 <defs>
- <linearGradient id="tan" x2="0.2" y2="1"><stop stop-color="#bc8757"/><stop offset="1" stop-color="#98643f"/></linearGradient>
- <linearGradient id="chest" x2="0" y2="1"><stop stop-color="#fffdf5"/><stop offset="1" stop-color="#e8e3d8"/></linearGradient>
+ <linearGradient id="tan" x1="0" y1="0" x2=".3" y2="1"><stop stop-color="#b98755"/><stop offset=".6" stop-color="#a87547"/><stop offset="1" stop-color="#8b5b36"/></linearGradient>
+ <linearGradient id="chest" x2=".25" y2="1"><stop stop-color="#fffdf4"/><stop offset="1" stop-color="#dcd8cd"/></linearGradient>
+ <linearGradient id="ear" x2=".4" y2="1"><stop stop-color="#885a35"/><stop offset="1" stop-color="#543822"/></linearGradient>
 </defs>
-<ellipse cx="300" cy="410" rx="128" ry="14" fill="#394838" opacity=".10"/>
+<ellipse cx="300" cy="417" rx="145" ry="12" fill="#000" opacity=".25"/>
 <g id="dog">
- <path d="M223 303 Q186 325 181 395 Q211 419 300 420 Q389 419 419 395 Q414 325 377 303Z" fill="url(#chest)" stroke="#514233" stroke-width="4"/>
- <path d="M208 115 Q241 72 300 78 Q359 72 392 115 L410 234 Q405 308 349 337 Q300 360 251 337 Q195 308 190 234Z" fill="url(#tan)" stroke="#514233" stroke-width="4"/>
- <path d="M213 112 Q177 86 153 130 Q152 176 187 212 Q208 189 226 123Z" fill="#69442f" stroke="#49382c" stroke-width="4"/>
- <path d="M387 112 Q423 86 447 130 Q448 176 413 212 Q392 189 374 123Z" fill="#69442f" stroke="#49382c" stroke-width="4"/>
- <path d="M164 133 Q166 171 187 192 L211 125" fill="#805235"/>
- <path d="M436 133 Q434 171 413 192 L389 125" fill="#805235"/>
- <path d="M286 99 Q297 92 312 98" stroke="#cf9a69" stroke-width="6" stroke-linecap="round" fill="none"/>
- <path class="brows" d="M222 176 Q239 165 256 175 M344 175 Q361 165 378 176" stroke="#6a472f" stroke-width="6" stroke-linecap="round" fill="none"/>
+ <path d="M222 282 Q188 312 180 359 L165 410 Q216 435 300 433 Q384 435 435 410 L420 359 Q412 312 378 282Z" fill="url(#chest)" stroke="#695844" stroke-width="3"/>
+ <path d="M219 361 L207 408 Q223 422 249 415 L263 364 M381 361 L393 408 Q377 422 351 415 L337 364" fill="#f4f0e5" stroke="#d3ccbc" stroke-width="2"/>
+ <path d="M206 108 Q243 80 281 86 L301 82 L324 87 Q365 81 397 112 L414 172 L407 237 Q397 269 368 294 L339 320 Q300 339 261 320 L232 299 Q201 272 190 237 L182 174Z" fill="url(#tan)" stroke="#543e2a" stroke-width="3.5"/>
+ <path d="M218 107 Q187 81 153 99 L131 118 Q128 158 157 198 L179 230 Q199 187 220 119Z" fill="url(#ear)" stroke="#503923" stroke-width="3.5"/>
+ <path d="M386 111 Q418 99 445 124 L470 145 Q462 188 435 218 L417 256 Q394 218 385 171 L376 119Z" fill="url(#ear)" stroke="#503923" stroke-width="3.5"/>
+ <path d="M146 120 L201 110 Q178 153 169 202 Q143 166 146 120Z" fill="#9d7049" opacity=".6"/>
+ <path d="M392 124 L450 147 Q443 181 424 215 Q420 164 392 124Z" fill="#a27248" opacity=".55"/>
+ <path d="M227 130 L240 119 M260 112 L275 107 M307 105 L323 108 M353 117 L366 125" stroke="#c59665" stroke-width="3" stroke-linecap="round"/>
+ <path class="brows" d="M216 184 Q237 170 259 183 M340 194 Q361 183 383 198" stroke="#76502f" stroke-width="6" stroke-linecap="round" fill="none"/>
  <g class="eyes">
-  <ellipse cx="241" cy="210" rx="25" ry="28" fill="#68442e"/>
-  <ellipse cx="359" cy="210" rx="25" ry="28" fill="#68442e"/>
-  <ellipse cx="241" cy="212" rx="20" ry="23" fill="#1d211f"/>
-  <ellipse cx="359" cy="212" rx="20" ry="23" fill="#1d211f"/>
-  <circle cx="234" cy="203" r="7" fill="#fffaf0"/><circle cx="352" cy="203" r="7" fill="#fffaf0"/>
-  <circle cx="249" cy="221" r="3" fill="#c5b9a0"/><circle cx="367" cy="221" r="3" fill="#c5b9a0"/>
+  <path d="M214 208 Q235 186 258 207 Q255 235 234 233 Q218 230 214 208Z" fill="#2c241d"/>
+  <path d="M338 220 Q359 198 382 219 Q377 246 358 244 Q341 240 338 220Z" fill="#2c241d"/>
+  <ellipse cx="237" cy="212" rx="17" ry="20" fill="#151b1b"/><ellipse cx="359" cy="224" rx="17" ry="20" fill="#151b1b"/>
+  <path d="M222 201 Q235 193 249 202 M345 212 Q358 205 371 214" fill="none" stroke="#444c49" stroke-width="3"/>
+  <ellipse cx="231" cy="205" rx="5" ry="6" fill="#f9f4de"/><ellipse cx="353" cy="217" rx="5" ry="6" fill="#f9f4de"/>
+  <circle cx="243" cy="222" r="2.5" fill="#a9b2a5"/><circle cx="366" cy="234" r="2.5" fill="#a9b2a5"/>
  </g>
- <path d="M238 267 Q257 259 276 251 Q300 242 324 251 Q343 259 362 267 Q375 297 352 321 Q300 354 248 321 Q225 297 238 267Z" fill="#f4f0e7"/>
- <path d="M281 246 Q300 236 319 246 L326 260 Q321 278 300 280 Q279 278 274 260Z" fill="#252824"/>
- <path d="M285 248 Q295 244 305 247" stroke="#62645a" stroke-width="4" stroke-linecap="round" fill="none"/>
- <path d="M300 279 L300 295 M300 295 Q279 310 263 296 M300 295 Q321 310 337 296" fill="none" stroke="#45463c" stroke-width="4" stroke-linecap="round"/>
- <g id="mouth"><path d="M279 300 Q300 313 321 300 Q322 330 300 332 Q278 330 279 300Z" fill="#4e322e"/><path id="tongue" d="M288 315 Q300 309 312 315 L311 328 Q300 338 289 328Z" fill="#d88d89"/></g>
- <g fill="#8b8170" opacity=".7"><circle cx="257" cy="281" r="2"/><circle cx="266" cy="286" r="2"/><circle cx="250" cy="292" r="2"/><circle cx="343" cy="281" r="2"/><circle cx="334" cy="286" r="2"/><circle cx="350" cy="292" r="2"/></g>
- <g stroke="#d6cbbb" stroke-width="2" stroke-linecap="round"><path d="M246 306 L222 301 M247 314 L225 316 M354 306 L378 301 M353 314 L375 316"/></g>
- <path d="M230 331 Q300 363 370 331 L365 353 Q300 383 235 353Z" fill="#303c36" stroke="#354038" stroke-width="3"/>
- <path d="M245 344 L258 349 M274 354 L287 356 M310 356 L323 354 M339 350 L352 345" stroke="#77816d" stroke-width="3"/>
- <rect x="322" y="350" width="20" height="19" rx="3" fill="none" stroke="#b7b5a3" stroke-width="4"/>
- <circle cx="350" cy="365" r="6" fill="none" stroke="#969c8e" stroke-width="3"/>
- <g transform="rotate(13 354 387)"><ellipse cx="354" cy="388" rx="18" ry="23" fill="#d2cdbd" stroke="#969c8e" stroke-width="2"/>
- <g fill="#4a4e43"><ellipse cx="354" cy="394" rx="8" ry="6"/><ellipse cx="344" cy="383" rx="3" ry="4"/><ellipse cx="351" cy="378" rx="3" ry="4"/><ellipse cx="359" cy="378" rx="3" ry="4"/><ellipse cx="365" cy="384" rx="3" ry="4"/></g></g>
+ <path d="M249 259 L260 253 L264 259 L276 250 Q299 245 319 255 L329 252 L337 265 L349 264 L354 281 L364 290 L356 307 L359 313 L343 323 L331 326 Q299 343 268 324 L255 323 L242 311 L245 302 L236 291 L244 277Z" fill="#eeeae0"/>
+ <path d="M277 251 Q299 241 321 255 L328 270 Q323 288 303 290 Q279 285 272 269Z" fill="#20221e"/>
+ <path d="M285 255 Q301 250 313 257" stroke="#51544b" stroke-width="4" stroke-linecap="round" fill="none"/>
+ <ellipse cx="287" cy="272" rx="5" ry="3" fill="#0d110f"/><ellipse cx="317" cy="274" rx="5" ry="3" fill="#0d110f"/>
+ <path d="M303 289 L302 301" stroke="#4a453b" stroke-width="3" fill="none"/>
+ <path id="closed-mouth" d="M274 303 Q301 317 331 306" stroke="#51473c" stroke-width="3" stroke-linecap="round" fill="none"/>
+ <g id="mouth"><path d="M277 303 Q302 314 329 306 Q320 327 302 329 Q283 325 277 303Z" fill="#51352e"/><path id="tongue" d="M286 315 Q302 319 317 315 Q316 338 301 339 Q287 335 286 315Z" fill="#d58b87"/><path d="M302 320 L302 331" stroke="#bd7472" stroke-width="1.5" stroke-linecap="round"/></g>
+ <g fill="#8f8372"><circle cx="260" cy="283" r="1.7"/><circle cx="267" cy="290" r="1.6"/><circle cx="254" cy="294" r="1.5"/><circle cx="339" cy="286" r="1.7"/><circle cx="333" cy="294" r="1.6"/><circle cx="346" cy="299" r="1.5"/></g>
+ <g stroke="#d3caba" stroke-width="1.8" stroke-linecap="round"><path d="M255 300 L227 292 M254 307 L226 307 M345 302 L375 297 M346 309 L374 316"/></g>
+ <path d="M228 325 Q298 362 371 331 L365 350 Q299 382 234 345Z" fill="#62416d" stroke="#493350" stroke-width="3"/>
+ <path d="M242 337 Q298 364 358 341" stroke="#9e76a8" stroke-width="3" fill="none"/>
+ <rect x="276" y="351" width="29" height="16" rx="3" fill="#b7b8ad" stroke="#6e776f" stroke-width="2" transform="rotate(7 290 358)"/>
+ <path d="M283 353 L281 364 M296 355 L294 366" stroke="#72796e" stroke-width="2"/>
+ <ellipse cx="347" cy="352" rx="9" ry="13" fill="none" stroke="#bdc0b3" stroke-width="4" transform="rotate(18 347 352)"/>
 </g></svg><div class="state-line"><span id="state-dot"></span><strong id="state" role="status">Connecting</strong></div><p id="activity">Your local companion, one request at a time.</p></section>
 <section class="console"><div class="toolbar"><button id="record" disabled>● Start recording</button><button id="stop" class="secondary">Stop / cancel</button><button id="mute" class="secondary" aria-pressed="false">Mute off</button><button id="time" class="secondary">Current time</button></div>
 <button id="play-reply" class="secondary" hidden>Play reply</button>

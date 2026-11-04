@@ -6,7 +6,7 @@ A local voice companion inspired by Enrique’s Jack Russell. Built by Enrique, 
 
 ![Photo-inspired April design shown in a labeled simulation browser session](docs/evidence/simulation-idle.png)
 
-The SVG now follows the supplied dog photo: tan head, dark folded ears, bright dark eyes, white muzzle/chest, dark collar, and paw tag. It is original code-rendered artwork; the personal photo is not bundled. Above is an actual **simulation** UI screenshot, not fabricated live evidence. [Full-screen face](docs/evidence/simulation-face-view.png) · [Labeled simulation walkthrough](docs/evidence/simulation-walkthrough.webm).
+The primary reference is April’s newer purple-collar portrait: broad tan forehead, tapered cheeks/muzzle, large folded ears, dark almond eyes, white chest, purple collar and silver buckle. The interface matches the supplied AM reference with a dark grid, lime accents and animated circuit traces. April’s tongue peeks out while listening/thinking; her mouth is closed at idle. Circuit motion is decorative and respects reduced-motion preferences. It is original code-rendered artwork; the personal photo is not bundled. Above is an actual **simulation** UI screenshot, not fabricated live evidence. [Full-screen face](docs/evidence/simulation-face-view.png) · [Labeled simulation walkthrough](docs/evidence/simulation-walkthrough.webm).
 
 ## Start on your already-configured desktop
 

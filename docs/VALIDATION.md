@@ -67,3 +67,12 @@ Screenshots are reviewable project assets. The labeled walkthrough is included a
 Draft persistence confirmed: `install_script`, `start_skill`, and the additional custom network destination `huggingface.co`. Existing package-manager presets are preserved. No secret requirement was added. Review and save in environment settings, then publish; saving the draft did not apply networking, publish a snapshot, or validate a new restored task. Artifact redirect hosts may need separate diagnosis after Hugging Face origin access works.
 
 The current-instance simulation and development workflow are verified. The cloud still lacks speech models, Ollama and physical devices; those cloud limitations do not invalidate the later user-observed desktop interaction. Desktop repeatability, model integrity provenance, real benchmark evidence, cancellation acceptance and Pi tests remain outstanding. Optional features are frozen while evidence is collected.
+
+
+## AM circuit theme and primary portrait update
+
+The newer purple-collar photo supplied by Enrique supersedes the earlier reference for the current cartoon. The head now has a broad forehead and tapered cheeks/muzzle instead of the earlier oval silhouette, with folded ears, dark almond eyes, white muzzle/chest and a purple collar/silver buckle. CSS shows the tongue during listening/thinking, keeps idle closed-mouth, and retains state-driven speaking animation. The original reference photos and AM application files are not published or modified.
+
+The supplied AM screenshot informs a dark grid, lime accents, translucent panels and decorative animated SVG circuit traces. No image-generation service, frontend framework or per-frame JavaScript is required. Reduced motion disables animation; mobile uses fewer decorative traces. Rendering cost on the physical Pi remains unmeasured.
+
+The expanded browser harness passed closed idle mouth, open listening/thinking mouth, non-interactive circuit background, reduced-motion behavior, mobile overflow, face view and existing capture/export checks. Current evidence screenshots and walkthrough remain labeled simulation; the transient thinking state is checked by computed styles rather than presenting a potentially stale screenshot as evidence.
