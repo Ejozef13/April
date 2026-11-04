@@ -76,3 +76,10 @@ The newer purple-collar photo supplied by Enrique supersedes the earlier referen
 The supplied AM screenshot informs a dark grid, lime accents, translucent panels and decorative animated SVG circuit traces. No image-generation service, frontend framework or per-frame JavaScript is required. Reduced motion disables animation; mobile uses fewer decorative traces. Rendering cost on the physical Pi remains unmeasured.
 
 The expanded browser harness passed closed idle mouth, open listening/thinking mouth, non-interactive circuit background, reduced-motion behavior, mobile overflow, face view and existing capture/export checks. Current evidence screenshots and walkthrough remain labeled simulation; the transient thinking state is checked by computed styles rather than presenting a potentially stale screenshot as evidence.
+
+
+## Plain chest and signal-driven tail
+
+The chest/arm interior strokes were removed, leaving plain white fur. The full-body reference informed a short brown tail with a white tip on the illustration’s right side. It wags rapidly on microphone input above a small level threshold, with a 180 ms hold between syllables, and during acknowledged reply playback. Idle/thinking are stationary; reduced-motion disables wagging. This is decorative signal/state feedback, not voice-activity classification or a physical motor. The original photo is not published.
+
+The browser capture harness passed idle/thinking stationary-tail checks, fake-microphone-driven wagging and reduced-motion checks. The real WAV-tone playback harness passed speaking wagging and stationary idle, plus permission retry, error preservation, cancellation and recovery. Syntax, local documentation links and diff checks passed. Accuracy concerns are recorded in ACCURACY.md as an investigation plan; no Internet search capability or measured accuracy improvement is claimed.

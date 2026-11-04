@@ -37,6 +37,7 @@ function stopPlayback() {
   if (audioURL) { URL.revokeObjectURL(audioURL); audioURL = null; }
 }
 async function releaseCapture() {
+  document.body.classList.remove('input-active');
   const item = recording; recording = null;
   if (!item) return;
   clearTimeout(item.timer); item.node.disconnect(); item.source.disconnect();
@@ -156,6 +157,11 @@ async function startCapture() {
       let energy = 0;
       for (const value of event.data) energy += value * value;
       const rms = Math.sqrt(energy / event.data.length);
+      // A small hold keeps the tail smooth between speech syllables. This is
+      // an input-level indicator, not a claim to perform voice recognition.
+      const now = performance.now();
+      if (rms >= .012) item.lastSignalAt = now;
+      document.body.classList.toggle('input-active', now - (item.lastSignalAt ?? -Infinity) < 180);
       const level = Math.max(0, Math.min(1, (20 * Math.log10(Math.max(rms, .001)) + 60) / 60));
       $('mic-level').value = level;
       $('mic-level-label').textContent = `Input ${Math.round(level * 100)}% · ${Math.floor(item.samples / context.sampleRate)}s / ${config.max_record_seconds}s`;

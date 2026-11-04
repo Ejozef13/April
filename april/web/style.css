@@ -29,3 +29,8 @@ main{position:relative;z-index:1}.circuit-board{position:fixed;inset:0;z-index:0
 button{box-shadow:0 0 0 1px #c0ed8718}.secondary{box-shadow:inset 0 0 0 1px #375045}input::placeholder{color:#849c91}.state-line{color:#eaf4e7}.orbit:before{content:'';position:absolute;width:5px;height:5px;border-radius:50%;background:#b9e783;top:50%;left:-3px;box-shadow:0 0 12px #b9e783}
 @media(max-width:640px){.circuit-traces path:nth-child(n + 9),.circuit-pulses path:nth-child(n + 9){display:none}.stage-note{max-width:85%;letter-spacing:1px}}
 @media(max-width:640px){h1{font-size:30px;white-space:nowrap}.devices label{flex:1 1 calc(50% - 6px);min-width:120px}.devices button{width:100%}}
+
+/* Wag on captured input signal or actual response playback, never at idle. */
+#tail{transform-box:view-box;transform-origin:410px 376px;transform:rotate(-8deg)}
+body[data-state=listening].input-active #tail,body[data-state=speaking] #tail{animation:tail-wag .12s ease-in-out infinite alternate}
+@keyframes tail-wag{from{transform:rotate(-24deg)}to{transform:rotate(23deg)}}

@@ -8,6 +8,8 @@ A local voice companion inspired by Enrique’s Jack Russell. Built by Enrique, 
 
 The primary reference is April’s newer purple-collar portrait: broad tan forehead, tapered cheeks/muzzle, large folded ears, dark almond eyes, white chest, purple collar and silver buckle. The interface matches the supplied AM reference with a dark grid, lime accents and animated circuit traces. April’s tongue peeks out while listening/thinking; her mouth is closed at idle. Circuit motion is decorative and respects reduced-motion preferences. It is original code-rendered artwork; the personal photo is not bundled. Above is an actual **simulation** UI screenshot, not fabricated live evidence. [Full-screen face](docs/evidence/simulation-face-view.png) · [Labeled simulation walkthrough](docs/evidence/simulation-walkthrough.webm).
 
+The full-body reference informs the plain white chest and short brown tail with a white tip on the illustration's right side. The tail wags quickly during detected microphone signal and actual reply playback, stays still at idle/thinking, and respects reduced motion. Input-level detection is not speech recognition. For inaccurate answers, see [the diagnosis and grounded-answer plan](docs/ACCURACY.md); Internet connectivity alone does not give the local model web access.
+
 ## Start on your already-configured desktop
 
 ```bash

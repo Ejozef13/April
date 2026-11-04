@@ -55,7 +55,9 @@ async def main():
                 await page.locator('#text').fill('Hello')
                 await page.locator('#send').click()
                 await page.wait_for_function("() => document.body.dataset.state === 'speaking'")
+                assert await page.locator('#tail').evaluate("el => getComputedStyle(el).animationName === 'tail-wag'")
                 await page.wait_for_function("() => document.body.dataset.state === 'idle'")
+                assert await page.locator('#tail').evaluate("el => getComputedStyle(el).animationName === 'none'")
                 assert not await page.locator('#error').inner_text(), await page.locator('#error').inner_text()
                 assert not errors, errors
                 print('Real WAV tone playback: speaking -> idle passed.')
