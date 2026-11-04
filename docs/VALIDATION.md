@@ -86,3 +86,6 @@ The browser capture harness passed idle/thinking stationary-tail checks, fake-mi
 
 
 Tail refinement: the tail artwork is scaled to 70%, lowered 16 SVG units with its wag pivot moved to match, and given small fur points on the sides and white tip. The browser capture harness passed idle, signal-driven wagging, reduced-motion, mobile and existing UI checks after this visual-only refinement.
+
+
+Tail silhouette replacement: the latest supplied illustration supersedes the previous short tuft. The tail is now upright and gently curved, with a broad brown lower section and a long tapered white upper section with fur edges. Existing input/playback wagging and reduced-motion behavior are retained. The simulation browser harness passed and screenshots/video were refreshed.
