@@ -65,11 +65,13 @@ States: idle, listening, transcribing, thinking, speaking, error. Thinking means
 
 ## Read-only integration preview
 
-[INTEGRATIONS.md](docs/INTEGRATIONS.md) contains the setup for the requested `~/Documents/aprilfiles` folder, Brave Search and Gmail read-only OAuth. They are opt-in and **not connected to your personal accounts by this code update**. APIs/folder boundaries are fixture-tested; real provider authentication and private-data acceptance must be completed on your desktop. Private/external retrieval is disabled in simulation.
+[INTEGRATIONS.md](docs/INTEGRATIONS.md) contains the setup for the requested `~/Documents/aprilfiles` folder, local SearXNG (default), optional Brave Search, and Gmail read-only OAuth. They are opt-in and **not connected to your personal accounts by this code update**. API/folder boundaries are fixture-tested, and Enrique has now reported the approved folder retrieval working. Web/Gmail live authentication and provider quality checks still require desktop setup. Private/external retrieval is disabled in simulation.
 
-Use explicit “search my files for …”, “search my emails for …”, “search the web for …” or the corresponding search buttons. Retrieved sources appear in a review panel and are passed only to the local model. A narrow current-fact router requests a web source instead of silently guessing from old model weights. Missing credentials/service produce actionable errors. Web queries go to Brave; private excerpts never automatically fall back to web search. No mail sending/deletion, source-file changes, background mailbox crawl or arbitrary system access is provided.
+Use explicit “search my files for …”, “search my emails for …”, “search the web for …” or the corresponding search buttons. Retrieved sources appear in a review panel and are passed only to the local model. A narrow current-fact router requests a web source instead of silently guessing from old model weights. Missing credentials/service produce actionable errors. Web queries go through your explicitly selected search provider; private excerpts never automatically fall back to web search. No mail sending/deletion, source-file changes, background mailbox crawl or arbitrary system access is provided.
 
 Document RAG uses SQLite keyword retrieval over approved UTF-8 text formats; PDFs/Word/embedding search are not implemented. The index retains private excerpts locally. Gmail tokens/search keys persist outside Git with private permissions; Google browser consent and your own provider key are required. Normal conversation and the clock remain offline-capable.
+
+For subscription-free web search, follow [SEARXNG.md](docs/SEARXNG.md). It provides a pinned, loopback-only service with JSON enabled. Brave remains an optional explicit switch; APRIL never silently falls back to a paid API. Service health does not prove engine access or result quality.
 
 ## Diagnostics and evidence
 

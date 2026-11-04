@@ -32,6 +32,8 @@ class Config:
     document_roots: tuple[str, ...] = ()
     documents_index_path: str = 'artifacts/documents.sqlite3'
     web_api_key_env: str = 'APRIL_BRAVE_API_KEY'
+    web_provider: str = 'searxng'
+    searxng_url: str = 'http://127.0.0.1:8888'
     web_key_path: str = '~/.config/april/brave-key'
     gmail_token_path: str = '~/.local/share/april/gmail-token.json'
 
@@ -64,6 +66,14 @@ class Config:
         import re
         if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', self.web_api_key_env):
             raise ValueError('web_api_key_env must name an environment variable, not contain a credential')
+        if self.web_provider not in {'searxng','brave'}:
+            raise ValueError('web_provider must be searxng or brave')
+        search=urlparse(self.searxng_url)
+        if (search.scheme not in {'http','https'} or search.hostname not in {'localhost','127.0.0.1','::1'}
+                or search.username or search.password or search.query or search.fragment or search.path not in {'','/'}):
+            raise ValueError('SearXNG must use a loopback URL (or a local authenticated tunnel), without credentials or a path')
+        if search.port is not None and not 1<=search.port<=65535:
+            raise ValueError('Invalid SearXNG port')
 
 
 def load_config() -> Config:

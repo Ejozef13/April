@@ -108,7 +108,7 @@ class RetrievalTests(unittest.IsolatedAsyncioTestCase):
         async def send(message):messages.append(message)
         backend=SimpleNamespace(respond=AsyncMock(side_effect=AssertionError('No stale model fallback')))
         with tempfile.TemporaryDirectory() as directory,patch.dict(os.environ,{},clear=True):
-            session=Session(Config(web_key_path=str(Path(directory)/'missing')),backend,send,asyncio.Lock())
+            session=Session(Config(web_provider='brave',web_key_path=str(Path(directory)/'missing')),backend,send,asyncio.Lock())
             await session.handle({'type':'text','text':'Who is the current president?'})
             await session.task
             self.assertEqual(messages[-1]['code'],'web_not_configured')
@@ -129,7 +129,7 @@ class RetrievalTests(unittest.IsolatedAsyncioTestCase):
                 {'title':'<b>Source</b>','description':'A useful excerpt','url':'https://example.org/reference'},
                 {'title':'Bad link','description':'ignore','url':'javascript:alert(1)'}]}})
         with patch.dict(os.environ,{'APRIL_BRAVE_API_KEY':'fixture-key'}):
-            result=await search_web(Config(),'current president',transport=httpx.MockTransport(handler))
+            result=await search_web(Config(web_provider='brave'),'current president',transport=httpx.MockTransport(handler))
         self.assertEqual(len(result),1)
         self.assertIn('retrieved_at',result[0])
         self.assertNotIn('fixture-key',json.dumps(result))
@@ -137,7 +137,7 @@ class RetrievalTests(unittest.IsolatedAsyncioTestCase):
     async def test_missing_web_connection_refuses_to_invent_current_answer(self):
         with tempfile.TemporaryDirectory() as directory,patch.dict(os.environ,{},clear=True):
             with self.assertRaises(BackendError) as error:
-                await search_web(Config(web_key_path=str(Path(directory)/'missing')),'current president')
+                await search_web(Config(web_provider='brave',web_key_path=str(Path(directory)/'missing')),'current president')
             self.assertEqual(error.exception.code,'web_not_configured')
 
     async def test_gmail_performs_only_bounded_read_requests_and_preserves_no_auth(self):

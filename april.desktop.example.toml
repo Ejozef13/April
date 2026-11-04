@@ -20,3 +20,7 @@ max_record_seconds = 15
 input_device_id = "default"
 output_device_id = "default"
 timezone = "America/New_York"
+
+# Local metasearch; Brave can be explicitly selected later.
+web_provider = "searxng"
+searxng_url = "http://127.0.0.1:8888"

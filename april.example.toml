@@ -20,3 +20,6 @@ display_height = 480
 input_device_id = "default" # Browser device IDs; refresh device list after permission.
 output_device_id = "default"
 timezone = "America/New_York"
+
+web_provider = "searxng" # Alternative: "brave" with a configured API key.
+searxng_url = "http://127.0.0.1:8888"

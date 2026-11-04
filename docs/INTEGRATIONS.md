@@ -31,7 +31,13 @@ Only configured folders are scanned. Hidden files/directories, symlinks, common 
 
 The index at ignored `artifacts/documents.sqlite3` persists private excerpts locally with file mode 600. It is not encrypted. Rebuild after edits/deletions; the index is a snapshot, not a file watcher. Changing/revoking approved roots blocks use of the old index until rebuilding. To remove access, clear `document_roots`, stop/restart APRIL, and remove your specific APRIL index file if you no longer want its stored excerpts. Deletion does not promise secure erasure from SSDs/backups. Never publish the index.
 
-## 3. Configure Brave Search explicitly
+## 3. Web provider: SearXNG first, Brave optional
+
+SearXNG is now the default, following Enrique's preference for no search API subscription. Follow [SEARXNG.md](SEARXNG.md) for the loopback-only Docker setup and real-query test. It needs no Brave key. Engine availability/quality and actual desktop search must still be verified. Provider selection is explicit; no paid fallback occurs.
+
+To choose Brave later, run `.venv/bin/python -m april.integrations search-provider brave`, restart APRIL, then follow the optional steps below.
+
+### Optional Brave setup
 
 Brave Search API is separate from the Brave browser. It requires an API account/key; check the provider’s current plans, quotas and pricing before choosing one. No account, purchase or subscription is created by APRIL. Official setup reference: https://api-dashboard.search.brave.com/app/documentation/web-search/get-started
 
@@ -86,6 +92,6 @@ Also revoke APRIL’s grant through your Google account to invalidate it remotel
 
 - Simulation disables private/external retrieval even when credentials exist. The clock remains deterministic. The mock backends are not live account tests.
 - Every search is initiated by a user action or an explicit recognized phrase. Retrieved pages/files/email are untrusted data, not executable tool instructions. The model cannot recursively browse, send mail or run commands from retrieved text.
-- Web search uses the fixed HTTPS Brave endpoint; Gmail uses fixed HTTPS Google endpoints. Local model requests remain loopback. TLS verification stays enabled.
+- SearXNG uses the configured loopback JSON endpoint and its own upstream engines; Brave uses a fixed HTTPS API only when explicitly selected. Gmail uses fixed HTTPS Google endpoints. Local model requests remain loopback. TLS verification stays enabled.
 - Gmail/Brave authentication has not passed until you complete actual queries with your local accounts. The cloud’s attempts to read the official documentation sites returned 403; the installed Google OAuth helper signatures and API contracts were checked, but the real OAuth flow remains pending.
 - Earlier dialogue is still not supplied automatically. Conversation context, better semantic retrieval, Navidrome and Pi routing are later milestones; no all-knowing-assistant claim is made.

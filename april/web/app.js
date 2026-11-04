@@ -3,7 +3,7 @@ const config = await fetch('/api/config').then(r => r.json());
 $('face').style.width = `min(100%, ${config.display_width}px)`;
 $('face').style.height = `${Math.round(config.display_height * .65)}px`;
 $('mode').textContent = config.mode === 'simulation' ? 'SIMULATION · no models / speech' : 'LIVE · local backends';
-$('integration-status').textContent = config.mode === 'simulation' ? 'External/private retrieval is disabled in simulation.' : Object.entries(config.integrations || {}).map(([name,configured]) => `${name}: ${configured ? 'configured (not yet verified)' : 'setup needed'}`).join(' · ');
+$('integration-status').textContent = config.mode === 'simulation' ? 'External/private retrieval is disabled in simulation.' : Object.entries(config.integrations || {}).map(([name,configured]) => `${name === 'web' ? 'web ('+config.web_provider+')' : name}: ${configured ? 'configured (not yet verified)' : 'setup needed'}`).join(' · ');
 let state = 'idle', muted = false, recording = null, player = null, audioURL = null;
 let generation = 0, recordPending = false, connected = false, playbackPending = false;
 let suppress = false;
@@ -91,7 +91,7 @@ socket.onmessage = async event => {
   }
   if (message.type === 'timings') {
     lastTiming = {schema_version:1, recorded_at:new Date().toISOString(), mode:config.mode,
-      model:config.model, context_tokens:config.context_tokens, reasoning_effort:config.reasoning_effort,
+      model:config.model, web_provider:config.web_provider, context_tokens:config.context_tokens, reasoning_effort:config.reasoning_effort,
       max_response_tokens:config.max_response_tokens, values:message.values,
       playback:'pending', transcript_included:false, audio_included:false,
       condition:'unknown', boundaries:'Server only; excludes capture, transport, playback startup and playback duration.'};
