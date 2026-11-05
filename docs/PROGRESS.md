@@ -249,3 +249,25 @@ Google Desktop client/consent (not yet created); physical KDE/AMD transparency,
 wake/power cycle, screen portal and VS Code behavior; personal calendar/mail
 acceptance. Continuous visual monitoring and arbitrary autonomous edits are
 not implemented. Pi standalone inference/offload remains future work.
+
+## 2026-11-05 — Personal memory and assistant continuity
+
+Added a cheerful, loyal female Jack Russell persona; shared bounded RAM context;
+private canonical Markdown notes with a disposable SQLite lexical index; local
+Ollama extraction of selected user-supported facts; inferred-note review; stable
+topic updates and explicit-note protection. Added app/voice/CLI remember,
+review/edit/forget, new-conversation and private controls. Forget cancels queued
+extraction and clears recent context. Gmail/web/code/screen excerpts are excluded
+from automatic extraction. Credential patterns, bounds and private file modes
+are enforced; this is not a complete privacy classifier or encryption.
+
+Added explicit local reminders and opt-in daily briefing invitations that wait
+for an idle UI; no autonomous email reading or external write authority. Added
+Obsidian setup, transparent retention documentation and desktop/Pi next goals.
+No personal memories or live-account content were seeded or published.
+
+81 automated tests passed, including ten new memory fixture tests. A real
+Chromium UI check passed save/reload/edit/delete and private/new-conversation
+controls against temporary notes and fixture model/audio. Actual pretrained
+model extraction accuracy, desktop notifications and Pi synchronization remain
+unverified; cross-device sync is not implemented.

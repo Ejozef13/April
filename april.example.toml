@@ -26,3 +26,10 @@ searxng_url = "http://127.0.0.1:8888"
 
 # Ordinary live requests search the web; false keeps manual search controls.
 automatic_web_search = true
+
+# Private, editable Markdown memory; Obsidian is optional. See docs/MEMORY.md.
+memory_enabled = true
+memory_vault = "~/.local/share/april/memory"
+# Explicit reminder times opt their notes into notifications; daily recaps are opt-in.
+proactive_briefings = false
+briefing_hour = 9

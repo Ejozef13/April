@@ -77,3 +77,5 @@ html:has(body.avatar-only){background:transparent!important}
 .desktop-widget:not(.avatar-only) .console>details{display:block}
 .desktop-widget:not(.avatar-only) #text-form,
 .desktop-widget:not(.avatar-only) #lookup-status{display:block}
+
+#memory-content{display:block;width:100%;box-sizing:border-box;background:var(--panel,#172624);color:inherit;border:1px solid #3b524a;border-radius:10px;padding:12px;font:inherit}#memory-list{padding-left:1.2em}#memory-list button{text-align:left;white-space:normal}#memory-notification{border-left:3px solid #b8ec84;padding:12px}

@@ -1,5 +1,14 @@
 # APRIL roadmap: Pi-first companion with desktop acceleration
 
+## Current addition: personality and persistent memory
+
+Local Markdown/SQLite memory, cheerful female Jack Russell personality, selected
+automatic user-fact extraction, editable review/forget/private controls and local
+reminders are implemented. See [MEMORY.md](MEMORY.md). Validate actual Ollama
+extraction quality, latency and desktop notifications before Pi migration.
+Authenticated Markdown synchronization with deletion/conflict handling remains
+future work; Pi continuity is not yet verified.
+
 ## Updated goals: personal 3D companion
 
 The latest preview implements managed on/off with private Ollama ownership,
@@ -35,7 +44,8 @@ acceptance. See [WIDGET.md](WIDGET.md) and [PROGRESS.md](PROGRESS.md).
 Approved-folder retrieval and one desktop web lookup have been confirmed by
 Enrique. Complete real Gmail consent/query acceptance, then implement read-only
 Calendar access and one source-backed “brief me on my day” interaction. CalDAV/briefing code and authenticated calendar fixtures are now implemented;
-personal OAuth/calendar acceptance and explicit editable memory remain pending.
+personal OAuth/calendar acceptance remains pending; editable memory is now implemented
+with fixture/browser evidence and still needs real-model acceptance.
 Keep later write actions reviewable; do not grant arbitrary model shell access.
 
 ## Then: establish standalone Pi viability

@@ -46,7 +46,7 @@ stateDiagram-v2
 
 Error text remains visible until another action; retry resets state without restarting. Each job has a processing deadline. Browser recording and server recording deadlines prevent a stuck microphone session; playback has its own deadline. Stop immediately releases browser media tracks and playback, cancels the Python task, closes the model stream, terminates only owned speech subprocesses, and releases the global lock. An acknowledgment barrier discards stale server events during browser cancellation.
 
-No LLM-generated shell commands, model tool execution, background task queue, persistent memory, or raw-audio archive exists. The UI describes waiting as waiting; animated expressions never claim to expose model reasoning.
+No LLM-generated shell commands, autonomous model tool execution or raw-audio archive exists. A bounded local memory-extraction queue and editable personal memory are now implemented; see [MEMORY.md](MEMORY.md). The UI describes waiting as waiting; animated expressions never claim to expose model reasoning.
 
 
 ## Read-only retrieval path
@@ -100,3 +100,20 @@ can be updated; ETags prevent overwriting changed versions. Gmail remains
 read-only. Briefing evidence stays on local inference routes; no retrieved
 private excerpts are automatically forwarded to web search. Natural-language
 event drafts are validated data and never implicit write approval.
+
+## Personal context and memory
+
+`MemoryStore` is shared by a server's views. Private Markdown is canonical; a
+disposable SQLite lexical index is rebuilt on recall to reflect manual edits
+and deletion. Only bounded matching notes and recent RAM turns reach local
+Ollama as untrusted context. A separate bounded local-model request extracts
+selected first-person facts after successful plain conversation; tool/retrieval
+excerpts are excluded, evidence must quote the user, inferences require review,
+and explicit notes resist automatic replacement. Forget invalidates queued jobs
+and clears RAM to prevent a pending job restoring a deleted note.
+
+Memory commands bypass web search and model-generated tool routing. Editing and
+deleting use the same origin-checked WebSocket/gate. Optional daily invitations
+and explicitly timed reminders deliver metadata to one idle connected UI; they
+do not fetch inbox/calendar data autonomously. Markdown is suitable for a future
+Pi deployment, but cross-device authenticated synchronization is not implemented.

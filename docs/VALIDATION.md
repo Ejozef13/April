@@ -250,3 +250,19 @@ Additional completion checks reject unconfirmed Docker starts and HTTP 202
 calendar responses as successful execution/writes. Actual digest-pinned container
 checks also passed approved local-module/data-file use with the entry-point
 snapshot mounted at its original project-relative path.
+
+## Personal-memory addition — 2026-11-05
+
+- Full suite: 81 automated tests, including ten private memory tests.
+- Real temporary Markdown/SQLite editing, restart recall and deletion tested.
+- Extractor fixture tests cover supporting quote checks, inferred-note exclusion,
+  explicit-note priority, stable-topic updates, failure notices and cancellation
+  during forgetting; no real model quality claim.
+- Local Ollama HTTP payload tested without using a private model or account.
+- Actual Chromium editor flow: save, reload, edit, delete, private/new controls.
+- Explicit reminder and opt-in daily notification state tested across store restart.
+- Existing playback/source regressions are rerun with the memory UI present.
+
+Memory fixture commands: `python -m unittest discover -s tests -p test_memory.py`
+and `python scripts/memory_browser_check.py`. Physical desktop reminders, model
+extraction accuracy/latency, Obsidian use and Pi operation still need acceptance.

@@ -4,6 +4,9 @@ This preview expands the desktop companion. The Pi remains a later standalone
 and authenticated-offload milestone. Each capability below distinguishes working
 software tests from the desktop/account acceptance still needed.
 
+For the new persona, Markdown/Obsidian memory vault, remembering/forgetting,
+private conversations and local reminder/briefing notifications, see [MEMORY.md](MEMORY.md).
+
 ## 1. One owner for April's runtime
 
 ```bash

@@ -15,13 +15,20 @@ Raspberry Pi companion with authenticated desktop acceleration.
 
 [Project progression](docs/PROGRESS.md) · [Widget setup](docs/WIDGET.md) ·
 [Validation](docs/VALIDATION.md) · [Architecture](docs/ARCHITECTURE.md) ·
-[Roadmap](docs/ROADMAP.md)
+[Roadmap](docs/ROADMAP.md) · [Personality & memory](docs/MEMORY.md)
 
 ## New personal-companion preview
 
 [Full setup and updated goals](docs/ASSISTANT.md) cover managed on/off, an original
 replaceable 3D terrier, explicit screen/code review, a self-hosted CalDAV calendar
 and private email/calendar recaps.
+
+**New: [persistent personal memory](docs/MEMORY.md).** April has a cheerful female
+Jack Russell persona, bounded recent context, background local extraction of
+selected personal facts and an editable Markdown vault. Obsidian is optional.
+Use **My memories** or say “Remember this…” / “What do you remember about me?” /
+“Don’t remember this conversation.” Explicit reminders and opt-in daily briefing
+notifications are local; Pi synchronization remains a later milestone.
 
 ![Original editable 3D prototype, rendered in Blender](docs/evidence/april-3d-prototype.png)
 
@@ -57,10 +64,11 @@ portal behavior and personal Google consent remain pending.
 | Read-only Gmail | OAuth/search adapter and fixtures implemented; personal consent and real mailbox queries pending |
 | CalDAV calendar and private recaps | Reviewed create/edit and bounded calendar/email briefing implemented; authenticated Radicale tests passed. Personal setup pending |
 | Screen/code assistance | Explicit local OCR snapshot, approved Python-file review, separately approved container run and VS Code preview; desktop/IDE acceptance pending |
-| Personal memory and Navidrome | Planned; not implemented |
+| Personal memory | Markdown vault + SQLite lexical recall, local extraction, review/edit/forget/private controls, explicit reminders and opt-in briefing notices; automated fixtures/browser checked, real-model memory quality pending |
+| Navidrome | Planned; not implemented |
 | Standalone Pi inference and desktop offload/fallback | Planned; physical Pi operation is not verified |
 
-Latest recorded validation: **71 unit tests**, Chromium playback/source regressions,
+Latest recorded validation: **81 automated tests**, Chromium playback/source regressions,
 actual offscreen Qt widget checks, and clean native-launcher shutdown on SIGINT
 and SIGTERM. These do not substitute for real microphone/model/Pi tests.
 See [the evidence record](docs/VALIDATION.md).
@@ -249,8 +257,8 @@ playback. No collected multi-run hardware benchmark is available.
 
 Next: physically accept the widget, capture the real walkthrough/timings, verify
 Gmail/CalDAV and accept the source-backed daily briefing, then benchmark standalone Pi
-inference and authenticated desktop offload. Natural-language calendar drafts require review; personal memory
-and Navidrome remain planned. A desktop-only file is unavailable when the PC is
+inference and authenticated desktop offload. Natural-language calendar drafts require review;
+real-model memory extraction quality and desktop reminder delivery need acceptance. Navidrome remains planned. A desktop-only file is unavailable when the PC is
 off unless the user explicitly syncs it elsewhere.
 
 [Full roadmap](docs/ROADMAP.md) · [Existing Pi tunnel experiment](docs/PI.md).
@@ -260,8 +268,11 @@ That experiment does not implement standalone Pi inference or automatic fallback
 
 Wake audio is processed locally in memory. Commands use private temporary audio
 files deleted on normal completion, failure or cancellation; hard kills/power
-loss can leave temporary files. No automatic transcript history, conversation
-memory or raw-audio archive is enabled. The approved-document SQLite index
+loss can leave temporary files. No raw transcript or audio archive is enabled.
+In live mode, selected personal summaries and supporting user quotes persist in a
+private Markdown memory vault by default; recent full turn pairs are bounded in RAM.
+Memory can be disabled, reviewed, edited and forgotten; see [privacy and controls](docs/MEMORY.md).
+The approved-document SQLite index
 persists excerpts locally, and Gmail tokens persist privately outside Git.
 Timing exports, copies and recordings are explicit retention actions.
 

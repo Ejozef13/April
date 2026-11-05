@@ -3,6 +3,8 @@ import asyncio
 import base64
 import tempfile
 import time
+import sqlite3
+import uuid
 from pathlib import Path
 
 from .audio import validate_wav
@@ -13,12 +15,15 @@ from .knowledge import route_knowledge, retrieve
 
 
 class Session:
-    def __init__(self, config, backends, send, gate):
+    def __init__(self, config, backends, send, gate, memory=None):
         self.config, self.backends, self.send, self.gate = config, backends, send, gate
         self.machine = StateMachine()
         self.task = None
         self.owns_gate = False
         self.record_timer = None
+        self.memory = memory
+        self.private_conversation = False
+        self.conversation_id = uuid.uuid4().hex
 
     async def state(self, value):
         self.machine.move(value)
@@ -69,7 +74,10 @@ class Session:
 
     async def handle(self, message):
         action = message.get("type")
-        if action in {"debug_screen","debug_file","debug_execute","calendar_read","calendar_propose","calendar_confirm","calendar_draft","briefing"}:
+        if action == "memory":
+            if await self.begin():
+                self.task=asyncio.create_task(self.memory_action(message))
+        elif action in {"debug_screen","debug_file","debug_execute","calendar_read","calendar_propose","calendar_confirm","calendar_draft","briefing"}:
             if await self.begin():
                 from .assistant_actions import run
                 self.task=asyncio.create_task(run(self,message))
@@ -107,6 +115,90 @@ class Session:
         else:
             await self.send({"type": "error", "message": "Unknown or out-of-order action."})
 
+    async def memory_action(self,message):
+        try:
+            if not self.memory or not self.memory.enabled:
+                raise ValueError('Memory is disabled in this mode or configuration.')
+            operation=message.get('operation','list')
+            if operation=='save':
+                if self.private_conversation:raise ValueError('Memory paused for this conversation.')
+                self.memory.invalidate()
+                self.memory.save(message.get('content'),key=message.get('id'),category=message.get('category','preferences'),due_at=message.get('due_at'),conversation_id=self.conversation_id)
+            elif operation=='forget':
+                if not self.memory.forget(message.get('id')):raise ValueError('Memory not found.')
+            elif operation=='clear':
+                if message.get('confirmation')!='FORGET ALL':raise ValueError('Type FORGET ALL to clear memory.')
+                self.memory.clear()
+            elif operation=='private':
+                self.private_conversation=True
+                self.memory.forget_conversation(self.conversation_id)
+            elif operation=='new':
+                self.memory.invalidate()
+                self.private_conversation=False
+                self.conversation_id=uuid.uuid4().hex
+            elif operation!='list':raise ValueError('Unknown memory operation.')
+            await self.send({'type':'memory_view','items':self.memory.list(),
+                             'private':self.private_conversation,'notice':self.memory.notice})
+        except (ValueError,OSError,TypeError,sqlite3.Error):
+            await self.send({'type':'error','message':'Memory action failed. Check the private vault, summary, ID and confirmation.'})
+        finally:
+            self.release()
+            await self.state(State.IDLE)
+
+    async def memory_command(self,text):
+        """Direct user instructions only; retrieved/model text never reaches this router."""
+        from .tools import normalize_request
+        command=normalize_request(text)
+        if not self.memory or not self.memory.enabled:
+            if command.startswith(('remind me','remember','forget','show my memories','show me my memories','what do you remember','do not remember',"don't remember")):
+                return 'Personal memory is disabled in this mode or local configuration.'
+            return None
+        if command in {"don't remember this conversation",'do not remember this conversation'}:
+            self.private_conversation=True
+            self.memory.forget_conversation(self.conversation_id)
+            return 'This conversation is now private. Its queued and saved conversation memories have been removed, and I will not remember further turns until you start a new conversation.'
+        if command in {'start a new conversation','new conversation'}:
+            self.memory.invalidate()
+            self.private_conversation=False
+            self.conversation_id=uuid.uuid4().hex
+            return 'A fresh conversation is ready. Your saved memories are still available.'
+        if command in {'what do you remember about me','show my memories','show me my memories'}:
+            items=self.memory.list()
+            await self.send({'type':'memory_view','items':items,'private':self.private_conversation,'notice':self.memory.notice})
+            selected=[i for i in items if i['category'] not in {'pending','recent'}]
+            return ('Here are some saved notes: '+' '.join(i['content'] for i in selected[:3]))[:self.config.max_response_chars] if selected else 'I have no saved personal notes yet. You can tell me, Remember this, followed by what you want me to keep.'
+        if command in {'forget everything','forget all memories'}:
+            self.memory.clear()
+            return 'I removed my stored memory notes, rebuilt the search index, and cleared recent conversation context.'
+        import re
+        # Normalize only the prefix; preserve the original fact's spelling/case.
+        original=re.sub(r'^(?:hey\s+)?april[\s,:!.-]*','',text.strip(),flags=re.I)
+        original=re.sub(r'^please\s+','',original,flags=re.I)
+        reminder=re.fullmatch(r'remind me in (\d{1,4}) (minutes?|hours?|days?) to (.+)',original.strip(' .!?'),re.I)
+        if reminder:
+            if self.private_conversation:return 'Memory is paused; start a new conversation before saving a reminder.'
+            from datetime import datetime,timedelta,timezone
+            from zoneinfo import ZoneInfo
+            count=int(reminder[1]);unit=reminder[2].casefold().rstrip('s')
+            seconds=count*{'minute':60,'hour':3600,'day':86400}[unit]
+            if not 60<=seconds<=365*86400:raise ValueError('Reminder interval must be between one minute and one year.')
+            due=datetime.now(timezone.utc)+timedelta(seconds=seconds)
+            item=self.memory.save(reminder[3],category='projects',key='reminder-'+uuid.uuid4().hex,
+                                  due_at=due.isoformat(),conversation_id=self.conversation_id)
+            await self.send({'type':'memory_saved','item':item})
+            return 'Reminder saved for '+due.astimezone(ZoneInfo(self.config.timezone)).strftime('%B %d at %I:%M %p %Z')+'. April must be running for the notification.'
+        match=re.match(r'(?:remember this|remember that|remember)\s*[:,]?\s+(.+)',original,re.I)
+        if match:
+            if self.private_conversation:return 'Memory is paused for this conversation. Start a new conversation before saving a note.'
+            item=self.memory.save(match[1],conversation_id=self.conversation_id)
+            await self.send({'type':'memory_saved','item':item})
+            return 'I saved this note: '+item['content']
+        match=re.match(r'forget\s+(.+)',original,re.I)
+        if match:
+            count=self.memory.forget(match[1].strip(' .'))
+            return 'That memory has been removed, along with recent conversation context.' if count else 'I could not find an exact memory match. Open My memories and delete the note you mean.'
+        return None
+
     async def run(self, text="", audio=None, tool=False, arguments=None,search_action=None, sources_override=None, job_started=None, inherited_timings=None):
         timings = dict(inherited_timings or {})
         started = time.perf_counter() if job_started is None else job_started
@@ -126,6 +218,9 @@ class Session:
                         self.release()
                         await self.state(State.IDLE)
                         return
+                    memory_reply=None
+                    if not tool and not search_action and sources_override is None:
+                        memory_reply=await self.memory_command(text)
                     from .tools import normalize_request
                     command=normalize_request(text)
                     if not tool and not search_action and sources_override is None and command.startswith(
@@ -158,8 +253,12 @@ class Session:
                     tick = time.perf_counter()
                     sources=[]
                     model_called=False
-                    if not tool:
-                        detected,query=('context',text) if sources_override is not None else route_knowledge(text,automatic_web_search=self.config.automatic_web_search and self.config.mode=='live')
+                    from .memory import local_conversation
+                    if memory_reply is not None:
+                        reply=memory_reply[:self.config.max_response_chars]
+                        action=None
+                    elif not tool:
+                        detected,query=('context',text) if sources_override is not None else route_knowledge(text,automatic_web_search=self.config.automatic_web_search and self.config.mode=='live' and not local_conversation(text))
                         action=search_action or detected
                         if action:
                             if self.config.mode=='simulation':
@@ -172,13 +271,13 @@ class Session:
                             await self.send({'type':'sources','sources':sources})
                             tick=time.perf_counter()
                             if sources:
-                                reply=await self.backends.respond(text,sources=sources)
+                                reply=await self.respond_with_memory(text,sources=sources)
                                 model_called=True
                             else:reply='No matching sources were returned. I cannot verify an answer from this search.'
                         else:
                             await self.send({'type':'lookup','state':'skipped','kind':'local',
                                              'reason':'Web lookup not selected for this request.'})
-                            reply=await self.backends.respond(text)
+                            reply=await self.respond_with_memory(text)
                             model_called=True
                     else:
                         await self.send({'type':'lookup','state':'clock','kind':'local'})
@@ -189,6 +288,8 @@ class Session:
                     output = root / "reply.wav"
                     tick = time.perf_counter()
                     await self.backends.synthesize(reply, output)
+                    if self.memory and memory_reply is None and not self.private_conversation and model_called:
+                        self.memory.completed(text,reply,self.backends,allow_extract=not sources and search_action is None and sources_override is None,conversation_id=self.conversation_id)
                     timings["tts_ms"] = round((time.perf_counter() - tick) * 1000, 1)
                     timings["server_total_ms"] = round((time.perf_counter() - started) * 1000, 1)
                     await self.send({"type": "timings", "values": timings, "mode": self.config.mode})
@@ -211,6 +312,17 @@ class Session:
                      TimeoutError: "Request timed out. Try a shorter request.",
                      ValueError: "Input or model output was invalid. Check configuration and retry."}
             await self.error(hints.get(type(exc), "Local backend failed. Check Ollama, speech binaries and model paths; then retry."))
+
+    async def respond_with_memory(self,text,*,sources=None):
+        context=None
+        if self.memory and not self.private_conversation:
+            try:context=self.memory.context(text)
+            except (OSError,ValueError,sqlite3.Error):
+                self.memory.notice='Memory is unavailable; this reply has no saved context.'
+                await self.send({'type':'memory_status','message':self.memory.notice})
+        if hasattr(self.backends,'respond_with_context'):
+            return await self.backends.respond_with_context(text,sources=sources,context=context)
+        return await self.backends.respond(text,sources=sources) if sources else await self.backends.respond(text)
 
     async def playback_deadline(self):
         await asyncio.sleep(self.config.playback_timeout_seconds)

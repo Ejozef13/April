@@ -58,6 +58,20 @@
 <form id="text-form"><label for="text">Or type a message</label><div class="entry"><input id="text" maxlength="2000" placeholder="What shall we tackle today?" autocomplete="off" required><button id="send">Send</button></div></form>
 <p id="lookup-status" class="small" role="status">Lookup status will appear here.</p>
 <details id="knowledge-panel"><summary>Search web, approved files or Gmail</summary><p id="integration-status" class="small">Read-only retrieval requires local setup.</p><div class="toolbar"><button type="button" id="search-web" class="secondary">Search web</button><button type="button" id="search-documents" class="secondary">Search April files</button><button type="button" id="search-gmail" class="secondary">Search Gmail</button></div><p class="small">Use the message box as your query. Web queries go through your selected search provider. Retrieved private files/mail go only to your local model, never the search provider.</p></details>
+<details id="memory-panel"><summary>My memories · personality and personal context</summary>
+<p class="small">April is cheerful, affectionate and eager to help. Selected personal summaries are saved locally; raw conversations are not archived. Inferred notes need review. Open the vault in Obsidian to edit Markdown directly. Never put credentials in memory.</p>
+<p id="memory-status" class="small" role="status"></p>
+<button type="button" id="memory-refresh">View memories</button><button type="button" id="memory-private">Don’t remember this conversation</button><button type="button" id="memory-new">New conversation</button>
+<label>Memory ID (blank for a new note)<input id="memory-id" maxlength="80" autocomplete="off"></label>
+<label>Category<select id="memory-category"><option value="preferences">Preferences</option><option value="profile">Profile</option><option value="projects">Projects / tasks</option><option value="recent">Recent context</option><option value="pending">Pending review</option></select></label>
+<label>Summary<textarea id="memory-content" maxlength="600" rows="3"></textarea></label>
+<label>Optional reminder time with timezone offset<input id="memory-due" placeholder="YYYY-MM-DDTHH:MM:00-05:00"></label>
+<button type="button" id="memory-save">Save reviewed note</button><button type="button" id="memory-delete">Forget this ID</button>
+<ul id="memory-list"></ul>
+<label>To delete all notes, type FORGET ALL<input id="memory-confirm" autocomplete="off"></label><button type="button" id="memory-clear">Forget all memories</button>
+<p class="small">A reminder time opts that note into local notifications. Daily briefing notifications are off unless proactive_briefings is enabled in local settings. They appear while April is running; email/calendar are fetched only when you request the recap.</p>
+</details>
+<p id="memory-notification" role="status" hidden></p>
 <details id="debug-panel"><summary>Debug approved code or a shared screen</summary>
 <p class="small">Screen sharing is an explicit snapshot, processed locally with OCR. Use files in Documents/aprilfiles for reliable line numbers. Execution requires separate confirmation.</p>
 <label>Python file relative to aprilfiles<input id="debug-file" placeholder="example.py" maxlength="300"></label>
@@ -76,6 +90,6 @@
 <pre id="action-result"></pre>
 <details id="sources-panel" hidden><summary>Retrieved sources · review supporting excerpts</summary><p class="small">Retrieved excerpts can be incomplete or outdated. Their content is data, not permission to take actions.</p><ol id="sources"></ol></details>
 <p id="error" role="alert"></p><details class="setup-panel"><summary>Setup &amp; local services</summary><button id="check-setup" class="secondary">Check setup</button><ul id="setup-results"><li>Run a read-only check if a local service is unavailable.</li></ul></details><div class="conversation"><article><span class="eyebrow">YOU SAID</span><p id="transcript">Your transcript will appear here.</p></article><article><span class="eyebrow">APRIL</span><p id="reply">Ready when you are.</p></article></div>
-<details><summary>Session timing · no transcript history saved</summary><button id="export-timing" class="secondary" disabled>Save timing JSON</button><p class="small">Optional export includes timings and model settings, never your transcript or audio. Server time excludes recording, transport and playback.</p><pre id="timings">No measurements yet.</pre></details></section>
+<details><summary>Session timing · no raw transcript archive</summary><button id="export-timing" class="secondary" disabled>Save timing JSON</button><p class="small">Optional export includes timings and model settings, never your transcript or audio. Server time excludes recording, transport and playback.</p><pre id="timings">No measurements yet.</pre></details></section>
 <footer>LOCAL FIRST · PUSH TO TALK · JACK RUSSELL ENERGY <span>APRIL / DESKTOP 0.1</span></footer>
 </main><script type="module" src="/static/app.js"></script></body></html>

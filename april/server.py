@@ -16,13 +16,33 @@ from .session import Session
 def create_app(config=None, backends=None):
     config = config or load_config()
     backends = backends or (SimulationBackends() if config.mode == "simulation" else LocalBackends(config))
+    from .memory import MemoryStore
+    memory = MemoryStore(config)
     gate = asyncio.Lock()
     clients = set()
     peers = {}
 
+    async def notify():
+        while True:
+            await asyncio.sleep(30)
+            if not clients or gate.locked():continue
+            peer=next((ws for ws in peers.values() if ws.query_params.get('client')=='widget'),next(iter(peers.values()),None))
+            if not peer:continue
+            try:
+                for note in memory.notifications():
+                    await asyncio.wait_for(peer.send_json({'type':'memory_notification',**note}),1)
+                    memory.delivered(note['id'])
+            except (OSError,ValueError,RuntimeError,TimeoutError,WebSocketDisconnect):
+                pass
+
     @asynccontextmanager
     async def lifespan(app):
-        yield
+        notifier=asyncio.create_task(notify())
+        try:yield
+        finally:
+            notifier.cancel()
+            await asyncio.gather(notifier,return_exceptions=True)
+        await memory.close()
         for session in list(clients):
             try:
                 await session.cancel()
@@ -49,6 +69,7 @@ def create_app(config=None, backends=None):
     @app.get("/api/config")
     async def settings():
         values={k: getattr(config, k) for k in ("avatar_3d", "avatar_model_url", "mode", "model", "web_provider", "automatic_web_search", "context_tokens", "reasoning_effort", "max_response_tokens", "max_record_seconds", "display_width", "display_height", "input_device_id", "output_device_id")}
+        values['memory_enabled']=memory.enabled
         values['integrations']={'web':True,
             'documents':bool(config.document_roots),'gmail':Path(config.gmail_token_path).expanduser().is_file(),
             'calendar':Path(config.caldav_credentials).expanduser().is_file()}
@@ -99,7 +120,7 @@ def create_app(config=None, backends=None):
                     await asyncio.gather(*(asyncio.wait_for(peer.send_json(
                         {'type':'availability','busy':gate.locked()}),.5)
                         for peer in list(peers.values()) if peer is not ws),return_exceptions=True)
-        session = Session(config, backends, send, gate)
+        session = Session(config, backends, send, gate, memory=memory)
         clients.add(session)
         peers[session]=ws
         try:

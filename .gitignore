@@ -22,3 +22,6 @@ calendar-users
 radicale.ini
 *.blend1
 *.blend2
+
+# Private editor metadata; memory vault itself must be outside Git.
+.obsidian/

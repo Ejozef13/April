@@ -17,7 +17,7 @@ let reviewUsed=false;
 let serverBusy=false;
 let lookupPending = false;
 $('lookup-status').textContent = config.mode === 'simulation' ? 'Simulation: no private or external searches.' : (config.automatic_web_search ? 'Automatic web lookup on · clock and private requests use dedicated routes.' : 'Automatic web lookup off · use explicit search controls.');
-const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
+const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws${desktopMode ? "?client=widget" : ""}`);
 const send = message => { if (socket.readyState === 1) socket.send(JSON.stringify(message)); };
 const descriptions = {idle:'Ready when you are.',listening:'Microphone is recording. Press again to finish.',transcribing:'Turning recorded audio into text.',thinking:'Waiting for a local response or preparing speech.',speaking:'Playing April’s response.',error:'Something went wrong. You can try again.'};
 function showState(value) {
@@ -111,6 +111,32 @@ socket.onmessage = async event => {
       send({type:message.kind==='calendar'?'calendar_confirm':'debug_execute',id:message.id});
     };
     if(desktopMode) desktopRequest='expand';
+  }
+  if (message.type === 'memory_view') {
+    $('memory-panel').open=true;
+    $('memory-status').textContent=(message.private ? 'Private conversation · memory paused. ' : 'Local memory active. ')+(message.notice || '');
+    $('memory-list').replaceChildren(...message.items.map(item=>{
+      const li=document.createElement('li');
+      const button=document.createElement('button');button.type='button';button.className='secondary';
+      button.textContent=item.category+' · '+item.content;
+      button.onclick=()=>{
+        $('memory-id').value=item.id;$('memory-category').value=item.category;
+        $('memory-content').value=item.content;$('memory-due').value=item.due_at || '';
+      };
+      const detail=document.createElement('p');detail.className='small';
+      detail.textContent=`${item.origin} · ${item.certainty} · ${item.updated_at}`+(item.evidence ? ' · User quote: '+item.evidence : '');
+      li.append(button,detail);return li;
+    }));
+    $('reply').textContent='Memory view updated. Select a note to edit or forget it.';
+    if(desktopMode)desktopRequest='expand';
+  }
+  if (message.type === 'memory_status') $('memory-status').textContent=message.message;
+  if (message.type === 'memory_saved') {
+    $('memory-status').textContent='Saved locally: '+message.item.content;
+  }
+  if (message.type === 'memory_notification') {
+    $('memory-notification').hidden=false;$('memory-notification').textContent=message.message;
+    if(desktopMode)desktopRequest='expand';
   }
   if (message.type === 'action_result') {
     $('action-result').textContent=message.message;
@@ -468,3 +494,17 @@ $('share-screen').onclick=async()=>{
 const requestedPanel=new URLSearchParams(location.search).get('panel');
 if(['debug','calendar'].includes(requestedPanel)) $(requestedPanel+'-panel').open=true;
 if(desktopMode) $('face').onclick=()=>{desktopRequest='expand';};
+
+function memoryAction(operation,fields={}) {
+  if(!config.memory_enabled){error('Memory is disabled in simulation or local settings.');return;}
+  privateAction({type:'memory',operation,...fields});
+}
+$('memory-refresh').onclick=()=>memoryAction('list');
+$('memory-private').onclick=()=>memoryAction('private');
+$('memory-new').onclick=()=>memoryAction('new');
+$('memory-save').onclick=()=>memoryAction('save',{
+  id:$('memory-id').value.trim() || null,content:$('memory-content').value,
+  category:$('memory-category').value,due_at:$('memory-due').value.trim() || null});
+$('memory-delete').onclick=()=>memoryAction('forget',{id:$('memory-id').value.trim()});
+$('memory-clear').onclick=()=>memoryAction('clear',{confirmation:$('memory-confirm').value});
+$('memory-status').textContent=config.memory_enabled ? 'Local memory enabled · open to inspect saved notes.' : 'Memory disabled in this mode or configuration.';

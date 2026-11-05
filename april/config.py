@@ -34,6 +34,10 @@ class Config:
     web_provider: str = 'searxng'
     automatic_web_search: bool = True
     searxng_url: str = 'http://127.0.0.1:8888'
+    memory_enabled: bool = True
+    memory_vault: str = "~/.local/share/april/memory"
+    proactive_briefings: bool = False
+    briefing_hour: int = 9
     gmail_token_path: str = '~/.local/share/april/gmail-token.json'
 
     caldav_url: str = "http://127.0.0.1:5232/april/assistant/"
@@ -58,6 +62,12 @@ class Config:
 
     def __post_init__(self):
         import re
+        if not isinstance(self.memory_enabled,bool) or not isinstance(self.proactive_briefings,bool):
+            raise ValueError("Memory and proactive briefing switches must be boolean")
+        if not isinstance(self.memory_vault,str) or not self.memory_vault.strip():
+            raise ValueError("Use a private local memory vault path")
+        if not isinstance(self.briefing_hour,int) or not 0 <= self.briefing_hour <= 23:
+            raise ValueError("briefing_hour must be 0–23 in the configured timezone")
         if not re.fullmatch(r"(?:docker.io/library/)?python:3\.12-slim@sha256:[a-f0-9]{64}", self.debug_runner_image):
             raise ValueError("Use a reviewed digest-pinned Python 3.12 slim execution image")
         if not isinstance(self.avatar_3d,bool):raise ValueError("avatar_3d must be true or false")
