@@ -12,7 +12,7 @@ Three tradeoffs to discuss:
 2. **Process per speech stage versus a persistent model server:** easier cancellation/resource cleanup, but repeated model loads. CLI boundaries also make replacement understandable.
 3. **Browser client versus native device UI:** reuses existing monitor/headphones, supports a lightweight Pi client and accessible controls, but microphone secure contexts, output-selection support and permission flow need explicit handling. Authenticated SSH tunneling preserves localhost semantics.
 
-Demonstrate failure recovery and cancellation rather than adding wake words or hardware movement. Explain why a clock button uses a deterministic function instead of trusting a language model’s current-time answer. Discuss tests with fakes separately from hardware/model integration evidence.
+Demonstrate failure recovery and cancellation. The optional wake/tray client has native simulation and fake-audio coverage; distinguish that from still-pending physical wake tests. Hardware movement is not implemented. Explain why a clock button uses a deterministic function instead of trusting a language model’s current-time answer. Discuss tests with fakes separately from hardware/model integration evidence.
 
 Resume bullet drafts supported by current evidence:
 
@@ -22,3 +22,20 @@ Resume bullet drafts supported by current evidence:
 - Verified cancellation, process cleanup, tool validation and failure recovery with automated fixture-based tests; exercised the browser workflow with a fake microphone and captured a labeled simulation walkthrough.
 
 A real end-to-end local voice interaction can now be described as user-tested on Enrique’s desktop. Ollama reported GPU placement; do not generalize that into driver certification or performance claims. Do not yet claim production deployment, Pi hardware integration, latency improvements, model training, or fine-tuning. Performance samples and physical cancellation/retry evidence remain pending.
+
+
+Current progression: [PROGRESS.md](PROGRESS.md) links every implementation and
+visual milestone to its commit. SearXNG web lookup and approved-folder retrieval
+have desktop evidence; personal Gmail acceptance is pending. The optional Qt
+widget, bounded wake/capture worker, scoped autostart generator and SIGINT/SIGTERM
+cleanup extend the desktop architecture; they do not establish Pi deployment.
+
+Additional supported implementation bullet:
+
+- Implemented an optional Qt tray companion with constrained offline wake-phrase
+  recognition, bounded native audio capture and opt-in desktop-login startup;
+  verified the native bridge and shutdown lifecycle with simulation and fixtures.
+
+Describe real wake accuracy, KDE login behavior and microphone acceptance only
+after testing them on the desktop. Calendar, persistent personal memory,
+Navidrome and automatic desktop/Pi routing remain future work.

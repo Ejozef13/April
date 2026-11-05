@@ -1,53 +1,93 @@
-# APRIL · Desktop v0.1
+# APRIL · Local voice companion
 
-A local voice companion inspired by Enrique’s Jack Russell. Built by Enrique, a George Mason University computer science student expecting to graduate in May 2028. APRIL demonstrates interactive systems, audio integration, and reliable software design using pretrained models—not model training or fine-tuning.
+A voice companion inspired by Enrique’s Jack Russell terrier, built with Python,
+local speech models, Ollama and an expressive dog interface. APRIL explores
+interactive systems, audio integration and reliable software design using
+pretrained models. It does not train or fine-tune them.
 
-**Verified desktop milestone:** Enrique reported five successful real voice sessions on CachyOS: microphone → CPU Whisper → local GPT-OSS 20B → CPU Piper → audible browser playback. A live screenshot and his report confirm the interaction; the five numerical timing samples and physical cancellation observations were not supplied. Automated cloud tests use fixtures. Pi operation and automatic desktop offloading are not implemented yet.
+Built by **Enrique**, a George Mason University computer science student
+expecting to graduate in **May 2028**.
 
-![Photo-inspired April design shown in a labeled simulation browser session](docs/evidence/simulation-idle.png)
+**Current milestone:** a user-tested desktop voice assistant, approved-folder
+retrieval and source-cited web search, plus an optional native “Hey April” tray
+widget awaiting physical desktop acceptance. The long-term goal is an always-on
+Raspberry Pi companion with authenticated desktop acceleration.
 
-The primary reference is April’s newer purple-collar portrait: broad tan forehead, tapered cheeks/muzzle, large folded ears, dark almond eyes, white chest, purple collar and silver buckle. The interface matches the supplied AM reference with a dark grid, lime accents and animated circuit traces. April’s tongue peeks out while listening/thinking; her mouth is closed at idle. Circuit motion is decorative and respects reduced-motion preferences. It is original code-rendered artwork; the personal photo is not bundled. Above is an actual **simulation** UI screenshot, not fabricated live evidence. [Full-screen face](docs/evidence/simulation-face-view.png) · [Labeled simulation walkthrough](docs/evidence/simulation-walkthrough.webm).
+[Project progression](docs/PROGRESS.md) · [Widget setup](docs/WIDGET.md) ·
+[Validation](docs/VALIDATION.md) · [Architecture](docs/ARCHITECTURE.md) ·
+[Roadmap](docs/ROADMAP.md)
 
-The full-body reference informs the plain white chest and short brown tail with a white tip on the illustration's right side. The tail wags quickly during detected microphone signal and actual reply playback, stays still at idle/thinking, and respects reduced motion. Input-level detection is not speech recognition. For inaccurate answers, see [the diagnosis and grounded-answer plan](docs/ACCURACY.md); Internet connectivity alone does not give the local model web access.
+## What works, and what is still pending
 
-## Start on your already-configured desktop
+| Capability | Evidence / current status |
+|---|---|
+| Desktop microphone → Whisper → GPT-OSS 20B → Piper → audible reply | Enrique reported five successful real sessions on CachyOS; numerical timing samples were not supplied |
+| Expressive Jack Russell face, AM-style animated circuits, tongue and white-tipped tail | Original SVG/CSS; real browser and native simulation captures below |
+| Recording bounds, serial requests, cancellation, retry and actionable errors | Automated fixtures and browser regressions; repeated physical cancellation measurements pending |
+| Actual time/date | Deterministic clock routing for recognized spoken/typed requests and the clock button |
+| Approved-folder RAG | SQLite FTS5 retrieval; Enrique confirmed access to his approved `~/Documents/aprilfiles` folder |
+| Automatic web lookup and visible sources | SearXNG; desktop screenshot shows three retrieved sources and a cited answer |
+| Native popup, tray controls, wake listener and login startup | Implemented; Qt simulation, fake-audio and process-lifecycle checks passed. Real wake accuracy, device compatibility, KDE focus and login test pending |
+| Read-only Gmail | OAuth/search adapter and fixtures implemented; personal consent and real mailbox queries pending |
+| Calendar, personal memory and Navidrome | Planned; not implemented |
+| Standalone Pi inference and desktop offload/fallback | Planned; physical Pi operation is not verified |
+
+Latest recorded validation: **58 unit tests**, Chromium playback/source regressions,
+actual offscreen Qt widget checks, and clean native-launcher shutdown on SIGINT
+and SIGTERM. These do not substitute for real microphone/model/Pi tests.
+See [the evidence record](docs/VALIDATION.md).
+
+## See April
+
+![April's photo-inspired face and circuit interface in a simulation session](docs/evidence/simulation-idle.png)
+
+April’s broad tan forehead, folded ears, dark eyes, white muzzle/chest and purple
+collar follow the supplied dog photos. Her short brown tail has a white tip and
+angled top. Her tongue shows while listening/thinking; her mouth closes at idle.
+The tail follows detected input level or actual playback. Expressions represent
+interaction state, not model reasoning; speech animation is not phoneme lip sync.
+Reduced-motion preferences are respected.
+
+[Full-screen face](docs/evidence/simulation-face-view.png) ·
+[Labeled simulation walkthrough](docs/evidence/simulation-walkthrough.webm)
+
+![Actual native Qt window showing a simulated exchange](docs/evidence/widget-simulation.png)
+
+**Both images and the bundled walkthrough are simulation evidence.** Personal
+reference photos are not bundled. A real desktop walkthrough remains pending.
+
+## Start on an already-configured desktop
+
+Stop an existing APRIL instance with Ctrl+C before switching clients.
 
 ```bash
 cd ~/Projects/April
+git pull --ff-only
 bash april.sh --with-search
 ```
 
-One command checks executable/model/voice files and the configured model in Ollama, starts only APRIL’s SearXNG container, then starts **LIVE** mode. Docker must already be running with access for your user. It never starts/stops shared services or loads/unloads models during checks. Existing `april.local.toml` is preserved; if absent, the desktop profile is copied into that ignored file. Checks establish prerequisites, not successful inference or model integrity. They can’t predict whether a service will disappear later.
-
-If Ollama is stopped, the launcher tells you to check `systemctl status ollama` and start your existing service with `sudo systemctl start ollama`. Resolve the reported issue and rerun the same APRIL command. This addresses the previously undiagnosed generic backend failure without assuming its cause on your desktop.
-
-```bash
-bash april.sh                       # App only, for an already-running search service
-bash april.sh --check               # Read-only model/speech checks, no server
-bash april.sh --simulation          # Explicit canned replies; no speech/models
-```
-
-After updates, run `git pull --ff-only` before starting. Open the local address printed in your desktop terminal. Refresh after updates. Cloud onboarding does not provide a localhost web preview. Stop only APRIL with Ctrl+C; leave shared AM/Ollama services intact.
-
-## Optional “Hey April” desktop widget
-
-[Desktop companion setup](docs/WIDGET.md) adds a native tray window, offline
-CPU wake-phrase listener, silence-ended command recording and opt-in login
-startup. It reuses the existing model/voice and face, with manual Record,
-microphone pause and dismiss controls. Install its optional dependencies and
-wake model before running:
+Open the localhost address printed in the terminal and refresh after updates.
+This checks speech/model prerequisites, starts only APRIL’s SearXNG container,
+and launches the live browser app. Docker and Ollama must already be running and
+accessible; the launcher does not start/stop shared services or unload models.
 
 ```bash
-bash april.sh --widget --with-search
+bash april.sh                      # App only; search service already running
+bash april.sh --check              # Read-only speech/model prerequisites
+bash april.sh --simulation         # Clearly labeled fixtures; no model/speech
+bash april.sh --widget --with-search # Native companion, after optional setup
 ```
 
-Native Qt/bridge and fake-audio tests passed; real wake accuracy, microphone
-compatibility, KDE popup behavior and login startup still need desktop testing.
-The browser-only app remains unchanged.
+Existing ignored `april.local.toml` is preserved. If absent, live startup copies
+the desktop example profile. Configure paths/devices/timeouts there or select a
+different file through `APRIL_CONFIG`. Checks establish prerequisites, not model
+integrity, successful inference or search-engine availability.
 
 ## First installation
 
-Requires Git, a modern browser, and Python 3.12 for the tested dependency set. `uv` can install a separate Python 3.12 without changing CachyOS system Python. Existing virtual environments are preserved. No purchases or API keys are needed.
+The tested desktop environment uses **Python 3.12**. Use an isolated environment;
+do not replace CachyOS system Python. Git, a modern browser and C/C++ build tools
+are needed. No hardware purchases or search API keys are required.
 
 ```bash
 git clone https://github.com/Ejozef13/April.git
@@ -56,122 +96,181 @@ bash scripts/setup.sh
 bash scripts/setup_speech.sh
 ```
 
-The speech script needs a C/C++ compiler and Make, and builds CPU-only whisper.cpp with four workers. Prepare the model files using [STACK.md](docs/STACK.md). The launcher’s desktop profile expects:
+Prepare speech/voice models using [STACK.md](docs/STACK.md), and search using
+[SEARXNG.md](docs/SEARXNG.md).
 
-| Component | Default desktop configuration |
+| Component | Desktop profile |
 |---|---|
-| LLM | Existing `gpt-oss:20b` in loopback Ollama; low reasoning, 4096-token context, 512-token generation budget |
-| STT | `.tools/whisper.cpp/build/bin/whisper-cli`, `.tools/whisper.cpp/models/ggml-base.en.bin` |
-| TTS | `.venv/bin/piper`, `models/en_US-ljspeech-medium.onnx` and matching `.onnx.json` |
-| Audio | Browser-selected microphone/output, 15-second recording maximum |
+| LLM | Existing `gpt-oss:20b` through loopback Ollama; low reasoning, 4096 context, 512-token budget |
+| STT | CPU whisper.cpp; `.tools/whisper.cpp/build/bin/whisper-cli` and `ggml-base.en.bin` |
+| TTS | CPU Piper; `models/en_US-ljspeech-medium.onnx` and matching `.onnx.json` |
+| Capture | Browser-selected input or optional native PortAudio input; maximum 15 seconds |
 | Response | Maximum 600 visible/spoken characters; generation budget includes reasoning |
-| Timeouts | 90-second processing deadline, 60-second playback deadline |
+| Deadlines | 90-second processing and 60-second playback deadlines |
+| Search | Dedicated loopback SearXNG container; up to three bounded excerpts |
 
-Change settings in ignored `april.local.toml` or select another config through `APRIL_CONFIG`. Resolve relative paths from the project directory. Inspect `ollama list`, `ollama ps`, available RAM/VRAM and existing AM workloads before changing models. Never assume several models fit simultaneously. Use [april.example.toml](april.example.toml) for other backends; the supported desktop starting profile is [april.desktop.example.toml](april.desktop.example.toml).
+Inspect existing `ollama list`, `ollama ps`, RAM/VRAM and shared AM workloads
+before changing models. CPU speech avoids assuming CUDA support or enough VRAM
+for several models. [Desktop profile](april.desktop.example.toml) ·
+[General configuration](april.example.toml).
 
-## Use April
+## “Hey April” widget and login startup
 
-1. Grant microphone permission with **Enable / refresh devices** and select a real input. The level meter shows captured signal while recording; it does not prove recognition accuracy.
-2. Press **Start recording**, speak, then **Finish recording**. Alt+R is the keyboard fallback. Submission is automatic—Send belongs to typed text only.
-3. Read the transcript and response. April enters Speaking only after browser playback begins. **Play reply** retries blocked/interrupted playback using the same audio.
-4. **Stop / cancel** or Escape releases recording/playback and cancels the owned job. Mute suppresses audio; a completed generated response still appears as text.
-5. Use **Face view** for a full-screen presentation with Record, Stop, Mute and clock controls available. Return with Show controls. Reduced-motion settings are respected.
-6. **Current time**, “April, what time is it?” and “Tell me the time” call the deterministic clock rather than asking the model. The transcript is preserved. The model does not execute shell commands or select arbitrary tools.
+The optional client lives in the system tray and shows April’s face when called.
+It uses a CPU Vosk wake recognizer, bounded native recording and the same local
+voice pipeline. Record, microphone pause, dismiss and quit remain accessible.
 
-States: idle, listening, transcribing, thinking, speaking, error. Thinking means waiting on a response or preparing its voice; expressions do not reveal model reasoning. Mouth animation follows the speaking state, not phoneme-accurate lip sync. One global job runs at a time, with no application backlog. A new attempt can recover after a failure without restarting APRIL.
+Follow [WIDGET.md](docs/WIDGET.md) for dependencies, model licensing, configuration
+and the real-device test. First install and test manually:
 
-## Read-only integration preview
+```bash
+sudo pacman -S --needed portaudio
+bash scripts/setup_desktop.sh
+.venv/bin/python -m april.wake_setup --download
+bash april.sh --widget --with-search
+```
 
-[INTEGRATIONS.md](docs/INTEGRATIONS.md) contains the setup for the requested `~/Documents/aprilfiles` folder, local SearXNG and Gmail read-only OAuth. They are opt-in and **not connected to your personal accounts by this code update**. API/folder boundaries are fixture-tested, and Enrique has now reported the approved folder retrieval working. Enrique also verified a real desktop web lookup with three sources and a cited reply. Gmail authentication and broader search quality checks remain pending. Private/external retrieval is disabled in simulation.
+Say **“Hey April”**, pause for the popup, then **“What time is it?”** Same-breath
+wake-plus-command is not reliably supported. Native recording ends after silence.
+Wake listening pauses during processing/playback. The widget uses the system
+default output; native input names differ from browser device IDs.
 
-Use explicit “search my files for …”, “search my emails for …”, “search the web for …” or the corresponding search buttons. Retrieved sources appear in a review panel and are passed only to the local model. Ordinary live questions automatically retrieve web sources before generation; clock and private requests use dedicated routes. Missing credentials/service produce actionable errors. Web queries go through local SearXNG; private excerpts never automatically fall back to web search. No mail sending/deletion, source-file changes, background mailbox crawl or arbitrary system access is provided.
+After that test passes, opt into startup **after desktop login**:
 
-Document RAG uses SQLite keyword retrieval over approved UTF-8 text formats; PDFs/Word/embedding search are not implemented. The index retains private excerpts locally. Gmail tokens persist outside Git with private permissions; Google browser consent is required for mail access. SearXNG needs no API key. The clock and local conversation with automatic web lookup disabled remain offline-capable.
+```bash
+sudo systemctl enable --now docker ollama
+.venv/bin/python -m april.autostart install
+```
 
-For subscription-free web search, follow [SEARXNG.md](docs/SEARXNG.md). It provides a pinned, loopback-only service with JSON enabled. SearXNG is the only web adapter; no search API key or paid fallback is used. Service health does not prove engine access or result quality.
+The installer writes only APRIL’s managed XDG autostart entry. It does not change
+your actual PC from the cloud. Remove that entry with
+`.venv/bin/python -m april.autostart remove`. Closing the window dismisses it;
+explicit Quit exits and releases the owned server/microphone. KDE Wayland popup
+focus and real login behavior remain pending physical tests.
 
-## Diagnostics and evidence
+## Conversation, grounded answers and controls
 
-Open **Setup & local services** to repeat read-only checks. Errors distinguish unavailable Ollama, missing models, unusable generation output, Whisper/Piper failures and invalid synthesized WAV. Prompt text, remote error bodies and reasoning are not emitted as diagnostics.
+In the browser, grant microphone permission, select the input, press **Start
+recording**, speak and press **Finish recording**. Submission is automatic; Send
+is for typed messages. Alt+R records; Escape or Stop/cancel cancels. Mute controls
+reply audio, not the native wake listener. Use tray **Pause microphone** for that.
 
-Open **Session timing** after a turn. **Save timing JSON** is an explicit local download containing stage timings, model settings, simulation/live labeling and playback outcome. It excludes transcripts and audio, defaults loading conditions to unknown, and never uploads data. Export after playback completes; cancelled/muted/failed playback must not be labeled successful. Server total excludes capture, transport and playback. See [benchmark boundaries](docs/BENCHMARKS.md).
+States are idle, listening, transcribing, thinking, speaking and error. Speaking
+begins only after playback starts. Play reply retries blocked playback without
+another model request. One global job runs at a time; no application backlog is
+accepted. A failed turn can be retried without restarting the app.
 
-Follow the [desktop acceptance and real-walkthrough checklist](docs/DESKTOP_ACCEPTANCE.md). Five successful sessions were reported, but numerical measurements, a real recorded walkthrough and separately confirmed physical cancellation/retry remain pending. Do not replace them with fixture results.
+Ordinary live questions retrieve web evidence automatically. Recognized clock
+requests use the real local clock. “Search my files for …” and “Search my emails
+for …” use dedicated private routes. Sources are shown separately from model
+prose. Failed/empty searches do not silently fall back to unsupported model facts;
+snippets can still be incomplete, stale or misinterpreted.
+
+Common private cues suppress automatic web search, but this is a heuristic, not
+a complete sensitive-data detector. Ordinary web questions go to upstream search
+engines; retrieved private excerpts are never automatically forwarded as queries.
+Set `automatic_web_search = false` and restart for local conversation with manual
+search controls; current-fact guards still require retrieval.
+
+[Folder/Gmail setup and retention](docs/INTEGRATIONS.md) ·
+[Search setup](docs/SEARXNG.md) · [Accuracy limitations](docs/ACCURACY.md).
+
+## Engineering and validation
+
+```mermaid
+flowchart LR
+    Mic["Browser or native microphone"] --> STT["CPU Whisper"]
+    Text["Typed request"] --> Route["Bounded request routing"]
+    STT --> Route
+    Route --> Clock["Actual local clock"]
+    Route --> Sources["Web / approved files / Gmail excerpts"]
+    Route --> LLM["Local Ollama model"]
+    Sources --> LLM
+    Clock --> TTS["CPU Piper"]
+    LLM --> TTS
+    TTS --> Playback["Playback acknowledgment → idle"]
+```
+
+The optional local wake detector precedes native command capture. The diagram
+shows software paths; Gmail still requires personal account acceptance.
 
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
-# Optional: invoking Python needs Playwright; system needs Chromium and FFmpeg.
-python scripts/browser_smoke.py          # Requires the simulation server running
-python scripts/browser_playback_check.py # Starts its own WAV-tone fixture server
+# Optional browser checks: invoking environment needs Playwright and Chromium.
+.venv/bin/python scripts/browser_playback_check.py
+# Optional native checks: desktop dependencies; simulation, no real microphone.
+.venv/bin/python scripts/widget_smoke.py
+.venv/bin/python scripts/widget_lifecycle_check.py
 ```
 
-[Validation record](docs/VALIDATION.md) · [Desktop release notes](docs/RELEASE_v0.1.md) · [Interview guide](docs/INTERVIEW.md).
+Timing JSON exports contain stage timings/configuration and playback outcome,
+not transcripts or raw audio. Server totals exclude recording, transport and
+playback. No collected multi-run hardware benchmark is available.
+[Timing protocol](docs/BENCHMARKS.md) ·
+[Desktop acceptance and real walkthrough](docs/DESKTOP_ACCEPTANCE.md) ·
+[Interview guide and supported resume bullets](docs/INTERVIEW.md).
 
-## Hardware and roadmap
+## Hardware and next milestones
 
-| Hardware | Observed status |
+| Hardware | Current evidence |
 |---|---|
-| CachyOS, Ryzen 7 9700X, RX 9070 XT 16 GB, 32 GB RAM | Specifications supplied by Enrique; speech interaction reported successful. Ollama screenshot reported GPT-OSS 100% GPU placement. Exact driver/runtime and contention measurements pending. |
-| Razer Seiren Mini and existing output/headphones | PipeWire enumeration seen; independent recording/playback and APRIL speech reported successful |
-| Raspberry Pi 5 16 GB with active cooler | User-owned; Raspberry Pi OS 64-bit selected. Actual installed OS, storage, audio, local model speed and fallback not verified. |
-| Dedicated display, USB audio and enclosure | Not required for desktop release; purchases and compatibility remain user decisions |
+| CachyOS, Ryzen 7 9700X, RX 9070 XT 16 GB, 32 GB RAM | User-supplied specs; real desktop speech reported successful. Ollama screenshot showed GPT-OSS GPU placement, not driver/performance certification |
+| Razer Seiren Mini and existing headphones/output | PipeWire enumeration and browser recording/playback reported successful; native PortAudio compatibility pending |
+| Raspberry Pi 5 16 GB with active cooler | User-owned; 64-bit Raspberry Pi OS selected. Installed OS, storage, audio and inference speed remain unverified |
+| Dedicated display/audio/enclosure | No purchase required for current desktop work; future compatibility decisions |
 
-The goal is **Pi-first standalone assistance plus authenticated desktop acceleration**, not a permanently desktop-dependent face terminal. The [roadmap](docs/ROADMAP.md) separates that future work from Desktop v0.1. Read [PI.md](docs/PI.md) for the existing tunnel/client experiment; that experiment does not implement local Pi inference or automatic fallback.
+Next: physically accept the widget, capture the real walkthrough/timings, verify
+Gmail and implement a read-only daily briefing, then benchmark standalone Pi
+inference and authenticated desktop offload. Calendar, explicit personal memory
+and Navidrome remain planned. A desktop-only file is unavailable when the PC is
+off unless the user explicitly syncs it elsewhere.
 
-## Privacy, limits and troubleshooting
+[Full roadmap](docs/ROADMAP.md) · [Existing Pi tunnel experiment](docs/PI.md).
+That experiment does not implement standalone Pi inference or automatic fallback.
 
-No persistent conversation memory, transcript database, automatic audio archive or browser local storage is enabled. Browser memory and private temporary job files support the CLI stages; files are deleted on completion, failure or cancellation. A hard kill/power loss can leave OS temporary files. Use a RAM-backed `TMPDIR` when desired. Timing download, copying a transcript and screen recording are explicit retention actions. Clear your tab to remove its displayed exchange and retrieved excerpts. Explicit document indexing persists a private local SQLite index; Gmail/search credentials persist in private files outside the repository. Review retention and disconnect steps in INTEGRATIONS.md.
+## Privacy and troubleshooting
 
-Default binding and Ollama endpoints are loopback-only. Host/origin checks, no CORS, restrictive content policy and no external UI assets reduce unintended browser access. This remains a single-user local prototype. The clock validates its empty arguments. Opt-in read-only retrieval is distinct from filesystem/system control; Navidrome, wake words, motors and autonomous actions are not implemented. Model answers can be inaccurate and are not authoritative live facts.
+Wake audio is processed locally in memory. Commands use private temporary audio
+files deleted on normal completion, failure or cancellation; hard kills/power
+loss can leave temporary files. No automatic transcript history, conversation
+memory or raw-audio archive is enabled. The approved-document SQLite index
+persists excerpts locally, and Gmail tokens persist privately outside Git.
+Timing exports, copies and recordings are explicit retention actions.
 
-| Symptom | Action |
+The app/model/search endpoints default to loopback. Host/origin checks,
+restrictive content policy, no external UI assets and a local-only native page
+reduce unintended access. Retrieved text is untrusted data. A wake phrase is
+not authentication. No arbitrary shell execution, mail sending/deletion,
+unrestricted filesystem access, motors or autonomous system actions exist.
+
+| Symptom | Next check |
 |---|---|
-| Canned transcript or no model speech | Check the badge; `bash april.sh` starts live, `--simulation` intentionally uses fixtures |
-| Ollama unavailable | Check existing service; start it if stopped, then retry. No reinstall or APRIL restart normally needed. |
-| Model not found | Match `model` to `ollama list`; don’t download duplicates blindly |
-| Microphone unavailable | Use localhost/HTTPS, grant permission, select actual input. Adapters alone do not establish ADC/DAC hardware. |
-| Output missing/blocked | Unmute, check system routing, try Play reply or system-default output. Browser output selection support varies. |
-| Speech failure | Use Check setup; validate matching speech binary/model/voice configuration |
-| Timeout or busy | Shorten input, inspect contention, cancel the active turn. APRIL never force-unloads shared models. |
-| Browser connection closed | Restart APRIL if necessary and reload; socket loss cancels its job |
+| Simulated text/no speech | Check the mode badge; use live startup after model setup |
+| Ollama or Docker unavailable | Inspect existing service status; start it explicitly if stopped |
+| Model missing | Match `model` to `ollama list`; avoid duplicate downloads |
+| Microphone fails | Browser: localhost/HTTPS, permission and input. Widget: PortAudio and actual native device name |
+| No output/autoplay denied | Check mute/system routing; use Play reply; widget uses system-default output |
+| Search times out | Test local health and JSON search; inspect upstream connectivity/VPN. Healthy does not mean engines work |
+| Busy/timeout | Cancel the active job, shorten input and check resource contention |
+| Native popup/wake problem | Use tray Record/Retry microphone; follow the pending acceptance checks in WIDGET.md |
 
-## Project map
+## Project map and progression
 
-| Path | Responsibility |
+| Path (Python modules live under `april/`) | Responsibility |
 |---|---|
-| `april.sh`, `april/launch.py`, `april/readiness.py` | One-command startup and read-only prerequisite checks |
-| `april/config.py`, `*.example.toml` | Runtime settings outside application logic |
-| `april/state.py`, `april/session.py` | Explicit states, bounded serial jobs, cancellation and timing |
-| `april/audio.py`, `april/backends.py`, `april/errors.py` | Audio validation, replaceable local adapters and redacted actionable errors |
-| `april/server.py`, `april/tools.py` | Local API lifecycle, origin boundary and spoken/button clock |
-| `april/documents.py`, `april/knowledge.py`, `april/gmail.py`, `april/integrations.py` | Opt-in bounded retrieval and secure local account setup |
-| `april/evaluate.py`, `april/evaluation_cases.json` | Text-only baseline with human rubrics; no automatic accuracy claim |
-| `april/web/` | Photo-inspired SVG, accessible controls, capture worklet and playback |
-| `tests/`, `scripts/`, `docs/` | Reliability checks, repeatable setup, architecture and honest evidence |
+| `april.sh`, `launch.py`, `readiness.py`, `config.py` | Startup, prerequisite checks and configuration |
+| `state.py`, `session.py` | Real I/O states, serial jobs, timing, cancellation |
+| `audio.py`, `backends.py`, `errors.py` | Audio contracts and replaceable local STT/LLM/TTS adapters |
+| `server.py`, `tools.py` | Loopback API lifecycle and validated actual-clock tool |
+| `desktop.py`, `desktop_audio.py`, `wake.py` | Native tray/window, half-duplex mic worker and endpointing |
+| `autostart.py`, `wake_setup.py` | Scoped login entry and explicit bounded model download |
+| `documents.py`, `knowledge.py`, `gmail.py`, `integrations.py` | Approved retrieval and opt-in account setup |
+| `searxng_service.py`, `deploy/searxng/` | Private pinned search service |
+| `evaluate.py`, `evaluation_cases.json` | Human-reviewed text evaluation; no invented accuracy score |
+| `april/web/` | Original SVG, circuit theme, browser capture/playback and native bridge |
+| `tests/`, `scripts/`, `docs/` | Fixture tests, repeatable setup, evidence and development history |
 
-
-### Automatic web lookup
-
-Ordinary live voice and text requests now search the configured provider before
-generating a response. Clock requests use the real local clock; explicit file and
-Gmail searches keep their dedicated routes. Common private cues (such as “my
-emails”, home paths and email addresses) suppress automatic web lookup. This is a
-routing heuristic, not a complete detector of sensitive information: ordinary
-prompts go to upstream search engines, so avoid including secrets. Retrieved
-private excerpts are never automatically forwarded to web search.
-
-The UI reports lookup progress and shows actual retrieved sources separately
-from model prose. Failed or empty searches do not fall back to an unsupported
-model answer. Search snippets can still be incomplete or wrong; review sources.
-“Check on the internet” is now recognized as an explicit search request.
-
-Set `automatic_web_search = false` in ignored `april.local.toml` and restart to
-use local conversation with explicit search controls (also suitable for offline
-operation). Current-fact guards still require retrieval. Simulation never
-performs automatic searches.
-
-If startup says Docker is unavailable or inaccessible, run
-`sudo systemctl start docker`, then
-`docker --host=unix:///var/run/docker.sock info --format '{{.ServerVersion}}'`.
-If the second command fails, inspect its printed error before changing socket
-permissions. Do not run APRIL or the whole setup helper as root.
+Follow [PROGRESS.md](docs/PROGRESS.md) for the commit-linked progression from the
+first prototype to the current widget, including the visual iterations and
+remaining verification work. [Desktop v0.1 release notes](docs/RELEASE_v0.1.md)
+describe the earlier tagged milestone, not every feature added since.

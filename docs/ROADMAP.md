@@ -4,17 +4,30 @@
 
 The desktop proves the interaction architecture before hardware migration. Keep the photo-inspired 2D face and current local stack. Finish real timing/walkthrough evidence and physical Stop/retry acceptance; freeze optional features. Existing code is a loopback desktop server with a browser client and an optional native Qt tray/wake client. Native wake/hardware/login acceptance is pending; see WIDGET.md. It does not implement the future mode routing described below.
 
-## Next: establish standalone Pi viability
+## Next: desktop acceptance and a useful daily briefing
+
+Physically test the native wake/widget path, microphone pause, cancellation/retry
+and actual desktop-login launch. Capture real walkthrough and timing evidence.
+The optional widget's Qt and audio fixtures passed; that is not physical wake
+acceptance. See [WIDGET.md](WIDGET.md) and [PROGRESS.md](PROGRESS.md).
+
+Approved-folder retrieval and one desktop web lookup have been confirmed by
+Enrique. Complete real Gmail consent/query acceptance, then implement read-only
+Calendar access and one source-backed “brief me on my day” interaction. Calendar,
+the briefing and explicit editable personal memory are not implemented yet.
+Keep later write actions reviewable; do not grant arbitrary model shell access.
+
+## Then: establish standalone Pi viability
 
 Verify the actual Raspberry Pi OS 64-bit installation, storage, active cooling, microphone/output compatibility, power and available resources. Do not infer performance from 16 GB RAM alone. Measure small quantized CPU models with speech workloads running, increasing model size only when memory and latency permit. Reuse the current face and audio interface. One complete local spoken turn must work without desktop or Internet after model setup.
 
-## Then: authenticated desktop acceleration
+## After standalone viability: authenticated desktop acceleration
 
 Move coordination to the Pi and add explicit local/desktop inference selection. Authenticate the desktop service, keep external exposure closed and show the selected mode. At turn start choose exactly one backend; never submit duplicate turns. If the desktop disappears mid-turn, report it and offer a local retry. Desktop-only actions remain unavailable offline. Test startup, shutdown, cancellation and connection loss before describing automatic fallback as working.
 
 ## Read-only grounding foundation; then useful bounded tools
 
-The new opt-in foundation implements approved-folder lexical RAG, local SearXNG search, read-only Gmail OAuth, and spoken clock routing. Fixture checks are separate from real authentication/private-data acceptance, which remains pending. Start live acceptance with only `~/Documents/aprilfiles`, then configured web/Gmail queries as described in INTEGRATIONS.md. Treat file contents as untrusted data; exclude credential stores by default. Add Navidrome through its supported API after identifying the actual server, authentication and intended playback endpoint. File changes, deletion and other consequential operations require reviewable proposals/confirmation initially. No unrestricted root agent or arbitrary model-generated shell execution.
+The new opt-in foundation implements approved-folder lexical RAG, local SearXNG search, read-only Gmail OAuth, and spoken clock routing. Enrique confirmed approved-folder retrieval and a desktop web lookup; real Gmail authentication/mailbox acceptance remains pending. Keep initial file scope at `~/Documents/aprilfiles`; follow INTEGRATIONS.md for approved integrations. Treat file contents as untrusted data; exclude credential stores by default. Add Navidrome through its supported API after identifying the actual server, authentication and intended playback endpoint. File changes, deletion and other consequential operations require reviewable proposals/confirmation initially. No unrestricted root agent or arbitrary model-generated shell execution.
 
 ## Finally: robot appliance and physical presentation
 
