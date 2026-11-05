@@ -189,3 +189,11 @@ cancellation/retry remain desktop acceptance work. The pinned Vosk Python
 release is older; this is a replaceable constrained recognizer, not a measured
 dedicated wake-word model. Pi packaging/offload and the personal briefing
 feature remain unimplemented.
+
+Native lifecycle regression: actual Qt simulation launcher processes exited with
+status 0 on both SIGTERM (logout/service termination) and SIGINT (Ctrl+C), and
+their owned loopback servers became unreachable after exit. Explicit Quit uses
+Qt exit rather than close-to-tray; signal callbacks defer exit to a normal GUI
+timer. The port probe permits immediate restart after an earlier server closes.
+These checks are reproducible with `python scripts/widget_lifecycle_check.py`;
+they do not establish physical mic/wake behavior.

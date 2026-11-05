@@ -164,3 +164,8 @@ of ordinary room audio to count false wakes, Stop/dismiss during recording and
 playback followed by retry, microphone pause/resume, system-default audio output, KDE
 tray/focus behavior, logout/login launch, and CPU/RAM/latency measurements.
 Pi packaging and desktop-offload/fallback remain separate future milestones.
+
+The native launcher also passed actual simulation subprocess checks for SIGINT
+and SIGTERM, releasing its owned server after exit. Run
+`.venv/bin/python scripts/widget_lifecycle_check.py` to reproduce that lifecycle
+test. Window close still dismisses to tray; explicit Quit exits the application.

@@ -1,7 +1,7 @@
 """Optional KDE/Linux tray companion; owns only its server and microphone."""
 import json
-import os
 import socket
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -110,7 +110,7 @@ class Companion(QWidget):
         menu.addAction('Retry microphone', self.retry)
         menu.addAction('Dismiss', self.dismiss)
         menu.addSeparator()
-        menu.addAction('Quit April', QApplication.instance().quit)
+        menu.addAction('Quit April', lambda: QApplication.instance().exit(0))
         self.tray.setContextMenu(menu)
         self.tray.activated.connect(lambda reason: self.reveal() if reason == QSystemTrayIcon.ActivationReason.Trigger else None)
         self.tray.setToolTip('APRIL · connecting')
@@ -272,6 +272,7 @@ def main(config, *, hidden=False):
     family = socket.AF_INET6 if ':' in config.host else socket.AF_INET
     try:
         with socket.socket(family) as probe:
+            probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             probe.bind((config.host, config.port))
     except OSError:
         raise SystemExit('APRIL port is already in use. Stop your existing APRIL instance, then start the widget.')
@@ -279,11 +280,22 @@ def main(config, *, hidden=False):
     host = '[' + config.host + ']' if ':' in config.host else config.host
     base = f'http://{host}:{config.port}'
     window = None
+    interrupted = False
+    def quit_from_signal(signum, frame):
+        nonlocal interrupted
+        # Never call Qt from Python's asynchronous signal callback: it can
+        # interrupt Qt while it owns an internal lock. The watchdog quits from
+        # a normal GUI callback instead.
+        interrupted = True
+    previous_handlers = {signum: signal.signal(signum, quit_from_signal)
+                         for signum in (signal.SIGINT, signal.SIGTERM)}
     try:
         # Bounded startup; do not show an error page before Uvicorn is listening.
         import httpx
         import time
         for attempt in range(50):
+            if interrupted:
+                raise SystemExit(0)
             if server.poll() is not None:
                 raise SystemExit('APRIL backend exited during widget startup. Check terminal output.')
             try:
@@ -295,8 +307,16 @@ def main(config, *, hidden=False):
             time.sleep(.1)
         else:
             raise SystemExit('APRIL backend did not become ready within the startup deadline.')
+        if interrupted:
+            raise SystemExit(0)
         window = Companion(config, base, hidden=hidden)
+        # Keep shutdown handling installed after Qt/Chromium initialization.
+        for signum in previous_handlers:
+            signal.signal(signum, quit_from_signal)
         def exited():
+            if interrupted:
+                app.exit(0)
+                return
             if server.poll() is not None:
                 window.worker.cancel()
                 window.status.setText('APRIL backend stopped. Quit and restart the widget.')
@@ -305,6 +325,8 @@ def main(config, *, hidden=False):
         watchdog.timeout.connect(exited)
         watchdog.start(1000)
         app.aboutToQuit.connect(window.shutdown)
+        if interrupted:
+            return 0
         return app.exec()
     finally:
         if window:
@@ -316,3 +338,5 @@ def main(config, *, hidden=False):
             server.kill()
             server.wait()
         lock.unlock()
+        for signum, handler in previous_handlers.items():
+            signal.signal(signum, handler)
