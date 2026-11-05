@@ -1,8 +1,6 @@
 """Bounded read-only retrieval; sources are data, never executable instructions."""
-import os
 import re
 import datetime
-from pathlib import Path
 from urllib.parse import urlparse
 from html import unescape
 
@@ -41,30 +39,6 @@ def clean_text(value,limit=1500):
     return unescape(re.sub(r'<[^>]*>',' ',str(value))).strip()[:limit]
 
 
-async def search_brave(config,query,*,transport=None):
-    token=os.environ.get(config.web_api_key_env)
-    if not token:
-        try:
-            path=Path(config.web_key_path).expanduser()
-            if path.is_file() and not path.is_symlink() and path.stat().st_size<=4096:
-                if path.stat().st_mode & 0o077:
-                    raise BackendError('web_key_permissions','The local search key file must be private (mode 600). Use python -m april.integrations web-key.')
-                token=path.read_text().strip()
-        except OSError as exc:
-            raise BackendError('web_key_unreadable','The local search key file could not be read. Check its private permissions; do not paste it into chat.') from exc
-    if not token:
-        raise BackendError('web_not_configured','This needs a current source, but web search is not configured. Set up Brave Search using python -m april.integrations web-key; I have not verified this answer online.')
-    try:
-        async with httpx.AsyncClient(timeout=12,transport=transport) as client:
-            response=await client.get('https://api.search.brave.com/res/v1/web/search',
-                params={'q':query[:500],'count':3},headers={'X-Subscription-Token':token,'Accept':'application/json'})
-            response.raise_for_status()
-            results=response.json().get('web',{}).get('results',[])[:3]
-    except (httpx.HTTPError,ValueError,TypeError,AttributeError) as exc:
-        raise BackendError('web_unavailable','Web search failed. Check the provider key, account/quota and network. No current answer has been verified.') from exc
-    return normalize_sources(results,'brave')
-
-
 def normalize_sources(results,provider):
     sources=[]
     if not isinstance(results,list):
@@ -77,7 +51,7 @@ def normalize_sources(results,provider):
         except ValueError:continue
         if parsed.scheme not in {'http','https'} or not parsed.hostname or parsed.username:continue
         sources.append({'title':clean_text(item.get('title','Web result'),180),
-            'excerpt':clean_text(item.get('content' if provider=='searxng' else 'description','') or ''),
+            'excerpt':clean_text(item.get('content','') or ''),
             'url':url[:2000],'kind':'web','provider':provider,
             'retrieved_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),
             'provider_date':clean_text(item.get('publishedDate',item.get('page_age',item.get('age',''))) or '',80) or None})
@@ -87,7 +61,7 @@ def normalize_sources(results,provider):
 
 async def search_searxng(config,query,*,transport=None):
     try:
-        # Local only; never forward a Brave key or external proxy credentials.
+        # Local only; never forward external proxy credentials.
         async with httpx.AsyncClient(trust_env=False,timeout=12,transport=transport) as client:
             response=await client.post(config.searxng_url.rstrip('/')+'/search',
                 data={'q':query[:500],'format':'json','language':'en','safesearch':'1'},
@@ -109,8 +83,7 @@ async def search_searxng(config,query,*,transport=None):
 
 
 async def search_web(config,query,*,transport=None):
-    if config.web_provider=='searxng':return await search_searxng(config,query,transport=transport)
-    return await search_brave(config,query,transport=transport)
+    return await search_searxng(config,query,transport=transport)
 
 
 async def retrieve(config,action,query):

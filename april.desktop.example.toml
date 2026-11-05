@@ -21,7 +21,7 @@ input_device_id = "default"
 output_device_id = "default"
 timezone = "America/New_York"
 
-# Local metasearch; Brave can be explicitly selected later.
+# Local metasearch; no search API key needed.
 web_provider = "searxng"
 searxng_url = "http://127.0.0.1:8888"
 

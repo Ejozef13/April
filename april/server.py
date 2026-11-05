@@ -47,9 +47,8 @@ def create_app(config=None, backends=None):
 
     @app.get("/api/config")
     async def settings():
-        import os
         values={k: getattr(config, k) for k in ("mode", "model", "web_provider", "automatic_web_search", "context_tokens", "reasoning_effort", "max_response_tokens", "max_record_seconds", "display_width", "display_height", "input_device_id", "output_device_id")}
-        values['integrations']={'web':config.web_provider=='searxng' or bool(os.environ.get(config.web_api_key_env)) or Path(config.web_key_path).expanduser().is_file(),
+        values['integrations']={'web':True,
             'documents':bool(config.document_roots),'gmail':Path(config.gmail_token_path).expanduser().is_file()}
         return values
 

@@ -17,22 +17,10 @@ from april.documents import build_index,search_documents
 from april.errors import BackendError
 from april.gmail import SCOPES,message_excerpt,save_credentials,search_gmail,google_endpoint
 from april.integrations import configure_documents
-from april.knowledge import route_knowledge,search_web
+from april.knowledge import route_knowledge
 
 
 class DocumentTests(unittest.TestCase):
-    def test_existing_search_binding_is_reused_without_asking_for_secret(self):
-        import io,contextlib
-        from april.integrations import main
-        with patch.dict(os.environ,{'APRIL_BRAVE_API_KEY':'fixture-key'}), \
-             patch('sys.argv',['integrations','web-key']), \
-             patch('april.integrations.load_config',return_value=Config()), \
-             patch('getpass.getpass') as prompt,contextlib.redirect_stdout(io.StringIO()) as output:
-            main()
-        prompt.assert_not_called()
-        self.assertIn('already present',output.getvalue())
-        self.assertNotIn('fixture-key',output.getvalue())
-
     def test_only_approved_text_is_indexed_and_scope_changes_require_rebuild(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);approved=root/'aprilfiles';approved.mkdir()
@@ -100,45 +88,11 @@ class RetrievalTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(messages[-1]['code'],'simulation_search_disabled')
         await session.cancel()
 
-    async def test_missing_current_fact_service_never_calls_model(self):
-        import asyncio
-        from unittest.mock import AsyncMock
-        from april.session import Session
-        messages=[]
-        async def send(message):messages.append(message)
-        backend=SimpleNamespace(respond=AsyncMock(side_effect=AssertionError('No stale model fallback')))
-        with tempfile.TemporaryDirectory() as directory,patch.dict(os.environ,{},clear=True):
-            session=Session(Config(web_provider='brave',web_key_path=str(Path(directory)/'missing')),backend,send,asyncio.Lock())
-            await session.handle({'type':'text','text':'Who is the current president?'})
-            await session.task
-            self.assertEqual(messages[-1]['code'],'web_not_configured')
-            backend.respond.assert_not_called()
-            await session.cancel()
-
     async def test_fresh_fact_router_and_private_intents(self):
         self.assertEqual(route_knowledge('April, who is the current president?')[0],'web')
         self.assertEqual(route_knowledge('search my files for current president')[0],'documents')
         self.assertEqual(route_knowledge('search my emails for invoice')[0],'gmail')
         self.assertIsNone(route_knowledge('Who is the president mentioned in my emails?')[0])
-
-    async def test_brave_has_fixed_origin_bounded_results_and_no_secret_in_sources(self):
-        def handler(request):
-            self.assertEqual(request.url.host,'api.search.brave.com')
-            self.assertEqual(request.headers['X-Subscription-Token'],'fixture-key')
-            return httpx.Response(200,json={'web':{'results':[
-                {'title':'<b>Source</b>','description':'A useful excerpt','url':'https://example.org/reference'},
-                {'title':'Bad link','description':'ignore','url':'javascript:alert(1)'}]}})
-        with patch.dict(os.environ,{'APRIL_BRAVE_API_KEY':'fixture-key'}):
-            result=await search_web(Config(web_provider='brave'),'current president',transport=httpx.MockTransport(handler))
-        self.assertEqual(len(result),1)
-        self.assertIn('retrieved_at',result[0])
-        self.assertNotIn('fixture-key',json.dumps(result))
-
-    async def test_missing_web_connection_refuses_to_invent_current_answer(self):
-        with tempfile.TemporaryDirectory() as directory,patch.dict(os.environ,{},clear=True):
-            with self.assertRaises(BackendError) as error:
-                await search_web(Config(web_provider='brave',web_key_path=str(Path(directory)/'missing')),'current president')
-            self.assertEqual(error.exception.code,'web_not_configured')
 
     async def test_gmail_performs_only_bounded_read_requests_and_preserves_no_auth(self):
         observed=[]

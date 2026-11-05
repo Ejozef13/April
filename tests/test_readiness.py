@@ -107,3 +107,46 @@ class LauncherTests(unittest.TestCase):
                  contextlib.redirect_stdout(io.StringIO()):
                 main()
             self.assertFalse(config.exists())
+
+    def test_search_startup_runs_only_own_helper_then_app(self):
+        from types import SimpleNamespace
+        for exit_code in [0, 1]:
+            with self.subTest(exit_code=exit_code), tempfile.TemporaryDirectory() as directory:
+                config=Path(directory)/'settings.toml'
+                config.write_text('model = "existing-model"\n')
+                with patch.dict(os.environ,{'APRIL_CONFIG':str(config)}), \
+                     patch('sys.argv',['april','--with-search']), \
+                     patch('april.launch.check_readiness',AsyncMock(return_value={'ready':True,'checks':[]})), \
+                     patch('april.launch.subprocess.run',return_value=SimpleNamespace(returncode=exit_code)) as run, \
+                     patch('april.server.main') as serve, \
+                     contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                    if exit_code:
+                        with self.assertRaises(SystemExit) as error:main()
+                        self.assertEqual(error.exception.code,1)
+                        serve.assert_not_called()
+                    else:
+                        main()
+                        serve.assert_called_once_with()
+                    run.assert_called_once_with(['bash','scripts/searxng.sh','up'],check=False)
+                self.assertEqual(config.read_text(),'model = "existing-model"\n')
+
+    def test_checks_and_simulation_never_start_search(self):
+        for flags in [['--check'], ['--simulation','--check']]:
+            with tempfile.TemporaryDirectory() as directory:
+                config=Path(directory)/'settings.toml';config.write_text('model = "existing-model"\n')
+                with patch.dict(os.environ,{'APRIL_CONFIG':str(config)}), \
+                     patch('sys.argv',['april',*flags]), \
+                     patch('april.launch.check_readiness',AsyncMock(return_value={'ready':True,'checks':[]})), \
+                     patch('april.launch.subprocess.run') as run, \
+                     contextlib.redirect_stdout(io.StringIO()):
+                    main()
+                    run.assert_not_called()
+
+    def test_search_flag_cannot_mutate_read_only_or_simulation_startup(self):
+        for flags in [['--check'], ['--simulation']]:
+            with patch('sys.argv',['april','--with-search',*flags]), \
+                 patch('april.launch.subprocess.run') as run, \
+                 contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as error:main()
+                self.assertEqual(error.exception.code,2)
+                run.assert_not_called()

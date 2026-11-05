@@ -1,6 +1,5 @@
 """Explicit local setup. Secrets stay outside Git and never enter command history."""
 import argparse
-import getpass
 import json
 import os
 import tempfile
@@ -9,7 +8,7 @@ import tomllib
 import re
 from pathlib import Path
 
-from .config import Config,load_config
+from .config import Config
 
 
 def write_settings(config_path,previous,candidate):
@@ -25,12 +24,11 @@ def write_settings(config_path,previous,candidate):
         if os.path.exists(name):os.unlink(name)
 
 
-def configure_search(config_path,provider,url=None):
+def configure_search(config_path,url):
     path=Path(config_path)
     if path.is_symlink():raise ValueError('Refusing to replace symlinked settings')
     previous=path.read_text();data=tomllib.loads(previous)
-    changes={'web_provider':provider}
-    if url is not None:changes['searxng_url']=url
+    changes={'web_provider':'searxng','searxng_url':url}
     candidate=previous
     for key,value in changes.items():
         assignment=key+' = '+json.dumps(value)
@@ -70,19 +68,15 @@ def main():
     sub=parser.add_subparsers(dest='action',required=True)
     documents=sub.add_parser('documents')
     documents.add_argument('--folder',required=True,type=Path)
-    provider=sub.add_parser('search-provider')
-    provider.add_argument('provider',choices=['searxng','brave'])
-    provider.add_argument('--url',help='Loopback SearXNG base URL; defaults to http://127.0.0.1:8888')
-    sub.add_parser('web-key')
+    search=sub.add_parser('search', help='Configure the local SearXNG endpoint')
+    search.add_argument('--url', default='http://127.0.0.1:8888', help='Loopback SearXNG base URL')
     args=parser.parse_args()
-    if args.action=='search-provider':
-        if args.provider=='brave' and args.url:parser.error('--url applies only to searxng')
+    if args.action=='search':
         try:
-            configure_search(os.environ.get('APRIL_CONFIG','april.local.toml'),args.provider,
-                args.url or 'http://127.0.0.1:8888' if args.provider=='searxng' else None)
+            configure_search(os.environ.get('APRIL_CONFIG','april.local.toml'),args.url)
         except (ValueError,TypeError,OSError):
-            parser.exit(1,'Cannot update provider safely. Check april.local.toml and the loopback URL. Existing settings were preserved.\n')
-        print('Selected '+args.provider+'. Restart APRIL and verify an actual search; this does not start services or validate a key.')
+            parser.exit(1,'Cannot update search safely. Check april.local.toml and the loopback URL. Existing settings were preserved.\n')
+        print('Local search configured. Restart APRIL and verify a query; this command does not start services.')
         return
     if args.action=='documents':
         try:
@@ -92,21 +86,6 @@ def main():
         print('Folder approved.' if changed else 'That folder was already approved.')
         print('Copy only files you want searchable into it, then run python -m april.documents index.')
         return
-    config=load_config()
-    if os.environ.get(config.web_api_key_env):
-        print('A search-key environment binding is already present. No key file was created; verify it with an actual query.')
-        return
-    path=Path(config.web_key_path).expanduser()
-    if path.exists():parser.exit(1,'A key file already exists. Review/remove that specific file yourself before replacing it.\n')
-    token=getpass.getpass('Brave Search API key (hidden; never paste into chat): ').strip()
-    if not token or len(token)>4096 or '\n' in token or '\r' in token:
-        parser.exit(1,'No valid key entered.\n')
-    path.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
-    try:
-        fd=os.open(path,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
-        with os.fdopen(fd,'w') as file:file.write(token)
-    except OSError:parser.exit(1,'Could not create private key file. Existing files were not replaced.\n')
-    print('Search key saved privately outside the repository. It has not been validated against the provider yet.')
 
 
 if __name__=='__main__':main()

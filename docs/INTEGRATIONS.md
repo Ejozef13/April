@@ -1,6 +1,6 @@
 # Read-only web, April files and Gmail
 
-These integrations are implemented as opt-in adapters. Temporary-file/API fixtures and browser tests exercise their boundaries; real Brave credentials, Google OAuth approval and Enrique’s private folder are not available in the cloud. Do not describe those accounts as connected until their actual operations pass on the desktop.
+These integrations are implemented as opt-in adapters. Temporary-file/API fixtures and browser tests exercise their boundaries; personal Google OAuth credentials and files are not available in the cloud. Enrique has verified desktop folder retrieval and SearXNG web lookup; Gmail consent and mailbox queries remain pending.
 
 ## 1. Voice time works without Internet
 
@@ -31,29 +31,30 @@ Only configured folders are scanned. Hidden files/directories, symlinks, common 
 
 The index at ignored `artifacts/documents.sqlite3` persists private excerpts locally with file mode 600. It is not encrypted. Rebuild after edits/deletions; the index is a snapshot, not a file watcher. Changing/revoking approved roots blocks use of the old index until rebuilding. To remove access, clear `document_roots`, stop/restart APRIL, and remove your specific APRIL index file if you no longer want its stored excerpts. Deletion does not promise secure erasure from SSDs/backups. Never publish the index.
 
-## 3. Web provider: SearXNG first, Brave optional
+## 3. Web search with SearXNG
 
-SearXNG is now the default, following Enrique's preference for no search API subscription. Follow [SEARXNG.md](SEARXNG.md) for the loopback-only Docker setup and real-query test. It needs no Brave key. Engine availability/quality and actual desktop search must still be verified. Provider selection is explicit; no paid fallback occurs.
-
-To choose Brave later, run `.venv/bin/python -m april.integrations search-provider brave`, restart APRIL, then follow the optional steps below.
-
-### Optional Brave setup
-
-Brave Search API is separate from the Brave browser. It requires an API account/key; check the provider’s current plans, quotas and pricing before choosing one. No account, purchase or subscription is created by APRIL. Official setup reference: https://api-dashboard.search.brave.com/app/documentation/web-search/get-started
-
-After obtaining your own search API key, enter it locally with hidden input:
+SearXNG is APRIL's only web search integration. It needs no search API account,
+key or subscription. See [SEARXNG.md](SEARXNG.md) for local Docker setup.
 
 ```bash
-.venv/bin/python -m april.integrations web-key
+bash april.sh --with-search
 ```
 
-Never paste the key into chat, Git, a command-line argument or a screenshot. The helper creates a mode-600 file at `~/.config/april/brave-key`, outside the repository, and refuses to replace an existing key. A process environment variable named by `web_api_key_env` is an alternative; the default is `APRIL_BRAVE_API_KEY`. The key file is not encrypted; your local OS account controls access.
+Ordinary live questions automatically retrieve up to three snippets before local
+generation. Clock requests and private file/Gmail routes stay dedicated.
+Common private cues suppress automatic web search; this heuristic cannot detect
+every sensitive prompt. Never include secrets in an ordinary web question.
 
-Restart APRIL and refresh the browser. Ask **“April, search the web for the current president of the United States”**, or use Search web with the typed question. A narrow set of current-fact phrases also routes to search, rather than falling back to stale model weights. This is deterministic routing, not an all-purpose intent classifier. Be explicit about country, date and subject.
+The search service sends queries to upstream engines. Retrieved document/Gmail
+excerpts are never automatically forwarded as web queries. APRIL displays the
+actual URLs/excerpts separately from generated prose. It does not independently
+fetch full pages or guarantee that sources are correct or current. Failed or
+empty searches do not fall back to an unsupported model answer.
 
-The provider receives your search query, not document or Gmail excerpts. At most three result snippets are retrieved; URLs, snippets, retrieval timestamp and any supplied provider date accompany the local model’s evidence. APRIL does not fetch or independently verify full pages. Open the displayed sources and check dates. If the key/service is unavailable, APRIL reports that no current answer was verified; it does not invent a live lookup.
-
-The `configured` indicator means a binding/file is present, not that authentication or search has passed. Run an actual query to verify. Private retrieval never automatically falls back to web search. Do not put private material into a web query unless you intend to send that query to the provider.
+Set `automatic_web_search = false` in ignored `april.local.toml` for local
+conversation with explicit search controls; current-fact guards still require
+retrieval. Restart after changing configuration. A configured endpoint is not
+proof of successful search: verify a question and review Retrieved sources.
 
 ## 4. Connect Gmail with local OAuth
 
@@ -91,7 +92,7 @@ Also revoke APRIL’s grant through your Google account to invalidate it remotel
 ## Limits and verification
 
 - Simulation disables private/external retrieval even when credentials exist. The clock remains deterministic. The mock backends are not live account tests.
-- Every search is initiated by a user action or an explicit recognized phrase. Retrieved pages/files/email are untrusted data, not executable tool instructions. The model cannot recursively browse, send mail or run commands from retrieved text.
-- SearXNG uses the configured loopback JSON endpoint and its own upstream engines; Brave uses a fixed HTTPS API only when explicitly selected. Gmail uses fixed HTTPS Google endpoints. Local model requests remain loopback. TLS verification stays enabled.
-- Gmail/Brave authentication has not passed until you complete actual queries with your local accounts. The cloud’s attempts to read the official documentation sites returned 403; the installed Google OAuth helper signatures and API contracts were checked, but the real OAuth flow remains pending.
+- Searches follow ordinary live questions or explicit search requests. Retrieved pages/files/email are untrusted data, not executable tool instructions. The model cannot recursively browse, send mail or run commands from retrieved text.
+- SearXNG uses the configured loopback JSON endpoint and its own upstream engines. Gmail uses fixed HTTPS Google endpoints. Local model requests remain loopback. TLS verification stays enabled.
+- Gmail authentication has not passed until you complete actual mailbox queries with your local account. The cloud’s attempts to read the official documentation sites returned 403; the installed Google OAuth helper signatures and API contracts were checked, but the real OAuth flow remains pending.
 - Earlier dialogue is still not supplied automatically. Conversation context, better semantic retrieval, Navidrome and Pi routing are later milestones; no all-knowing-assistant claim is made.

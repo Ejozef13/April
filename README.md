@@ -14,19 +14,20 @@ The full-body reference informs the plain white chest and short brown tail with 
 
 ```bash
 cd ~/Projects/April
-bash april.sh
+bash april.sh --with-search
 ```
 
-One command checks executable/model/voice files and the configured model in Ollama, then starts **LIVE** mode. It never starts/stops shared services or loads/unloads models during checks. Existing `april.local.toml` is preserved; if absent, the desktop profile is copied into that ignored file. Checks establish prerequisites, not successful inference or model integrity. They can’t predict whether a service will disappear later.
+One command checks executable/model/voice files and the configured model in Ollama, starts only APRIL’s SearXNG container, then starts **LIVE** mode. Docker must already be running with access for your user. It never starts/stops shared services or loads/unloads models during checks. Existing `april.local.toml` is preserved; if absent, the desktop profile is copied into that ignored file. Checks establish prerequisites, not successful inference or model integrity. They can’t predict whether a service will disappear later.
 
 If Ollama is stopped, the launcher tells you to check `systemctl status ollama` and start your existing service with `sudo systemctl start ollama`. Resolve the reported issue and rerun the same APRIL command. This addresses the previously undiagnosed generic backend failure without assuming its cause on your desktop.
 
 ```bash
-bash april.sh --check               # Read-only checks, no server
+bash april.sh                       # App only, for an already-running search service
+bash april.sh --check               # Read-only model/speech checks, no server
 bash april.sh --simulation          # Explicit canned replies; no speech/models
 ```
 
-Open the local address printed in your desktop terminal. Refresh after updates. Cloud onboarding does not provide a localhost web preview. Stop only APRIL with Ctrl+C; leave shared AM/Ollama services intact.
+After updates, run `git pull --ff-only` before starting. Open the local address printed in your desktop terminal. Refresh after updates. Cloud onboarding does not provide a localhost web preview. Stop only APRIL with Ctrl+C; leave shared AM/Ollama services intact.
 
 ## First installation
 
@@ -65,13 +66,13 @@ States: idle, listening, transcribing, thinking, speaking, error. Thinking means
 
 ## Read-only integration preview
 
-[INTEGRATIONS.md](docs/INTEGRATIONS.md) contains the setup for the requested `~/Documents/aprilfiles` folder, local SearXNG (default), optional Brave Search, and Gmail read-only OAuth. They are opt-in and **not connected to your personal accounts by this code update**. API/folder boundaries are fixture-tested, and Enrique has now reported the approved folder retrieval working. Web/Gmail live authentication and provider quality checks still require desktop setup. Private/external retrieval is disabled in simulation.
+[INTEGRATIONS.md](docs/INTEGRATIONS.md) contains the setup for the requested `~/Documents/aprilfiles` folder, local SearXNG and Gmail read-only OAuth. They are opt-in and **not connected to your personal accounts by this code update**. API/folder boundaries are fixture-tested, and Enrique has now reported the approved folder retrieval working. Enrique also verified a real desktop web lookup with three sources and a cited reply. Gmail authentication and broader search quality checks remain pending. Private/external retrieval is disabled in simulation.
 
-Use explicit “search my files for …”, “search my emails for …”, “search the web for …” or the corresponding search buttons. Retrieved sources appear in a review panel and are passed only to the local model. A narrow current-fact router requests a web source instead of silently guessing from old model weights. Missing credentials/service produce actionable errors. Web queries go through your explicitly selected search provider; private excerpts never automatically fall back to web search. No mail sending/deletion, source-file changes, background mailbox crawl or arbitrary system access is provided.
+Use explicit “search my files for …”, “search my emails for …”, “search the web for …” or the corresponding search buttons. Retrieved sources appear in a review panel and are passed only to the local model. Ordinary live questions automatically retrieve web sources before generation; clock and private requests use dedicated routes. Missing credentials/service produce actionable errors. Web queries go through local SearXNG; private excerpts never automatically fall back to web search. No mail sending/deletion, source-file changes, background mailbox crawl or arbitrary system access is provided.
 
-Document RAG uses SQLite keyword retrieval over approved UTF-8 text formats; PDFs/Word/embedding search are not implemented. The index retains private excerpts locally. Gmail tokens/search keys persist outside Git with private permissions; Google browser consent and your own provider key are required. Normal conversation and the clock remain offline-capable.
+Document RAG uses SQLite keyword retrieval over approved UTF-8 text formats; PDFs/Word/embedding search are not implemented. The index retains private excerpts locally. Gmail tokens persist outside Git with private permissions; Google browser consent is required for mail access. SearXNG needs no API key. The clock and local conversation with automatic web lookup disabled remain offline-capable.
 
-For subscription-free web search, follow [SEARXNG.md](docs/SEARXNG.md). It provides a pinned, loopback-only service with JSON enabled. Brave remains an optional explicit switch; APRIL never silently falls back to a paid API. Service health does not prove engine access or result quality.
+For subscription-free web search, follow [SEARXNG.md](docs/SEARXNG.md). It provides a pinned, loopback-only service with JSON enabled. SearXNG is the only web adapter; no search API key or paid fallback is used. Service health does not prove engine access or result quality.
 
 ## Diagnostics and evidence
 

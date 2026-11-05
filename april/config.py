@@ -31,11 +31,9 @@ class Config:
     timezone: str = "America/New_York"
     document_roots: tuple[str, ...] = ()
     documents_index_path: str = 'artifacts/documents.sqlite3'
-    web_api_key_env: str = 'APRIL_BRAVE_API_KEY'
     web_provider: str = 'searxng'
     automatic_web_search: bool = True
     searxng_url: str = 'http://127.0.0.1:8888'
-    web_key_path: str = '~/.config/april/brave-key'
     gmail_token_path: str = '~/.local/share/april/gmail-token.json'
 
     def __post_init__(self):
@@ -64,11 +62,8 @@ class Config:
         ZoneInfo(self.timezone)
         if not isinstance(self.document_roots, (list, tuple)) or any(not isinstance(root, str) or not root.strip() for root in self.document_roots):
             raise ValueError('document_roots must be a list of explicitly approved folders')
-        import re
-        if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', self.web_api_key_env):
-            raise ValueError('web_api_key_env must name an environment variable, not contain a credential')
-        if self.web_provider not in {'searxng','brave'}:
-            raise ValueError('web_provider must be searxng or brave')
+        if self.web_provider != 'searxng':
+            raise ValueError('web_provider must be searxng')
         if not isinstance(self.automatic_web_search,bool):
             raise ValueError('automatic_web_search must be true or false')
         search=urlparse(self.searxng_url)

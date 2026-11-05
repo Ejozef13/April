@@ -21,9 +21,9 @@ Physical Stop/cancel and subsequent retry have not been separately confirmed. Fi
 
 ### Playback failure follow-up
 
-Enrique's live-browser screenshot shows a generated text reply followed by an interrupted `play()` error. The exact Brave/Piper failure was not reproduced in the cloud; a native WAV tone played successfully. The playback update keeps a mounted media element, invalidates pending playback promises during cleanup, preserves the first media error, and offers an explicit **Play reply** retry when automatic playback is blocked/interrupted. A retry reuses the current audio and remains subject to the server playback deadline; no extra model request is made.
+Enrique's live-browser screenshot shows a generated text reply followed by an interrupted `play()` error. The exact browser/Piper failure was not reproduced in the cloud; a native WAV tone played successfully. The playback update keeps a mounted media element, invalidates pending playback promises during cleanup, preserves the first media error, and offers an explicit **Play reply** retry when automatic playback is blocked/interrupted. A retry reuses the current audio and remains subject to the server playback deadline; no extra model request is made.
 
-`python scripts/browser_playback_check.py` passed Chromium checks for actual WAV tone playback, injected autoplay denial followed by user retry, completion while `play()` remains pending, injected media error followed by teardown, and Stop followed by successful recovery. The fault injections exercise browser lifecycle handling; the fixture backend is not Piper, Ollama, or physical hardware. JavaScript syntax and diff checks pass. Actual Brave + generated Piper audio was subsequently reported successful as described above; repeated acceptance and physical cancellation measurements remain pending.
+`python scripts/browser_playback_check.py` passed Chromium checks for actual WAV tone playback, injected autoplay denial followed by user retry, completion while `play()` remains pending, injected media error followed by teardown, and Stop followed by successful recovery. The fault injections exercise browser lifecycle handling; the fixture backend is not Piper, Ollama, or physical hardware. JavaScript syntax and diff checks pass. Actual desktop browser + generated Piper audio was subsequently reported successful as described above; repeated acceptance and physical cancellation measurements remain pending.
 
 Enrique reported successful microphone recording/playback and Piper LJ Speech synthesis on CachyOS. His screenshots show actual Whisper `base.en` transcription of the bundled JFK sample and an actual GPT-OSS 20B answer through Ollama 0.40.13. Ollama reported 100% GPU placement and a 4096-token context. One HTTP request took 5.29 seconds with loading/warmth not established; this is not an end-to-end voice benchmark. The LJ Speech model card lists its dataset as public domain; retain the separate Piper software license obligations.
 
@@ -98,22 +98,22 @@ Final tail-tip refinement: the existing width, brown base and white upper sectio
 
 Enrique reported two concrete errors: a stale presidential answer and no useful spoken-time response, then requested web/Gmail/private-file access. He selected Gmail/Workspace and `~/Documents/aprilfiles`. The implementation now routes recognized spoken/typed clock requests to the actual clock, keeps the real transcript, and requires web evidence for narrowly recognized current-fact queries rather than silently falling back to stale model weights.
 
-Opt-in Brave Search, explicit approved-folder SQLite FTS5 RAG, and read-only Gmail OAuth/search adapters are implemented. UI controls show actual retrieved excerpts separately from generated text. Local document indexing stores bounded private excerpts with explicit retention and scope checks; credentials live outside Git with private file permissions. Simulation refuses real private/external retrieval. The model does not issue commands or recursively fetch data; no mail sending/deletion, source-file modification or Navidrome control was added.
+Read-only web search, explicit approved-folder SQLite FTS5 RAG, and read-only Gmail OAuth/search adapters are implemented. UI controls show actual retrieved excerpts separately from generated text. Local document indexing stores bounded private excerpts with explicit retention and scope checks; credentials live outside Git with private file permissions. Simulation refuses real private/external retrieval. The model does not issue commands or recursively fetch data; no mail sending/deletion, source-file modification or Navidrome control was added.
 
-The API/folder tests use temporary public fixtures, not Enrique’s actual documents or email account. A real SQLite index/search and the browser path from approved fixture source through visible citations and WAV playback passed. The existing simulation UI/capture/export harness passed. The optional installed Google OAuth helper’s PKCE/loopback signatures were inspected; the actual Google consent flow was not run. Official Gmail/Brave documentation endpoints returned 403 from the cloud, so provider setup is linked for desktop review and live authentication remains pending.
+The API/folder tests use temporary public fixtures, not Enrique’s actual documents or email account. A real SQLite index/search and the browser path from approved fixture source through visible citations and WAV playback passed. The existing simulation UI/capture/export harness passed. The optional installed Google OAuth helper’s PKCE/loopback signatures were inspected; the actual Google consent flow was not run. Official Gmail documentation endpoints returned 403 from the cloud, so provider setup is linked for desktop review and live authentication remains pending.
 
-A text-only evaluation runner and six public cases were added with human rubrics, unknown loading conditions, explicit failed/unrun outcomes and no automatic accuracy grade. Its cloud smoke run correctly recorded one unavailable-model failure and five unrun cases, with zero correctness reviews; no live accuracy improvement or model score is claimed. Real Brave authentication/search, Gmail consent/mail search, private `aprilfiles` indexing and physical spoken-time acceptance require desktop setup. See INTEGRATIONS.md and ACCURACY.md.
+A text-only evaluation runner and six public cases were added with human rubrics, unknown loading conditions, explicit failed/unrun outcomes and no automatic accuracy grade. Its cloud smoke run correctly recorded one unavailable-model failure and five unrun cases, with zero correctness reviews; no live accuracy improvement or model score is claimed. Gmail consent/mail search, private `aprilfiles` indexing and physical spoken-time acceptance require desktop setup. See INTEGRATIONS.md and ACCURACY.md.
 
-Final grounding validation: 39 Python tests passed, followed by the affected 13 integration-boundary tests after strict Google endpoint refinement. Browser simulation and approved-folder/source/WAV playback harnesses passed. Optional dependency consistency, packaged module/case inclusion, JavaScript syntax, local documentation links and diff checks passed. No real personal Gmail/Brave authentication or numerical accuracy score was obtained.
+Final grounding validation: 39 Python tests passed, followed by the affected 13 integration-boundary tests after strict Google endpoint refinement. Browser simulation and approved-folder/source/WAV playback harnesses passed. Optional dependency consistency, packaged module/case inclusion, JavaScript syntax, local documentation links and diff checks passed. No real personal Gmail authentication or numerical accuracy score was obtained.
 
 
 ## SearXNG selected before paid API — November 4, 2026
 
-Enrique confirmed that the approved-folder RAG accesses his folder, then chose self-hosted SearXNG before considering Brave API later. Provider selection now defaults to loopback SearXNG, uses POST JSON search, normalizes at most three bounded cited excerpts, and never forwards a Brave key or falls back to a paid provider. A helper switches providers without rewriting model, folder or credential settings. Existing private service configuration is preserved.
+Enrique confirmed that the approved-folder RAG accesses his folder, then chose self-hosted SearXNG as the web search integration. Provider selection now defaults to loopback SearXNG, uses POST JSON search, normalizes at most three bounded cited excerpts, without a search API key or paid fallback. A helper configures the local endpoint without rewriting model, folder or credential settings. Existing private service configuration is preserved.
 
 The pinned official SearXNG image was pulled with registry checksum/TLS verification. Its upstream defaults, container entrypoint and network CA handling were inspected. The dedicated service runs as the normal user with loopback-only publishing, one worker, one CPU/512 MiB limits, no GPU or document/mail mounts, and private generated settings. Compose syntax, actual startup/health, repeat startup with preserved state, stop/start, and JSON search were tested with the managed cloud’s explicit CA override.
 
-Actual `/healthz` and `/search` returned 200; JSON search results were empty with engine connection errors. Independent DuckDuckGo/Wikipedia requests returned proxy CONNECT 403. The local endpoint and APRIL’s `searxng_engines_unavailable` error path were verified; successful desktop upstream lookup and comparative quality against Brave remain pending. No network policy or TLS verification was bypassed. The no-key engine set is DuckDuckGo, Brave’s public web engine and Wikipedia, distinct from the paid Brave API adapter. See SEARXNG.md for deployment and limits.
+Actual `/healthz` and `/search` returned 200; JSON search results were empty with engine connection errors. Independent DuckDuckGo/Wikipedia requests returned proxy CONNECT 403. The local endpoint and APRIL’s `searxng_engines_unavailable` error path were verified; successful desktop upstream lookup was pending at that point; see the subsequent desktop verification below. No network policy or TLS verification was bypassed. The no-key engine set is DuckDuckGo, Brave’s public web engine and Wikipedia, requiring no search API key. See SEARXNG.md for deployment and limits.
 
 All 45 Python tests passed, including local POST/JSON contract, no credential forwarding, explicit no-paid-fallback behavior, disabled-JSON/engine failures, private repeatable initialization, and settings-preserving provider switches. Browser regressions and final file/package checks are recorded separately. The user’s reply to the desktop Docker check repeated the commands rather than supplying runtime output; actual CachyOS Docker readiness is still unknown and the helper checks it without installing or changing shared services.
 
@@ -123,11 +123,38 @@ SearXNG final checks: all 45 Python tests, the browser playback/document-source 
 Automatic-search regression coverage uses mocked retrieval and models: normal
 questions, explicit internet wording, clock/private exclusions, manual and
 simulation modes, and failed/empty-search refusal. Browser source-status checks
-use a temporary local document and generated audio tone. No successful desktop
-SearXNG search is claimed; the latest desktop report indicates Docker is not
-available to the helper. Real upstream lookup remains pending.
+use a temporary local document and generated audio tone. At that stage, desktop Docker/search setup was pending; subsequent desktop
+verification is recorded below.
 
 Latest automatic-search verification: 51 unit tests passed. Chromium regression
 passed WAV playback, blocked-autoplay retry, pending-play completion, media-error
 preservation, cancellation/retry and approved-folder source/status rendering.
 These are fixture tests, not physical microphone or live search-engine tests.
+
+
+## Desktop search verified and integration cleanup — November 4, 2026
+
+Enrique supplied desktop screenshots showing Docker 29.9.2, a healthy APRIL
+Search container and then “Lookup complete · 3 sources retrieved” for “What is
+League of Legends?”. Retrieved results included Wikipedia and the game's
+official homepage; the reply cited sources [1] and [3]. This verifies one real
+desktop lookup with displayed evidence, not general factual accuracy or a
+search-quality benchmark. Gmail OAuth and physical Pi tests remain pending.
+
+Search now uses only the local SearXNG adapter. Paid search credentials, setup
+commands and provider-switch code were removed from the current tree. Existing
+private SearXNG settings and personal credentials outside the repo are preserved.
+The public engine selection is unchanged to preserve the verified search setup.
+The launcher adds `bash april.sh --with-search`: checks speech/Ollama, starts only
+APRIL Search, and launches the app only if the helper succeeds. It does not start
+shared Docker/Ollama services. Checks and simulation never start containers.
+
+
+Cleanup verification: 50 unit tests passed after removing obsolete API tests
+and adding scoped launcher success/failure, read-only/simulation exclusion tests.
+The Chromium fixture regression passed audio playback, autoplay retry, pending
+play completion, error preservation, cancellation/retry and document-source
+rendering. Shell syntax, CLI help and diff checks passed. A current-tree search
+found no retired API endpoints, credential settings or setup commands. The only
+remaining engine-name references are SearXNG's public engine configuration and
+its documentation; there is no paid API adapter.

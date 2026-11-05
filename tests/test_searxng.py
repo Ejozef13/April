@@ -18,7 +18,7 @@ from april.searxng_service import initialize
 
 
 class SearxngTests(unittest.IsolatedAsyncioTestCase):
-    async def test_local_post_json_without_forwarding_brave_credentials(self):
+    async def test_local_post_json_without_forwarding_credentials(self):
         observed=[]
         def handler(request):
             observed.append(request)
@@ -36,22 +36,22 @@ class SearxngTests(unittest.IsolatedAsyncioTestCase):
                 {'title':'Docs','content':'<p>Reference text</p>','url':'https://docs.kernel.org'},
                 {'title':'Source','content':'Repository','url':'https://git.kernel.org'},
                 {'title':'Beyond limit','content':'unused','url':'https://example.org'}]})
-        with patch.dict(os.environ,{'APRIL_BRAVE_API_KEY':'fixture-not-to-be-forwarded'}):
+        with patch.dict(os.environ,{'HTTP_PROXY':'http://unused.invalid:8080'}):
             results=await search_web(Config(),'Linux kernel',transport=httpx.MockTransport(handler))
         self.assertEqual(len(observed),1)
         self.assertEqual(len(results),3)
         self.assertTrue(all(s['provider']=='searxng' for s in results))
         self.assertEqual(results[0]['provider_date'],'2026-11-04')
         self.assertEqual(results[0]['excerpt'],'Official kernel & source')
-        self.assertNotIn('fixture-not-to-be-forwarded',json.dumps(results))
+        self.assertNotIn('unused.invalid',json.dumps(results))
 
-    async def test_disabled_json_and_engine_failures_are_not_brave_fallback(self):
+    async def test_disabled_json_and_engine_failures_do_not_fall_back(self):
         for response,code in [
             (httpx.Response(403), 'searxng_json_disabled'),
             (httpx.Response(200,json={'results':[],'unresponsive_engines':[['bing','timeout']]}),'searxng_engines_unavailable')]:
             calls=[]
             def handler(request):calls.append(request.url.host);return response
-            with patch.dict(os.environ,{'APRIL_BRAVE_API_KEY':'fixture-present'}):
+            with patch.dict(os.environ,{'HTTP_PROXY':'http://unused.invalid:8080'}):
                 with self.assertRaises(BackendError) as error:
                     await search_web(Config(),'query',transport=httpx.MockTransport(handler))
             self.assertEqual(error.exception.code,code)
@@ -67,21 +67,19 @@ class SearxngTests(unittest.IsolatedAsyncioTestCase):
 
 
 class ProviderConfigurationTests(unittest.TestCase):
-    def test_provider_switch_preserves_model_folders_and_credentials_settings(self):
+    def test_search_url_update_preserves_model_folders_and_gmail_settings(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'local.toml'
-            path.write_text('model = "gpt-oss:20b"\ndocument_roots = ["/approved"]\nweb_api_key_env = "EXISTING_KEY"\n')
-            configure_search(path,'searxng','http://127.0.0.1:8888')
-            config=tomllib.loads(path.read_text())
-            self.assertEqual(config['web_provider'],'searxng')
-            configure_search(path,'brave')
+            path.write_text('model = "gpt-oss:20b"\ndocument_roots = ["/approved"]\ngmail_token_path = "/private/token.json"\n')
+            configure_search(path,'http://127.0.0.1:8889')
             final=tomllib.loads(path.read_text())
-            self.assertEqual(final['web_provider'],'brave')
+            self.assertEqual(final['web_provider'],'searxng')
+            self.assertEqual(final['searxng_url'],'http://127.0.0.1:8889')
             self.assertEqual(final['model'],'gpt-oss:20b')
             self.assertEqual(final['document_roots'],['/approved'])
-            self.assertEqual(final['web_api_key_env'],'EXISTING_KEY')
+            self.assertEqual(final['gmail_token_path'],'/private/token.json')
             before=path.read_text()
-            with self.assertRaises(ValueError):configure_search(path,'searxng','http://0.0.0.0:8888')
+            with self.assertRaises(ValueError):configure_search(path,'http://0.0.0.0:8888')
             self.assertEqual(path.read_text(),before)
 
     def test_service_init_preserves_settings_and_secret_is_not_shared(self):
