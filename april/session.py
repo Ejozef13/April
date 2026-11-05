@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .audio import validate_wav
 from .state import State, StateMachine
-from .tools import current_time, is_time_request
+from .tools import current_time, is_time_request, is_goodbye_request
 from .errors import BackendError
 from .knowledge import route_knowledge, retrieve
 
@@ -32,7 +32,8 @@ class Session:
             self.gate.release()
             self.owns_gate = False
 
-    async def cancel(self):
+    async def cancel(self, *, invalidate_review=True):
+        if invalidate_review:self.pending_review=None
         if self.task:
             self.task.cancel()
             try:
@@ -68,12 +69,16 @@ class Session:
 
     async def handle(self, message):
         action = message.get("type")
-        if action == "cancel":
+        if action in {"debug_screen","debug_file","debug_execute","calendar_read","calendar_propose","calendar_confirm","calendar_draft","briefing"}:
+            if await self.begin():
+                from .assistant_actions import run
+                self.task=asyncio.create_task(run(self,message))
+        elif action == "cancel":
             await self.cancel()
         elif action == "record":
             await self.begin(recording=True)
         elif action == "played" and self.machine.state == State.SPEAKING:
-            await self.cancel()
+            await self.cancel(invalidate_review=False)
         elif action == "audio":
             if self.machine.state != State.LISTENING:
                 await self.send({"type": "error", "message": "Start recording before sending audio."})
@@ -102,9 +107,9 @@ class Session:
         else:
             await self.send({"type": "error", "message": "Unknown or out-of-order action."})
 
-    async def run(self, text="", audio=None, tool=False, arguments=None,search_action=None):
-        timings = {}
-        started = time.perf_counter()
+    async def run(self, text="", audio=None, tool=False, arguments=None,search_action=None, sources_override=None, job_started=None, inherited_timings=None):
+        timings = dict(inherited_timings or {})
+        started = time.perf_counter() if job_started is None else job_started
         try:
             async with asyncio.timeout(self.config.timeout_seconds):
                 with tempfile.TemporaryDirectory(prefix="april-") as directory:
@@ -116,16 +121,45 @@ class Session:
                         text = await self.backends.transcribe(recording)
                         timings["stt_ms"] = round((time.perf_counter() - tick) * 1000, 1)
                     await self.send({"type": "transcript", "text": "What time is it?" if tool else text})
+                    if not tool and not search_action and is_goodbye_request(text):
+                        await self.send({"type":"control","action":"shutdown"})
+                        self.release()
+                        await self.state(State.IDLE)
+                        return
+                    from .tools import normalize_request
+                    command=normalize_request(text)
+                    if not tool and not search_action and sources_override is None and command.startswith(
+                        ('schedule a meeting','schedule an appointment','create an event','add an event','add a calendar event')):
+                        from .assistant_actions import run
+                        await run(self,{"type":"calendar_draft","text":text},started=started,timings=timings)
+                        return
+                    if not tool and not search_action and sources_override is None and command in {'edit my calendar','change my calendar'}:
+                        await self.send({"type":"control","action":"calendar"})
+                        self.release()
+                        await self.state(State.IDLE)
+                        return
+                    if not tool and not search_action and sources_override is None and command in {'debug this','help me debug this'}:
+                        await self.send({"type":"control","action":"debug"})
+                        self.release()
+                        await self.state(State.IDLE)
+                        return
+                    if not tool and not search_action and sources_override is None and command in {
+                        'brief me on my day','what do i have planned','what do i have planned this week',
+                        'give me a weekly recap','summarize my emails','any internship updates'}:
+                        from .assistant_actions import run
+                        await run(self,{"type":"briefing","text":text},started=started,timings=timings)
+                        return
                     # Spoken/typed clock queries must use the actual clock,
                     # not the model's training data. Preserve the real transcript.
                     if not tool and not search_action and is_time_request(text):
                         tool, arguments = True, {}
-                    await self.state(State.THINKING)
+                    if self.machine.state != State.THINKING:
+                        await self.state(State.THINKING)
                     tick = time.perf_counter()
                     sources=[]
                     model_called=False
                     if not tool:
-                        detected,query=route_knowledge(text,automatic_web_search=self.config.automatic_web_search and self.config.mode=='live')
+                        detected,query=('context',text) if sources_override is not None else route_knowledge(text,automatic_web_search=self.config.automatic_web_search and self.config.mode=='live')
                         action=search_action or detected
                         if action:
                             if self.config.mode=='simulation':
@@ -133,7 +167,7 @@ class Session:
                             query=text if search_action else query
                             await self.send({'type':'lookup','state':'searching','kind':action,
                                              'provider':self.config.web_provider if action=='web' else action})
-                            sources=await retrieve(self.config,action,query)
+                            sources=sources_override if action=='context' else await retrieve(self.config,action,query)
                             timings['retrieval_ms']=round((time.perf_counter()-tick)*1000,1)
                             await self.send({'type':'sources','sources':sources})
                             tick=time.perf_counter()

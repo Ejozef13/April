@@ -1,5 +1,10 @@
 # APRIL desktop companion: wake phrase, popup and login startup
 
+**Upgrade note:** [ASSISTANT.md](ASSISTANT.md) supersedes service ownership, 3D
+appearance and managed login startup. The legacy standalone widget commands
+below remain supported. New autostart entries use managed power and need the
+readable existing model store configured first.
+
 This is an optional desktop client, not a newly trained model. The existing
 Whisper → Ollama → Piper pipeline is unchanged. A small Vosk CPU recognizer
 listens locally for “hey april” or “okay april”; only after a trigger does APRIL
@@ -102,12 +107,12 @@ First complete the real test above. Then explicitly enable the existing shared
 services if you want them at boot and install APRIL's user login entry:
 
 ```bash
-sudo systemctl enable --now docker ollama
+sudo systemctl enable --now docker
 .venv/bin/python -m april.autostart install
 ```
 
 This writes only `~/.config/autostart/april.desktop` (or your XDG config folder).
-It launches `bash april.sh --widget --with-search --hidden` after GUI login, not
+It now launches the managed `april.power start --login` supervisor after GUI login, not
 before login. It preserves unrelated startup entries and rejects symlinks.
 A lock prevents duplicate widgets; a busy APRIL port is reported, never killed.
 If startup fails, run the same command in Konsole to see the error. This is a

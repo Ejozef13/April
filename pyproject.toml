@@ -13,12 +13,13 @@ dependencies = ["fastapi==0.141.1", "uvicorn==0.52.1", "httpx==0.28.1", "websock
 speech = ["piper-tts==1.8.0"]
 gmail = ["google-auth-oauthlib==1.5.0"]
 desktop = ["PySide6==6.10.3", "sounddevice==0.5.6", "vosk==0.3.45"]
+assistant = ["Radicale==3.9.0", "icalendar==7.3.0", "Pillow==12.1.0", "defusedxml==0.7.1"]
 
 [project.scripts]
 april = "april.launch:main"
 
 [tool.setuptools.package-data]
-april = ["web/*", "evaluation_cases.json"]
+april = ["web/*", "web/assets/*", "web/vendor/*", "evaluation_cases.json"]
 
 [tool.setuptools.packages.find]
 include = ["april*"]

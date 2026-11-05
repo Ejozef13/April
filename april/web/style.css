@@ -56,3 +56,24 @@ body[data-state=listening].input-active #tail,body[data-state=speaking] #tail{an
 .desktop-widget .input-meter,.desktop-widget #mic{display:none}
 .desktop-widget .conversation{margin:10px 0 0}
 .desktop-widget .conversation p{margin:4px 0 10px;line-height:1.45}
+
+#avatar-3d{height:340px;width:100%;position:relative}
+#avatar-3d canvas{display:block;width:100%;height:100%;cursor:pointer}
+.avatar-ready #face{display:none}
+.desktop-widget #avatar-3d{height:260px}
+.avatar-only,.avatar-only :root{background:transparent!important}
+body.avatar-only{background:transparent!important}
+.avatar-only .circuit-board,.avatar-only header,.avatar-only footer,.avatar-only .orbit,
+.avatar-only .stage-note,.avatar-only .state-line,.avatar-only #activity,.avatar-only .console{display:none}
+.avatar-only main{padding:0}
+.avatar-only .stage{padding:0;margin:0;border:0;background:transparent!important;min-height:0}
+.avatar-only #avatar-3d{height:350px}
+
+html:has(body.avatar-only){background:transparent!important}
+
+.desktop-widget:not(.avatar-only) #debug-panel,.desktop-widget:not(.avatar-only) #calendar-panel{display:block}
+#action-review{border:1px solid var(--green);padding:12px;margin:12px 0}
+#action-result:empty{display:none}
+.desktop-widget:not(.avatar-only) .console>details{display:block}
+.desktop-widget:not(.avatar-only) #text-form,
+.desktop-widget:not(.avatar-only) #lookup-status{display:block}

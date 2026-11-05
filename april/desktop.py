@@ -50,14 +50,19 @@ class Companion(QWidget):
     def __init__(self, config, base, *, microphone=True, hidden=False):
         super().__init__()
         self.config, self.base = config, base
+        self.capture_allowed = microphone and config.mode != 'simulation'
         self.enabled = config.mode != 'simulation'
         self.activating = False
         self.last_state = None
         self.error_pending = False
         self.poll_pending = False
         self.was_busy = False
+        self.expanded = False
         self.setWindowTitle('APRIL · companion')
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setStyleSheet('background:transparent')
         self.resize(config.widget_width, config.widget_height)
         screen = QApplication.primaryScreen()
         if screen:
@@ -66,7 +71,7 @@ class Companion(QWidget):
                       max(area.top(), area.bottom() - config.widget_height - 24))
         icon = QIcon(str(Path(__file__).parent / 'web/tray.svg'))
         self.setWindowIcon(icon)
-        self.setStyleSheet('QWidget{background:#172523;color:#e5eee7} QPushButton{padding:7px;border:1px solid #58774d;border-radius:6px} QLabel{padding:4px}')
+        self.setStyleSheet('QWidget{background:transparent;color:#e5eee7} QPushButton{padding:7px;border:1px solid #58774d;border-radius:6px} QLabel{padding:4px}')
         self.status = QLabel('Connecting to April…')
         self.status.setWordWrap(True)
         self.view = QWebEngineView()
@@ -75,23 +80,27 @@ class Companion(QWidget):
         self.profile.setUrlRequestInterceptor(self.interceptor)
         self.page = Page(self.profile, base, self.view)
         self.view.setPage(self.page)
+        self.page.setBackgroundColor(Qt.GlobalColor.transparent)
+        self.view.setStyleSheet("background:transparent")
         self.page.settings().setAttribute(QWebEngineSettings.WebAttribute.PlaybackRequiresUserGesture, False)
         self.page.settings().setAttribute(QWebEngineSettings.WebAttribute.JavascriptCanOpenWindows, False)
         self.page.settings().setAttribute(QWebEngineSettings.WebAttribute.ScreenCaptureEnabled, False)
         self.view.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         self.page.permissionRequested.connect(lambda permission: permission.deny())
         layout = QVBoxLayout(self)
-        row = QHBoxLayout()
+        self.topbar = QWidget()
+        row = QHBoxLayout(self.topbar)
         for label, callback in [('Record', self.activate), ('Dismiss', self.dismiss),
-                                ('Open full app', lambda: QDesktopServices.openUrl(QUrl(base)))]:
+                                ('Off', self.turn_off), ('Open full app', lambda: QDesktopServices.openUrl(QUrl(base)))]:
             button = QPushButton(label)
             button.clicked.connect(callback)
             row.addWidget(button)
-        layout.addLayout(row)
+        layout.addWidget(self.topbar)
         layout.addWidget(self.status)
         layout.addWidget(self.view)
         self.worker = Microphone(config)
         self.worker.wake.connect(self.activate)
+        self.worker.goodbye.connect(self.turn_off)
         self.worker.audio.connect(self.deliver_audio)
         self.worker.level.connect(lambda rms, epoch:
             self.js('window.aprilDesktop?.level(' + str(rms) + ',' + str(epoch) + ')'))
@@ -110,6 +119,7 @@ class Companion(QWidget):
         menu.addAction('Retry microphone', self.retry)
         menu.addAction('Dismiss', self.dismiss)
         menu.addSeparator()
+        menu.addAction('Turn April off', self.turn_off)
         menu.addAction('Quit April', lambda: QApplication.instance().exit(0))
         self.tray.setContextMenu(menu)
         self.tray.activated.connect(lambda reason: self.reveal() if reason == QSystemTrayIcon.ActivationReason.Trigger else None)
@@ -119,13 +129,14 @@ class Companion(QWidget):
         else:
             hidden = False  # Never hide the only way to quit/restore the app.
         self.view.load(QUrl(base + '/?widget=1'))
+        self.view.loadFinished.connect(lambda ok: self.set_expanded(self.error_pending) if ok else None)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.poll)
         self.timer.start(100)
         self.hide_timer = QTimer(self)
         self.hide_timer.setSingleShot(True)
         self.hide_timer.timeout.connect(self.hide_after_reply)
-        if microphone and config.mode != 'simulation':
+        if self.capture_allowed:
             self.worker.start()
         if not hidden:
             self.show()
@@ -148,7 +159,10 @@ class Companion(QWidget):
         if not isinstance(value, dict):
             return
         state, connected = value.get('state'), value.get('connected')
-        self.worker.ready(bool(self.enabled and connected and state in {'idle', 'error'} and not self.activating))
+        if value.get('busy') and state in {'idle','error'}:
+            self.worker.cancel()
+        self.worker.ready(bool(self.enabled and connected and not value.get('busy')
+                               and state in {'idle', 'error'} and not self.activating))
         if not connected:
             self.worker.cancel()
             self.status.setText('Disconnected · microphone paused. Quit and restart April.')
@@ -161,23 +175,50 @@ class Companion(QWidget):
                 if self.config.widget_hide_seconds:
                     self.hide_timer.start(int(self.config.widget_hide_seconds * 1000))
             if state == 'error':
+                self.set_expanded(True)
                 self.worker.cancel()
                 self.reveal()
             self.last_state = state
         if not self.error_pending and connected:
             self.status.setText('SIMULATION · no microphone or wake detection' if self.config.mode == 'simulation'
                                 else ('Microphone paused' if not self.enabled else
+                                      'Paused: April is active in another window' if value.get('busy') and state in {'idle','error'} else
                                       ('Listening for your command…' if state == 'listening' else
                                        'Wake listener active · local microphone' if state in {'idle', 'error'}
                                        else 'Wake listener paused during response')))
         self.tray.setToolTip('APRIL · ' + self.status.text()[:100])
         request = value.get('request')
-        if request == 'record':
+        if request in {'debug','calendar'}:
+            self.set_expanded(True)
+            QDesktopServices.openUrl(QUrl(self.base+'/?panel='+request))
+        elif request == 'expand':
+            self.set_expanded(True)
+        elif request == 'off':
+            self.turn_off()
+        elif request == 'record':
             self.activate()
         elif request == 'finish':
             self.worker.finish()
         elif request == 'cancel':
             self.worker.cancel()
+
+    def set_expanded(self, value):
+        self.expanded=value
+        self.topbar.setVisible(value)
+        self.status.setVisible(value)
+        self.resize(self.config.widget_width if value else 360,
+                    self.config.widget_height if value else 380)
+        self.js('window.aprilDesktop?.compact(' + ('false' if value else 'true') + ')')
+
+    def turn_off(self):
+        from .power import stop
+        self.worker.cancel()
+        managed=stop()
+        if not managed and self.config.mode!='simulation':
+            # Legacy widget owns no Ollama process; stop only its dedicated search.
+            subprocess.Popen(['bash','scripts/searxng.sh','stop'],
+                             stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        QApplication.instance().exit(0)
 
     def activate(self):
         if self.activating:
@@ -204,6 +245,7 @@ class Companion(QWidget):
         self.js('window.aprilDesktop?.empty(' + str(epoch) + ')')
 
     def mic_error(self, message):
+        self.set_expanded(True)
         self.worker.cancel()
         self.error_pending = True
         self.status.setText(message)
@@ -213,6 +255,8 @@ class Companion(QWidget):
     def retry(self):
         self.error_pending = False
         self.worker.retry()
+        if self.capture_allowed and not self.worker.isRunning():
+            self.worker.start()
 
     def pause(self, paused):
         self.enabled = not paused
@@ -276,7 +320,7 @@ def main(config, *, hidden=False):
             probe.bind((config.host, config.port))
     except OSError:
         raise SystemExit('APRIL port is already in use. Stop your existing APRIL instance, then start the widget.')
-    server = subprocess.Popen([sys.executable, '-m', 'april.server'])
+    server = subprocess.Popen([sys.executable, '-m', 'april.owned_server'])
     host = '[' + config.host + ']' if ':' in config.host else config.host
     base = f'http://{host}:{config.port}'
     window = None

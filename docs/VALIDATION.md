@@ -197,3 +197,56 @@ Qt exit rather than close-to-tray; signal callbacks defer exit to a normal GUI
 timer. The port probe permits immediate restart after an earlier server closes.
 These checks are reproducible with `python scripts/widget_lifecycle_check.py`;
 they do not establish physical mic/wake behavior.
+
+
+## Personal 3D companion preview — November 5, 2026
+
+71 unit tests passed after the expanded feature work. Coverage includes exact
+Goodbye routing without web/model calls, persistent off/recycled-PID safeguards,
+file-scope/syntax lines, approval replay prevention, combined private briefing,
+and editor API origin/path rejection. Optional assistant dependencies were
+installed for this run; public fixture OCR used real local Tesseract.
+
+The procedural Blender source generated a real GLB and transparent render.
+Chromium software WebGL loaded/rendered the GLB and requested expansion on click.
+This is actual 3D rendering; voice mode was simulation. Offscreen Qt rejected
+WebGL in this environment and correctly retained the SVG fallback. Physical
+AMD/Wayland transparency/focus/rendering remains unverified.
+
+An actual temporary authenticated Radicale server denied unauthenticated access
+and passed calendar create/read/update plus stale-ETag rejection using public
+fixture events. No personal calendar or Google account was connected.
+
+The actual Docker runner executed a public fixture, verified a read-only project
+mount and blank proxy environment, and rejected changed-file approval. The
+resolved Python image digest is recorded in ASSISTANT.md. This is not evidence
+of personal project/IDE execution, universal container isolation or dependency
+compatibility. The VS Code extension passed JavaScript syntax checks; actual
+editor diagnostics/debugpy UI acceptance is pending.
+
+Existing browser WAV/source/cancel regressions and native SIGINT/SIGTERM owned
+server cleanup passed. Managed private Ollama still needs Enrique's actual
+readable model-store path; it was not run against his model. Personal Gmail
+client/consent, real calendar data, native microphone/power cycle, screen portal
+and IDE behavior remain pending. No continuous screen monitoring or model-
+authorized source edits exist.
+
+
+The private-action browser fixture also exercised source-line display, approval
+availability/discard and a calendar proposal without implicit writing. The
+container image is digest-pinned in configuration. The native backend now uses
+Linux parent-death signaling and a bounded graceful shutdown, in addition to the
+verified ordinary SIGINT/SIGTERM path.
+
+Cross-client availability is broadcast as a busy boolean only, never private
+transcripts/sources. A native idle listener pauses while the detailed browser
+owns a turn, preventing the separate views from listening over reply playback.
+A two-WebSocket fixture verified busy/resume messages and their content boundary.
+Normal playback completion preserves a pending review; explicit Stop/discard
+revokes it. A startup-child race test verified that a late child cannot clear
+an Off marker set after the parent start command.
+
+Additional completion checks reject unconfirmed Docker starts and HTTP 202
+calendar responses as successful execution/writes. Actual digest-pinned container
+checks also passed approved local-module/data-file use with the entry-point
+snapshot mounted at its original project-relative path.

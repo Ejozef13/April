@@ -15,3 +15,10 @@ artifacts/
 *.egg-info/
 build/
 dist/
+
+# Local account/service secrets and Blender autosave backups.
+caldav.json
+calendar-users
+radicale.ini
+*.blend1
+*.blend2

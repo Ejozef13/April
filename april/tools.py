@@ -24,3 +24,8 @@ def current_time(arguments: dict, timezone: str) -> str:
     if not isinstance(arguments, dict) or arguments:
         raise ValueError("current_time accepts an empty object only")
     return datetime.now(ZoneInfo(timezone)).strftime("It is %I:%M %p on %B %d, %Y (%Z).")
+
+
+def is_goodbye_request(text):
+    cleaned=' '.join(re.findall(r'[a-z]+', text.casefold()))
+    return cleaned in {'goodbye april', 'good bye april', 'hey april goodbye', 'april goodbye'}

@@ -1,0 +1,18 @@
+# Optional private calendar, screen OCR validation and briefing dependencies.
+Radicale==3.9.0
+icalendar==7.3.0
+Pillow==12.1.0
+defusedxml==0.7.1
+libpass==1.9.4
+pika==1.4.4
+python-dateutil==4.0.0
+pytz==2026.6
+six==1.17.0
+tzdata==2026.6
+vobject==0.9.9
+requests==2.34.2
+charset-normalizer==3.5.2
+idna==3.20
+urllib3==2.8.0
+certifi==2026.10.23
+typing_extensions==4.16.0

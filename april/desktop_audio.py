@@ -12,6 +12,7 @@ from .wake import Utterance, matches_wake
 
 class Microphone(QThread):
     wake = Signal()
+    goodbye = Signal()
     audio = Signal(str, int)
     level = Signal(float, int)
     empty = Signal(int)
@@ -88,7 +89,7 @@ class Microphone(QThread):
                         raise ValueError('missing wake model')
                     if self._model is None:
                         self._model = Model(str(path))
-                    grammar = json.dumps([*self.config.wake_phrases, '[unk]'])
+                    grammar = json.dumps([*self.config.wake_phrases, 'goodbye april', '[unk]'])
                     recognizer = KaldiRecognizer(self._model, 16000, grammar)
                 except Exception:
                     with self._lock:
@@ -117,6 +118,10 @@ class Microphone(QThread):
                         if epoch is None:
                             if recognizer.AcceptWaveform(pcm):
                                 text = json.loads(recognizer.Result()).get('text', '')
+                                if matches_wake(text, ['goodbye april']):
+                                    self.ready(False)
+                                    self.goodbye.emit()
+                                    break
                                 if matches_wake(text, self.config.wake_phrases):
                                     self.ready(False)
                                     self.wake.emit()

@@ -64,9 +64,9 @@ class WakeTests(unittest.TestCase):
             output = Path(directory) / 'autostart'
             entry = install(root, output)
             text = entry.read_text()
-            self.assertIn('--widget', text)
-            self.assertIn('--hidden', text)
-            self.assertIn('--with-search', text)
+            self.assertIn('april.power', text)
+            self.assertIn('--login', text)
+            self.assertIn('start', text)
             self.assertIn('%%', text)
             self.assertIn('\\$', text)
             install(root, output)  # Managed replacement only.

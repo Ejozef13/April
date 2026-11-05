@@ -73,3 +73,30 @@ The off-record Qt profile stores no browser history/cookies on disk. The widget
 owns one backend subprocess, holds a duplicate-instance lock and never kills a
 process already using the port. Autostart is an explicit scoped XDG login entry.
 This is a desktop implementation; Pi inference/offloading is not implemented.
+
+
+## Personal companion preview
+
+Managed power owns a private Ollama process on a separate loopback port, its UI
+and backend, APRIL Search and optional local Radicale. A persistent disabled
+marker suppresses login startup until manual start. Process identity checks and
+a startup lock prevent arbitrary stale-PID signaling. Shared AM services are
+never shutdown targets.
+
+The original editable Blender asset exports GLB for a vendored local Three.js
+renderer. A transparent native popup shows the model; clicking it expands the
+existing controls. State animations and a colored I/O ring remain separate from
+model reasoning. SVG fallback handles unavailable WebGL.
+
+Explicit screen snapshots undergo bounded local OCR. Approved aprilfiles Python
+sources provide authoritative line diagnostics. Model output does not authorize
+execution: an expiring single-use review token, file hash and read-only snapshot
+precede a bounded networkless container run. The optional IDE extension exposes
+a separate explicit debugger confirmation with normal desktop permissions.
+
+A dedicated authenticated CalDAV collection supports bounded reads and reviewed
+conditional event writes. Only April-created non-recurring/non-invitation events
+can be updated; ETags prevent overwriting changed versions. Gmail remains
+read-only. Briefing evidence stays on local inference routes; no retrieved
+private excerpts are automatically forwarded to web search. Natural-language
+event drafts are validated data and never implicit write approval.

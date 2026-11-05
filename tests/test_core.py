@@ -92,7 +92,7 @@ class CoreTests(unittest.TestCase):
                 while True:
                     item = socket.receive_json()
                     messages.append(item)
-                    if item == {'type':'state','state':'idle'}:
+                    if item.get('type') == 'state' and item.get('state') == 'idle':
                         break
                 self.assertTrue(any(m.get('type') == 'reply' and '[Simulated' in m['text'] for m in messages))
                 self.assertFalse(any(m.get('type') == 'audio' for m in messages))

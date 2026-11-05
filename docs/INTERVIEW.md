@@ -37,5 +37,6 @@ Additional supported implementation bullet:
   verified the native bridge and shutdown lifecycle with simulation and fixtures.
 
 Describe real wake accuracy, KDE login behavior and microphone acceptance only
-after testing them on the desktop. Calendar, persistent personal memory,
-Navidrome and automatic desktop/Pi routing remain future work.
+after testing them on the desktop. Personal calendar/Gmail acceptance, persistent memory, Navidrome and automatic
+desktop/Pi routing remain future work. Reviewed CalDAV/code execution and the
+3D companion are now preview implementations; see ASSISTANT.md.

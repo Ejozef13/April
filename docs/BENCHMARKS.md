@@ -21,3 +21,10 @@ Measure user stop-recording → first audible response separately using a local 
 ## Collection files
 
 Follow [DESKTOP_ACCEPTANCE.md](DESKTOP_ACCEPTANCE.md). The [CSV template](evidence/desktop-timings.template.csv) contains five unmeasured attempts with blank values, not zero-time results. Copy it into ignored `artifacts/` before filling it. Only publish measured data after checking conditions, failures and privacy.
+
+
+Private-action turns also report `preparation_ms` for bounded calendar/mail/OCR/
+execution preparation before the local-model reply. Their server total carries
+the original voice turn start and STT timing when present. User review time
+between proposing and confirming an action is excluded. No new numerical
+hardware benchmark has been published.

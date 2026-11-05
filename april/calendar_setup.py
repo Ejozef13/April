@@ -1,0 +1,66 @@
+"""Create only APRIL's private loopback Radicale configuration and calendar."""
+import argparse
+import json
+import os
+from pathlib import Path
+import secrets
+import subprocess
+import sys
+
+from .config import load_config
+
+
+def initialize(config):
+    from passlib.hash import sha512_crypt
+    credentials=Path(config.caldav_credentials).expanduser()
+    server=Path(config.caldav_server_config).expanduser()
+    password_file=server.parent/'calendar-users'
+    if any(p.exists() or p.is_symlink() for p in (credentials,server,password_file)):
+        raise ValueError('Calendar setup files already exist; nothing was replaced')
+    if config.caldav_url!='http://127.0.0.1:5232/april/assistant/':
+        raise ValueError('Initial local setup uses the default loopback collection URL')
+    server.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+    credentials.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+    password=secrets.token_urlsafe(32)
+    storage=Path('~/.local/share/april/calendar').expanduser()
+    storage.mkdir(parents=True,exist_ok=True,mode=0o700)
+    files={credentials:json.dumps({'username':'april','password':password}),
+           password_file:'april:'+sha512_crypt.hash(password)+'\n',
+           server:f'''[server]
+hosts = 127.0.0.1:5232
+[auth]
+type = htpasswd
+htpasswd_filename = {password_file}
+htpasswd_encryption = sha512
+[rights]
+type = owner_only
+[storage]
+filesystem_folder = {storage}
+[logging]
+level = warning
+'''}
+    for path,text in files.items():
+        fd=os.open(path,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
+        with os.fdopen(fd,'w') as file:file.write(text)
+
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('action',choices=['init','serve','create'])
+    args=parser.parse_args();config=load_config()
+    if args.action=='init':
+        try:initialize(config)
+        except (ValueError,OSError) as exc:parser.exit(1,str(exc)+'\n')
+        print('Private local calendar settings created. No remote account was connected.')
+    elif args.action=='serve':
+        raise SystemExit(subprocess.call([sys.executable,'-m','radicale','--config',str(Path(config.caldav_server_config).expanduser())]))
+    else:
+        import asyncio
+        from .calendar import request
+        async def create():
+            await request(config,'MKCALENDAR',content=b'<c:mkcalendar xmlns:c="urn:ietf:params:xml:ns:caldav"/>',headers={'Content-Type':'application/xml'})
+        asyncio.run(create())
+        print('APRIL calendar collection created on the configured server.')
+
+
+if __name__=='__main__':main()

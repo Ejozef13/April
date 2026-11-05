@@ -1,7 +1,8 @@
 const $ = id => document.getElementById(id);
 const desktopMode = new URLSearchParams(location.search).get('widget') === '1';
 let desktopRequest = null;
-if (desktopMode) document.body.classList.add('desktop-widget');
+let calendarEvents=[];
+if (desktopMode) document.body.classList.add('desktop-widget','avatar-only');
 const config = await fetch('/api/config').then(r => r.json());
 $('face').style.width = `min(100%, ${config.display_width}px)`;
 $('face').style.height = `${Math.round(config.display_height * .65)}px`;
@@ -12,6 +13,8 @@ let generation = 0, recordPending = false, connected = false, playbackPending = 
 let suppress = false;
 let playbackVersion = 0, retryPlayback = null;
 let lastTiming = null;
+let reviewUsed=false;
+let serverBusy=false;
 let lookupPending = false;
 $('lookup-status').textContent = config.mode === 'simulation' ? 'Simulation: no private or external searches.' : (config.automatic_web_search ? 'Automatic web lookup on · clock and private requests use dedicated routes.' : 'Automatic web lookup off · use explicit search controls.');
 const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`);
@@ -20,12 +23,14 @@ const descriptions = {idle:'Ready when you are.',listening:'Microphone is record
 function showState(value) {
   state = value; document.body.dataset.state = value; $('state').textContent = value;
   if (!recording && value !== 'listening') $('mic').textContent = 'Microphone: off';
-  $('activity').textContent = descriptions[value];
-  const busy = !['idle', 'error'].includes(value);
+  $('activity').textContent = serverBusy && ['idle','error'].includes(value) ? 'April is active in another window.' : descriptions[value];
+  const ownBusy = !['idle', 'error'].includes(value);
+  const busy = ownBusy || serverBusy;
   $('record').disabled = !connected || (busy && value !== 'listening');
   $('send').disabled = $('time').disabled = !connected || busy;
   for (const id of ['search-web','search-documents','search-gmail']) $(id).disabled = !connected || busy;
-  $('stop').disabled = !connected || !busy;
+  $('stop').disabled = !connected || !ownBusy;
+  $('approve-action').disabled = !connected || busy || reviewUsed;
   $('record').textContent = value === 'listening' ? '■ Finish recording' : '● Start recording';
 }
 function error(message) { $('error').textContent = message; }
@@ -56,6 +61,7 @@ async function releaseCapture() {
   return item;
 }
 async function cancel() {
+  $('action-review').hidden=true;
   if (desktopMode) desktopRequest = 'cancel';
   if (lookupPending) $('lookup-status').textContent='Lookup cancelled.';
   lookupPending=false;
@@ -64,7 +70,11 @@ async function cancel() {
   stopPlayback(); await releaseCapture(); send({type:'cancel'});
   $('mic').textContent = 'Microphone: off';
 }
-socket.onopen = () => { connected = true; showState('idle'); };
+socket.onopen = () => {
+  connected = true; showState('idle');
+  const file=new URLSearchParams(location.search).get('reviewFile');
+  if(file){$('debug-file').value=file;privateAction({type:'debug_file',file});}
+};
 socket.onclose = () => { connected = false; cancel(); showState('error'); error('Connection closed. Reload after restarting April.'); };
 socket.onmessage = async event => {
   const message = JSON.parse(event.data);
@@ -72,19 +82,56 @@ socket.onmessage = async event => {
     if (message.type === 'state' && message.state === 'idle') suppress = false;
     else return;
   }
+  if (message.type === 'availability') {serverBusy=message.busy;showState(state);}
   if (message.type === 'state') {
+    serverBusy=message.busy ?? false;
     showState(message.state);
     if (message.state === 'listening' && recordPending) { recordPending = false; if (!desktopMode) startCapture(); }
     if (message.state === 'error') { setPlaybackResult('failed'); generation++; stopPlayback(); await releaseCapture(); $('mic').textContent = 'Microphone: off'; }
   }
+  if (message.type === 'control' && message.action === 'shutdown') {
+    if (desktopMode) desktopRequest='off';
+    else error('Goodbye requested. Use the native companion or python -m april.power stop to switch April off.');
+  }
+  if (message.type === 'control' && ['debug','calendar'].includes(message.action)) {
+    if(desktopMode) desktopRequest=message.action;
+    const panel=$(message.action==='debug'?'debug-panel':'calendar-panel');
+    panel.open=true;panel.scrollIntoView({behavior:'smooth'});
+  }
+  if (message.type === 'review') {
+    reviewUsed=false;
+    $('action-review').hidden=false;
+    $('review-summary').textContent=message.summary;
+    $('approve-action').disabled=!['idle','error'].includes(state);
+    $('reply').textContent=message.kind==='calendar'?'Awaiting approval; no calendar change has been made.':'File review prepared; execution needs your approval.';
+    $('approve-action').onclick=()=>{
+      if(!['idle','error'].includes(state) || reviewUsed) return;
+      reviewUsed=true;
+      $('approve-action').disabled=true;
+      send({type:message.kind==='calendar'?'calendar_confirm':'debug_execute',id:message.id});
+    };
+    if(desktopMode) desktopRequest='expand';
+  }
+  if (message.type === 'action_result') {
+    $('action-result').textContent=message.message;
+    $('reply').textContent='Action result shown below.';
+    $('action-review').hidden=true;
+  }
+  if (message.type === 'calendar_events') {
+    calendarEvents=message.events.filter(event=>event.kind==='calendar');
+    $('calendar-event').replaceChildren(new Option('New event',''),
+      ...calendarEvents.map((event,index)=>new Option(event.title,String(index))));
+  }
   if (message.type === 'error') {
     if (lookupPending) $('lookup-status').textContent='Lookup failed · no web answer verified.';
     lookupPending=false; error(message.message);
+    if($('reply').textContent==='Waiting for April…') $('reply').textContent='This request did not complete.';
   }
   if (message.type === 'lookup') {
     lookupPending=message.state==='searching';
     $('lookup-status').textContent=message.state==='searching' ? `Searching ${message.kind} via ${message.provider}…` : (message.state==='clock' ? 'Using the actual local clock · no web search needed.' : 'No web lookup · local/private request or manual mode.');
   }
+  if (message.type === 'lookup' && message.kind === 'context') $('lookup-status').textContent='Using approved local context…';
   if (message.type === 'transcript') $('transcript').textContent = message.text;
   if (message.type === 'reply') $('reply').textContent = message.text;
   if (message.type === 'sources') {
@@ -320,13 +367,16 @@ document.addEventListener('fullscreenchange', () => {
 // Native capture uses the same socket/session/playback path as the browser.
 if (desktopMode) {
   window.aprilDesktop = {
+    compact(value) {
+      document.body.classList.toggle('avatar-only',value);
+    },
     snapshot() {
       const request = desktopRequest;
       desktopRequest = null;
-      return {state, connected, generation, request};
+      return {state, connected, generation, request, busy:serverBusy};
     },
     begin() {
-      if (!connected || !['idle', 'error'].includes(state)) return -1;
+      if (!connected || serverBusy || !['idle', 'error'].includes(state)) return -1;
       prepareTurn();
       generation++;
       recordPending = false;
@@ -356,3 +406,65 @@ if (desktopMode) {
     }
   };
 }
+
+// GLB is a genuine local 3D asset; the supplied MP4 is reference, not geometry.
+if (config.avatar_3d || desktopMode || new URLSearchParams(location.search).get('avatar') === '3d') {
+  const host=document.createElement('div');
+  host.id='avatar-3d'; $('face').after(host);
+  try {
+    const {mountAvatar}=await import('./avatar3d.js');
+    const disposeAvatar=await mountAvatar(host,config.avatar_model_url,()=>{
+      if(desktopMode) desktopRequest='expand';
+    });
+    window.addEventListener('pagehide',disposeAvatar,{once:true});
+    document.body.classList.add('avatar-ready');
+  } catch {
+    host.remove(); // Keep the working SVG if WebGL or the replacement model fails.
+    error('3D preview unavailable; using the original face.');
+  }
+}
+
+function privateAction(message) {
+  if(!connected || serverBusy || !['idle','error'].includes(state)) return;
+  prepareTurn();send(message);
+}
+$('review-file').onclick=()=>privateAction({type:'debug_file',file:$('debug-file').value});
+$('calendar-read').onclick=()=>privateAction({type:'calendar_read'});
+$('briefing').onclick=()=>privateAction({type:'briefing'});
+$('calendar-event').onchange=()=>{
+  const event=calendarEvents[Number($('calendar-event').value)];
+  if($('calendar-event').value==='' || !event) return;
+  $('event-title').value=event.title;$('event-start').value=event.start;$('event-end').value=event.end;
+};
+$('calendar-propose').onclick=()=>{
+  const event={title:$('event-title').value,start:$('event-start').value,end:$('event-end').value};
+  if($('calendar-event').value!=='') {
+    const previous=calendarEvents[Number($('calendar-event').value)];
+    if(previous){event.uid=previous.uid;event.etag=previous.etag;}
+  }
+  privateAction({type:'calendar_propose',event});
+};
+$('reject-action').onclick=()=>{$('action-review').hidden=true;cancel();};
+$('share-screen').onclick=async()=>{
+  if(desktopMode){desktopRequest='debug';return;}
+  if(!connected || serverBusy || !['idle','error'].includes(state)) return;
+  let stream;
+  try {
+    if(!navigator.mediaDevices?.getDisplayMedia) throw new Error('Open the full app in your browser for the screen picker.');
+    stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});
+    const video=document.createElement('video');video.srcObject=stream;video.muted=true;
+    await video.play();
+    const scale=Math.min(1,1280/video.videoWidth,720/video.videoHeight);
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.round(video.videoWidth*scale);canvas.height=Math.round(video.videoHeight*scale);
+    canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
+    const image=canvas.toDataURL('image/jpeg',.8).split(',')[1];
+    privateAction({type:'debug_screen',image});
+    video.srcObject=null;
+  } catch(exc){error('Screen review: '+exc.message);}
+  finally{stream?.getTracks().forEach(track=>track.stop());}
+};
+
+const requestedPanel=new URLSearchParams(location.search).get('panel');
+if(['debug','calendar'].includes(requestedPanel)) $(requestedPanel+'-panel').open=true;
+if(desktopMode) $('face').onclick=()=>{desktopRequest='expand';};

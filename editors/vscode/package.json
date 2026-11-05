@@ -1,0 +1,50 @@
+{
+  "name": "april-companion",
+  "displayName": "APRIL Local Companion",
+  "description": "Review approved Python files with local APRIL; explicit IDE execution.",
+  "version": "0.1.0",
+  "publisher": "ejozef13",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:python"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "april.reviewFile",
+        "title": "APRIL: Review Current Python File"
+      },
+      {
+        "command": "april.checkSyntax",
+        "title": "APRIL: Check Python Syntax"
+      },
+      {
+        "command": "april.debugInIDE",
+        "title": "APRIL: Run Current Python File in Debugger"
+      }
+    ],
+    "configuration": {
+      "title": "APRIL",
+      "properties": {
+        "april.approvedRoot": {
+          "type": "string",
+          "default": "",
+          "description": "Approved aprilfiles directory; empty uses Documents/aprilfiles."
+        },
+        "april.checkOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Check syntax on save only inside the approved root."
+        },
+        "april.serverUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8765",
+          "description": "Local APRIL endpoint or local authenticated tunnel. Remote unauthenticated endpoints are rejected."
+        }
+      }
+    }
+  }
+}

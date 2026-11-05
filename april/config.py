@@ -36,6 +36,15 @@ class Config:
     searxng_url: str = 'http://127.0.0.1:8888'
     gmail_token_path: str = '~/.local/share/april/gmail-token.json'
 
+    caldav_url: str = "http://127.0.0.1:5232/april/assistant/"
+    caldav_credentials: str = "~/.config/april/caldav.json"
+    caldav_server_config: str = "~/.config/april/radicale.ini"
+    debug_runner_image: str = "python:3.12-slim@sha256:e695ab189fa2d082b1c61c69a6b888a5adeca61ceeccad107b1ed2a125721a9e"
+    debug_project_root: str = "~/Documents/aprilfiles"
+    avatar_3d: bool = True
+    avatar_model_url: str = "/static/assets/april-prototype.glb"
+    private_ollama_port: int = 11435
+    private_ollama_models: str = ""
     wake_model: str = "models/vosk-model-small-en-us-0.15"
     wake_phrases: tuple[str, ...] = ("hey april", "okay april")
     desktop_input_device: str = "default"  # PortAudio name; browser IDs are different.
@@ -49,6 +58,18 @@ class Config:
 
     def __post_init__(self):
         import re
+        if not re.fullmatch(r"(?:docker.io/library/)?python:3\.12-slim@sha256:[a-f0-9]{64}", self.debug_runner_image):
+            raise ValueError("Use a reviewed digest-pinned Python 3.12 slim execution image")
+        if not isinstance(self.avatar_3d,bool):raise ValueError("avatar_3d must be true or false")
+        calendar=urlparse(self.caldav_url)
+        if (calendar.scheme not in {"http","https"} or not calendar.hostname or calendar.username
+                or calendar.password or calendar.query or calendar.fragment
+                or (calendar.scheme=="http" and calendar.hostname not in {"localhost","127.0.0.1","::1"})):
+            raise ValueError("CalDAV must use authenticated HTTPS or a loopback HTTP URL")
+        if not re.fullmatch(r"/static/assets/[A-Za-z0-9_.-]+\.glb", self.avatar_model_url):
+            raise ValueError("Use a local GLB in april/web/assets")
+        if not 1024 <= self.private_ollama_port <= 65535:
+            raise ValueError("Invalid private Ollama port")
         if (not isinstance(self.wake_phrases, (list, tuple)) or not 1 <= len(self.wake_phrases) <= 5
                 or any(not isinstance(p, str) or not re.fullmatch(r"[a-z]+(?: [a-z]+){1,3}", p) for p in self.wake_phrases)):
             raise ValueError("Use 1–5 lowercase wake phrases of 2–4 words")

@@ -58,6 +58,22 @@
 <form id="text-form"><label for="text">Or type a message</label><div class="entry"><input id="text" maxlength="2000" placeholder="What shall we tackle today?" autocomplete="off" required><button id="send">Send</button></div></form>
 <p id="lookup-status" class="small" role="status">Lookup status will appear here.</p>
 <details id="knowledge-panel"><summary>Search web, approved files or Gmail</summary><p id="integration-status" class="small">Read-only retrieval requires local setup.</p><div class="toolbar"><button type="button" id="search-web" class="secondary">Search web</button><button type="button" id="search-documents" class="secondary">Search April files</button><button type="button" id="search-gmail" class="secondary">Search Gmail</button></div><p class="small">Use the message box as your query. Web queries go through your selected search provider. Retrieved private files/mail go only to your local model, never the search provider.</p></details>
+<details id="debug-panel"><summary>Debug approved code or a shared screen</summary>
+<p class="small">Screen sharing is an explicit snapshot, processed locally with OCR. Use files in Documents/aprilfiles for reliable line numbers. Execution requires separate confirmation.</p>
+<label>Python file relative to aprilfiles<input id="debug-file" placeholder="example.py" maxlength="300"></label>
+<button type="button" id="review-file">Review file</button><button type="button" id="share-screen">Share one screen snapshot</button>
+</details>
+<details id="calendar-panel"><summary>Private calendar and weekly briefing</summary>
+<button type="button" id="calendar-read">Read next 7 days</button><button type="button" id="briefing">Calendar + email recap</button>
+<label>Event to edit<select id="calendar-event"><option value="">New event</option></select></label>
+<label>Title<input id="event-title" maxlength="120"></label>
+<label>Start with timezone offset<input id="event-start" placeholder="YYYY-MM-DDTHH:MM:00-05:00"></label>
+<label>End with timezone offset<input id="event-end" placeholder="YYYY-MM-DDTHH:MM:00-05:00"></label>
+<button type="button" id="calendar-propose">Review event change</button>
+<p class="small">Private CalDAV setup and Gmail OAuth are required. Only reviewed April-created events can be changed. No invitations or email sending.</p>
+</details>
+<section id="action-review" hidden><strong>Review before approving</strong><pre id="review-summary"></pre><button type="button" id="approve-action">Approve this action</button><button type="button" id="reject-action">Discard</button></section>
+<pre id="action-result"></pre>
 <details id="sources-panel" hidden><summary>Retrieved sources · review supporting excerpts</summary><p class="small">Retrieved excerpts can be incomplete or outdated. Their content is data, not permission to take actions.</p><ol id="sources"></ol></details>
 <p id="error" role="alert"></p><details class="setup-panel"><summary>Setup &amp; local services</summary><button id="check-setup" class="secondary">Check setup</button><ul id="setup-results"><li>Run a read-only check if a local service is unavailable.</li></ul></details><div class="conversation"><article><span class="eyebrow">YOU SAID</span><p id="transcript">Your transcript will appear here.</p></article><article><span class="eyebrow">APRIL</span><p id="reply">Ready when you are.</p></article></div>
 <details><summary>Session timing · no transcript history saved</summary><button id="export-timing" class="secondary" disabled>Save timing JSON</button><p class="small">Optional export includes timings and model settings, never your transcript or audio. Server time excludes recording, transport and playback.</p><pre id="timings">No measurements yet.</pre></details></section>

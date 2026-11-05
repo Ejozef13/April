@@ -32,11 +32,11 @@ def install(root, directory, *, remove=False):
     directory.mkdir(parents=True, exist_ok=True)
     # Explicit env preserves the absolute configuration even if KDE starts in HOME.
     command = ['/usr/bin/env', 'APRIL_CONFIG=' + str(root / 'april.local.toml'),
-               'bash', str(root / 'april.sh'), '--widget', '--with-search', '--hidden']
+               str(root / '.venv/bin/python'), '-m', 'april.power', 'start', '--login']
     text = ('[Desktop Entry]\nType=Application\nName=APRIL Companion\n'
             'Comment=Local voice companion and wake listener\n'
             'Exec=' + ' '.join(desktop_argument(arg) for arg in command) + '\n'
-            'Terminal=false\nStartupNotify=false\n' + MARKER + '\n')
+            'Path=' + str(root).replace('\\','\\\\') + '\nTerminal=false\nStartupNotify=false\n' + MARKER + '\n')
     # Exclusive initial creation; replace only an entry carrying our marker.
     flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
     if hasattr(os, 'O_NOFOLLOW'):
@@ -58,8 +58,8 @@ def main():
         parser.exit(1, str(exc) + '\n')
     print(('Installed: ' if args.action == 'install' else 'Removed: ') + str(path))
     if args.action == 'install':
-        print('Runs after desktop login. Test manually first. Docker and Ollama must already be running.')
-        print('On CachyOS, enable your existing services explicitly: sudo systemctl enable --now docker ollama')
+        print('Runs after desktop login. Test manually first. Docker must be available; APRIL owns its private Ollama/search processes.')
+        print('On CachyOS, enable your existing services explicitly: sudo systemctl enable --now docker')
         print('Remove login startup: .venv/bin/python -m april.autostart remove')
 
 

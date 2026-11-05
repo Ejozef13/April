@@ -219,3 +219,33 @@ Actions pipeline.
 [ROADMAP.md](ROADMAP.md) explains the target architecture; [PI.md](PI.md) describes
 only the earlier tunnel experiment. Neither is evidence that Pi inference,
 automatic fallback, Calendar, personal memory or Navidrome already works.
+
+
+## 9. Personal 3D assistant preview — November 5, 2026
+
+The user expanded the goals to managed on/off, a customizable 3D companion,
+explicit screen/code help and private scheduling. [ASSISTANT.md](ASSISTANT.md)
+is the current setup/evidence guide. The earlier documentation refresh is
+[c134ef9](https://github.com/Ejozef13/April/commit/c134ef9).
+
+Implemented: original Blender/GLB terrier referenced from the uploaded video,
+local Three.js rendering with state animation and SVG fallback, transparent
+native popup/click-to-expand, deterministic Goodbye, off-until-manual-start
+marker, private Ollama/service supervisor, explicit OCR snapshots, numbered
+approved Python sources, reviewed container execution, VS Code extension source,
+authenticated Radicale calendar read/create/edit with ETag/replay protection,
+and bounded calendar/Gmail recaps. Calendar writes and code execution are never
+authorized by retrieved/model text alone.
+
+Verified: 71 tests; actual software-WebGL rendering/click; actual local OCR;
+public code in a read-only, networkless constrained container; changed-file
+approval rejection; real authenticated CalDAV create/read/update/conflict;
+existing playback and native process-shutdown regressions. Original Blender
+source and rendered evidence are included; no personal video frames, email,
+credentials or desktop snapshots are published.
+
+Pending: Enrique's readable existing model-store path/private Ollama startup;
+Google Desktop client/consent (not yet created); physical KDE/AMD transparency,
+wake/power cycle, screen portal and VS Code behavior; personal calendar/mail
+acceptance. Continuous visual monitoring and arbitrary autonomous edits are
+not implemented. Pi standalone inference/offload remains future work.

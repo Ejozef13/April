@@ -4,7 +4,7 @@ import json
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -18,6 +18,7 @@ def create_app(config=None, backends=None):
     backends = backends or (SimulationBackends() if config.mode == "simulation" else LocalBackends(config))
     gate = asyncio.Lock()
     clients = set()
+    peers = {}
 
     @asynccontextmanager
     async def lifespan(app):
@@ -47,10 +48,29 @@ def create_app(config=None, backends=None):
 
     @app.get("/api/config")
     async def settings():
-        values={k: getattr(config, k) for k in ("mode", "model", "web_provider", "automatic_web_search", "context_tokens", "reasoning_effort", "max_response_tokens", "max_record_seconds", "display_width", "display_height", "input_device_id", "output_device_id")}
+        values={k: getattr(config, k) for k in ("avatar_3d", "avatar_model_url", "mode", "model", "web_provider", "automatic_web_search", "context_tokens", "reasoning_effort", "max_response_tokens", "max_record_seconds", "display_width", "display_height", "input_device_id", "output_device_id")}
         values['integrations']={'web':True,
-            'documents':bool(config.document_roots),'gmail':Path(config.gmail_token_path).expanduser().is_file()}
+            'documents':bool(config.document_roots),'gmail':Path(config.gmail_token_path).expanduser().is_file(),
+            'calendar':Path(config.caldav_credentials).expanduser().is_file()}
         return values
+
+    @app.post("/api/debug/check")
+    async def debug_check(request: Request):
+        origin=request.headers.get('origin')
+        if origin and origin!=str(request.base_url).rstrip('/'):
+            return JSONResponse({'error':'Local origin required'},status_code=403)
+        try:
+            raw=bytearray()
+            async for chunk in request.stream():
+                raw.extend(chunk)
+                if len(raw)>4096:raise ValueError('Request too large')
+            data=json.loads(raw)
+            if not isinstance(data,dict) or set(data)!={'file'}:raise ValueError('Invalid request')
+            from .debugging import review_file
+            source,_=await asyncio.to_thread(review_file,config,data['file'])
+            return {'diagnostics':[source['diagnostic']] if source['diagnostic'] else []}
+        except (ValueError,OSError,TypeError):
+            return JSONResponse({'error':'Use a saved Python file inside the approved root'},status_code=400)
 
     @app.get("/health")
     async def health():
@@ -69,10 +89,21 @@ def create_app(config=None, backends=None):
             await ws.close(code=1008)
             return
         await ws.accept()
-        session = Session(config, backends, ws.send_json, gate)
+        async def send(message):
+            is_state=message.get('type')=='state'
+            try:
+                await ws.send_json({**message,'busy':gate.locked()} if is_state else message)
+            finally:
+                if is_state:
+                    # Availability only: never broadcast transcripts/private sources.
+                    await asyncio.gather(*(asyncio.wait_for(peer.send_json(
+                        {'type':'availability','busy':gate.locked()}),.5)
+                        for peer in list(peers.values()) if peer is not ws),return_exceptions=True)
+        session = Session(config, backends, send, gate)
         clients.add(session)
+        peers[session]=ws
         try:
-            await ws.send_json({"type": "state", "state": "idle"})
+            await ws.send_json({"type": "state", "state": "idle","busy":gate.locked()})
             while True:
                 raw = await ws.receive_text()
                 if len(raw) > 1_400_000:
@@ -92,6 +123,7 @@ def create_app(config=None, backends=None):
             pass
         finally:
             clients.discard(session)
+            peers.pop(session,None)
             try:
                 await session.cancel()
             except (RuntimeError, WebSocketDisconnect):
@@ -105,7 +137,7 @@ def main():
     import uvicorn
     config = load_config()
     uvicorn.run(create_app(config), host=config.host, port=config.port,
-                ws_max_size=1_400_000, ws_max_queue=2, access_log=False)
+                ws_max_size=1_400_000, ws_max_queue=2, access_log=False, timeout_graceful_shutdown=5)
 
 
 if __name__ == "__main__":

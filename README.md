@@ -17,6 +17,32 @@ Raspberry Pi companion with authenticated desktop acceleration.
 [Validation](docs/VALIDATION.md) · [Architecture](docs/ARCHITECTURE.md) ·
 [Roadmap](docs/ROADMAP.md)
 
+## New personal-companion preview
+
+[Full setup and updated goals](docs/ASSISTANT.md) cover managed on/off, an original
+replaceable 3D terrier, explicit screen/code review, a self-hosted CalDAV calendar
+and private email/calendar recaps.
+
+![Original editable 3D prototype, rendered in Blender](docs/evidence/april-3d-prototype.png)
+
+The uploaded MP4 informed this original procedural prototype; it was not an
+editable mesh and was not converted into the video's original asset. The Blender
+source and GLB are included. [Edit/replace the model](tools/README.md).
+
+After one-time dependencies and readable existing model-store configuration:
+
+```bash
+bash april.sh start
+bash april.sh status
+bash april.sh stop
+```
+
+Managed startup owns a private Ollama process, search, optional local CalDAV and
+the native client. **Goodbye April** / Off stops owned services and pauses login
+startup until a manual start. Shared AM/Ollama/Docker services are preserved.
+Reinstall the autostart entry after upgrading. Real desktop power/wake/screen
+portal behavior and personal Google consent remain pending.
+
 ## What works, and what is still pending
 
 | Capability | Evidence / current status |
@@ -29,10 +55,12 @@ Raspberry Pi companion with authenticated desktop acceleration.
 | Automatic web lookup and visible sources | SearXNG; desktop screenshot shows three retrieved sources and a cited answer |
 | Native popup, tray controls, wake listener and login startup | Implemented; Qt simulation, fake-audio and process-lifecycle checks passed. Real wake accuracy, device compatibility, KDE focus and login test pending |
 | Read-only Gmail | OAuth/search adapter and fixtures implemented; personal consent and real mailbox queries pending |
-| Calendar, personal memory and Navidrome | Planned; not implemented |
+| CalDAV calendar and private recaps | Reviewed create/edit and bounded calendar/email briefing implemented; authenticated Radicale tests passed. Personal setup pending |
+| Screen/code assistance | Explicit local OCR snapshot, approved Python-file review, separately approved container run and VS Code preview; desktop/IDE acceptance pending |
+| Personal memory and Navidrome | Planned; not implemented |
 | Standalone Pi inference and desktop offload/fallback | Planned; physical Pi operation is not verified |
 
-Latest recorded validation: **58 unit tests**, Chromium playback/source regressions,
+Latest recorded validation: **71 unit tests**, Chromium playback/source regressions,
 actual offscreen Qt widget checks, and clean native-launcher shutdown on SIGINT
 and SIGTERM. These do not substitute for real microphone/model/Pi tests.
 See [the evidence record](docs/VALIDATION.md).
@@ -220,8 +248,8 @@ playback. No collected multi-run hardware benchmark is available.
 | Dedicated display/audio/enclosure | No purchase required for current desktop work; future compatibility decisions |
 
 Next: physically accept the widget, capture the real walkthrough/timings, verify
-Gmail and implement a read-only daily briefing, then benchmark standalone Pi
-inference and authenticated desktop offload. Calendar, explicit personal memory
+Gmail/CalDAV and accept the source-backed daily briefing, then benchmark standalone Pi
+inference and authenticated desktop offload. Natural-language calendar drafts require review; personal memory
 and Navidrome remain planned. A desktop-only file is unavailable when the PC is
 off unless the user explicitly syncs it elsewhere.
 
@@ -240,8 +268,10 @@ Timing exports, copies and recordings are explicit retention actions.
 The app/model/search endpoints default to loopback. Host/origin checks,
 restrictive content policy, no external UI assets and a local-only native page
 reduce unintended access. Retrieved text is untrusted data. A wake phrase is
-not authentication. No arbitrary shell execution, mail sending/deletion,
+not authentication. No model-generated arbitrary shell execution, mail sending/deletion,
 unrestricted filesystem access, motors or autonomous system actions exist.
+Python execution is a separately approved, bounded operation; IDE execution
+has its own explicit confirmation and normal desktop permissions.
 
 | Symptom | Next check |
 |---|---|
@@ -263,11 +293,13 @@ unrestricted filesystem access, motors or autonomous system actions exist.
 | `audio.py`, `backends.py`, `errors.py` | Audio contracts and replaceable local STT/LLM/TTS adapters |
 | `server.py`, `tools.py` | Loopback API lifecycle and validated actual-clock tool |
 | `desktop.py`, `desktop_audio.py`, `wake.py` | Native tray/window, half-duplex mic worker and endpointing |
-| `autostart.py`, `wake_setup.py` | Scoped login entry and explicit bounded model download |
+| `autostart.py`, `power.py`, `wake_setup.py` | Scoped login entry, owned runtime on/off and explicit bounded model download |
+| `calendar.py`, `calendar_setup.py`, `assistant_actions.py`, `debugging.py` | Reviewed private actions, CalDAV, OCR and approved Python review/execution |
 | `documents.py`, `knowledge.py`, `gmail.py`, `integrations.py` | Approved retrieval and opt-in account setup |
 | `searxng_service.py`, `deploy/searxng/` | Private pinned search service |
 | `evaluate.py`, `evaluation_cases.json` | Human-reviewed text evaluation; no invented accuracy score |
-| `april/web/` | Original SVG, circuit theme, browser capture/playback and native bridge |
+| `april/web/`, `tools/` | Original SVG/GLB, editable Blender source, local Three.js, capture/playback and native bridge |
+| `editors/vscode/` | Optional syntax diagnostics, deeper file review and explicitly approved debugger preview |
 | `tests/`, `scripts/`, `docs/` | Fixture tests, repeatable setup, evidence and development history |
 
 Follow [PROGRESS.md](docs/PROGRESS.md) for the commit-linked progression from the
