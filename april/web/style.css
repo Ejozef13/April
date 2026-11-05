@@ -35,3 +35,24 @@ button{box-shadow:0 0 0 1px #c0ed8718}.secondary{box-shadow:inset 0 0 0 1px #375
 body[data-state=listening].input-active #tail,body[data-state=speaking] #tail{animation:tail-wag .12s ease-in-out infinite alternate}
 @keyframes tail-wag{from{transform:rotate(-24deg)}to{transform:rotate(23deg)}}
 #sources a{color:var(--green);text-underline-offset:3px}#sources p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}#sources{max-height:380px;overflow:auto;padding-right:12px}
+
+/* Native tray widget reuses the real state/portrait without the setup forms. */
+.desktop-widget main{padding:8px;max-width:none}
+.desktop-widget header,.desktop-widget footer,.desktop-widget .stage-note,
+.desktop-widget .devices,.desktop-widget #text-form,.desktop-widget #lookup-status,
+.desktop-widget .console>details,.desktop-widget .toolbar #time{display:none}
+.desktop-widget .stage{min-height:220px;margin:0 0 8px;padding:4px}
+.desktop-widget #face{width:100%!important;height:220px!important}
+.desktop-widget .orbit{width:240px;height:240px;top:8px}
+.desktop-widget .console{padding:10px}
+.desktop-widget .toolbar{gap:6px}
+.desktop-widget .toolbar button{padding:7px;font-size:12px}
+.desktop-widget .conversation{display:block;margin-top:8px}
+.desktop-widget .conversation h3{font-size:10px}
+.desktop-widget .conversation p{font-size:13px;max-height:85px;overflow:auto}
+.desktop-widget #mic-level,.desktop-widget #mic-level-label{display:none}
+.desktop-widget #activity{font-size:12px;margin:6px}
+
+.desktop-widget .input-meter,.desktop-widget #mic{display:none}
+.desktop-widget .conversation{margin:10px 0 0}
+.desktop-widget .conversation p{margin:4px 0 10px;line-height:1.45}

@@ -1,4 +1,7 @@
 const $ = id => document.getElementById(id);
+const desktopMode = new URLSearchParams(location.search).get('widget') === '1';
+let desktopRequest = null;
+if (desktopMode) document.body.classList.add('desktop-widget');
 const config = await fetch('/api/config').then(r => r.json());
 $('face').style.width = `min(100%, ${config.display_width}px)`;
 $('face').style.height = `${Math.round(config.display_height * .65)}px`;
@@ -53,6 +56,7 @@ async function releaseCapture() {
   return item;
 }
 async function cancel() {
+  if (desktopMode) desktopRequest = 'cancel';
   if (lookupPending) $('lookup-status').textContent='Lookup cancelled.';
   lookupPending=false;
   if (lastTiming && ['pending', 'playing'].includes(lastTiming.playback)) setPlaybackResult('cancelled');
@@ -70,7 +74,7 @@ socket.onmessage = async event => {
   }
   if (message.type === 'state') {
     showState(message.state);
-    if (message.state === 'listening' && recordPending) { recordPending = false; startCapture(); }
+    if (message.state === 'listening' && recordPending) { recordPending = false; if (!desktopMode) startCapture(); }
     if (message.state === 'error') { setPlaybackResult('failed'); generation++; stopPlayback(); await releaseCapture(); $('mic').textContent = 'Microphone: off'; }
   }
   if (message.type === 'error') {
@@ -237,6 +241,10 @@ async function finishCapture() {
   send({type:'audio',audio:btoa(binary)});
 }
 $('record').onclick = () => {
+  if (desktopMode) {
+    desktopRequest = state === 'listening' ? 'finish' : 'record';
+    return;
+  }
   if (recording) finishCapture();
   else if (state === 'listening') cancel();
   else if (['idle','error'].includes(state)) { prepareTurn(); recordPending = true; send({type:'record'}); }
@@ -264,7 +272,7 @@ $('devices').onclick = async () => {
 };
 document.addEventListener('keydown', event => { if (event.altKey && event.code === 'KeyR' && !event.repeat) { event.preventDefault(); $('record').click(); } if (event.code === 'Escape') cancel(); });
 window.addEventListener('pagehide', () => { generation++; stopPlayback(); if (recording) recording.stream.getTracks().forEach(t => t.stop()); socket.close(); });
-devices().catch(() => {});
+if (!desktopMode) devices().catch(() => {});
 
 async function checkSetup() {
   $('check-setup').disabled = true;
@@ -306,3 +314,45 @@ document.addEventListener('fullscreenchange', () => {
     $('face-view').setAttribute('aria-pressed', 'false'); $('face-view').textContent = 'Face view';
   }
 });
+
+
+// Poll-only native bridge: no shell, file, token or generic evaluation endpoint.
+// Native capture uses the same socket/session/playback path as the browser.
+if (desktopMode) {
+  window.aprilDesktop = {
+    snapshot() {
+      const request = desktopRequest;
+      desktopRequest = null;
+      return {state, connected, generation, request};
+    },
+    begin() {
+      if (!connected || !['idle', 'error'].includes(state)) return -1;
+      prepareTurn();
+      generation++;
+      recordPending = false;
+      send({type:'record'});
+      return generation;
+    },
+    audio(encoded, epoch) {
+      if (epoch !== generation || !connected || state !== 'listening' || suppress) return;
+      document.body.classList.remove('input-active');
+      $('mic').textContent = 'Native microphone: off · processing recording';
+      send({type:'audio', audio:encoded});
+    },
+    level(rms, epoch) {
+      if (epoch !== generation || state !== 'listening') return;
+      document.body.classList.toggle('input-active', rms >= .012);
+    },
+    empty(epoch) {
+      if (epoch !== generation) return;
+      cancel();
+      error('No speech detected. Say Hey April, pause for the window, then speak—or use Record.');
+    },
+    cancel,
+    demo() {
+      if (!connected || !['idle','error'].includes(state)) return;
+      prepareTurn();
+      send({type:'text', text:'Hello April'});
+    }
+  };
+}

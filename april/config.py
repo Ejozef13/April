@@ -36,7 +36,32 @@ class Config:
     searxng_url: str = 'http://127.0.0.1:8888'
     gmail_token_path: str = '~/.local/share/april/gmail-token.json'
 
+    wake_model: str = "models/vosk-model-small-en-us-0.15"
+    wake_phrases: tuple[str, ...] = ("hey april", "okay april")
+    desktop_input_device: str = "default"  # PortAudio name; browser IDs are different.
+    wake_silence_seconds: float = 1.0
+    wake_rms_threshold: float = .015
+    wake_cooldown_seconds: float = 1.2
+    wake_speech_wait_seconds: float = 5
+    widget_hide_seconds: float = 5
+    widget_width: int = 420
+    widget_height: int = 600
+
     def __post_init__(self):
+        import re
+        if (not isinstance(self.wake_phrases, (list, tuple)) or not 1 <= len(self.wake_phrases) <= 5
+                or any(not isinstance(p, str) or not re.fullmatch(r"[a-z]+(?: [a-z]+){1,3}", p) for p in self.wake_phrases)):
+            raise ValueError("Use 1–5 lowercase wake phrases of 2–4 words")
+        if not .4 <= self.wake_silence_seconds <= 3 or not .001 <= self.wake_rms_threshold <= .2:
+            raise ValueError("Invalid wake silence or microphone energy threshold")
+        if not isinstance(self.desktop_input_device, str) or not self.desktop_input_device.strip():
+            raise ValueError("desktop_input_device must be default or a PortAudio device name")
+        if not 0.5 <= self.wake_cooldown_seconds <= 5 or not 2 <= self.wake_speech_wait_seconds <= 10:
+            raise ValueError("Invalid wake cooldown or speech wait")
+        if not 0 <= self.widget_hide_seconds <= 60:
+            raise ValueError("Invalid widget hide delay")
+        if not 340 <= self.widget_width <= 1000 or not 480 <= self.widget_height <= 1200:
+            raise ValueError("Invalid widget dimensions")
         if self.mode not in {"live", "simulation"}:
             raise ValueError("mode must be live or simulation")
         if self.host not in {"127.0.0.1", "localhost", "::1"}:

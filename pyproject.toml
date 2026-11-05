@@ -5,13 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "april-companion"
 version = "0.1.0"
-description = "A local, push-to-talk dog companion"
+description = "A local voice companion with optional wake-phrase desktop widget"
 requires-python = ">=3.11"
 dependencies = ["fastapi==0.141.1", "uvicorn==0.52.1", "httpx==0.28.1", "websockets==16.0"]
 
 [project.optional-dependencies]
 speech = ["piper-tts==1.8.0"]
 gmail = ["google-auth-oauthlib==1.5.0"]
+desktop = ["PySide6==6.10.3", "sounddevice==0.5.6", "vosk==0.3.45"]
 
 [project.scripts]
 april = "april.launch:main"

@@ -150,3 +150,10 @@ class LauncherTests(unittest.TestCase):
                 with self.assertRaises(SystemExit) as error:main()
                 self.assertEqual(error.exception.code,2)
                 run.assert_not_called()
+
+
+    def test_widget_flags_require_a_real_widget_launch(self):
+        for flags in [['--hidden'], ['--widget','--check']]:
+            with patch('sys.argv',['april',*flags]), contextlib.redirect_stderr(io.StringIO()):
+                with self.assertRaises(SystemExit) as error:main()
+                self.assertEqual(error.exception.code,2)

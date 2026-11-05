@@ -158,3 +158,34 @@ rendering. Shell syntax, CLI help and diff checks passed. A current-tree search
 found no retired API endpoints, credential settings or setup commands. The only
 remaining engine-name references are SearXNG's public engine configuration and
 its documentation; there is no paid API adapter.
+
+
+## Native wake/widget preview — November 4, 2026
+
+An optional PySide6/QtWebEngine tray client now reuses the face and WebSocket
+session. A CPU Vosk worker performs constrained wake-phrase recognition; native
+PortAudio command recording ends on bounded silence/no-speech/max-length rules.
+No model training is claimed. Idle wake audio stays in memory. The native bridge
+uses generation checks, the existing one-turn backend gate and actual playback
+acknowledgments. Wake capture pauses during model/TTS/playback and rearms after
+a cooldown. Dismiss cancels; tray pause releases the microphone; quit stops only
+the owned backend. Optional XDG login startup is generated without replacing
+unrelated entries or changing shared services.
+
+58 unit tests passed, including fake-PortAudio/Vosk half-duplex and cancellation,
+utterance deadlines/WAV output, archive safety, scoped autostart generation and
+launcher validation. Actual offscreen QtWebEngine passed fixture-server
+connection, compact UI, a labeled simulated reply, native WAV submission and
+dismiss/restore. The existing Chromium WAV playback/source/cancellation
+regressions passed. Optional dependency consistency, shell syntax, Python
+compilation, CLI help and diff checks passed.
+
+The native simulation screenshot is an actual Qt window, not a real microphone
+or model test. Cloud PortAudio hardware/library and KDE tray/focus were
+unavailable; the optional worker reports missing audio dependencies cleanly.
+The official Vosk model site returned 403 in the cloud, so actual model download,
+wake/missed-wake rates, native speaker output, login startup and physical
+cancellation/retry remain desktop acceptance work. The pinned Vosk Python
+release is older; this is a replaceable constrained recognizer, not a measured
+dedicated wake-word model. Pi packaging/offload and the personal briefing
+feature remain unimplemented.

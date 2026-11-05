@@ -2,7 +2,7 @@
 
 ## Current: stabilize Desktop v0.1
 
-The desktop proves the interaction architecture before hardware migration. Keep the photo-inspired 2D face and current local stack. Finish real timing/walkthrough evidence and physical Stop/retry acceptance; freeze optional features. Existing code is a loopback desktop server with a browser client. It does not implement the future mode routing described below.
+The desktop proves the interaction architecture before hardware migration. Keep the photo-inspired 2D face and current local stack. Finish real timing/walkthrough evidence and physical Stop/retry acceptance; freeze optional features. Existing code is a loopback desktop server with a browser client and an optional native Qt tray/wake client. Native wake/hardware/login acceptance is pending; see WIDGET.md. It does not implement the future mode routing described below.
 
 ## Next: establish standalone Pi viability
 

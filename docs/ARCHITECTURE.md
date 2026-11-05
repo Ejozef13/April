@@ -56,3 +56,20 @@ Explicit web/documents/Gmail actions or narrow recognized phrases are selected b
 Approved documents are chunked into a private SQLite FTS5 index through an explicit CLI command. Web queries use the local SearXNG JSON API; Gmail uses fixed read-only Google HTTPS endpoints after local OAuth. At most three bounded excerpts are sent to the loopback model, marked as untrusted data and identified for source references. The browser displays the actual retrieved excerpts/URLs separately from the generated answer. No recursive model-selected browsing, mail sending, attachment fetching or arbitrary shell commands exist.
 
 Web queries are sent to the provider; private document/mail excerpts stay with the local model. Gmail bodies are not persistently indexed. The file index is an explicit local snapshot, not chat memory. OAuth tokens and API keys live outside Git. Retrieval timing is separate from generation; a no-results reply omits LLM timing because no model request occurred. All these API paths require real user setup before live-account readiness can be claimed.
+
+
+## Optional desktop tray client
+
+A QtWebEngine window reuses the existing SVG and WebSocket client. A native
+PortAudio worker runs constrained CPU Vosk wake recognition in memory while
+idle. After a trigger, it records one bounded PCM16 command with silence
+endpointing. A generation-checked JavaScript bridge sends the WAV through the
+same session/STT/model/TTS path; Qt's mounted audio element plays the response.
+Wake capture pauses during processing/playback and resumes after a cooldown.
+
+The native page is restricted to the configured loopback app; links require a
+user click and open externally. No generic native shell/file bridge exists.
+The off-record Qt profile stores no browser history/cookies on disk. The widget
+owns one backend subprocess, holds a duplicate-instance lock and never kills a
+process already using the port. Autostart is an explicit scoped XDG login entry.
+This is a desktop implementation; Pi inference/offloading is not implemented.

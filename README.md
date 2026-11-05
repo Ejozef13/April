@@ -29,6 +29,22 @@ bash april.sh --simulation          # Explicit canned replies; no speech/models
 
 After updates, run `git pull --ff-only` before starting. Open the local address printed in your desktop terminal. Refresh after updates. Cloud onboarding does not provide a localhost web preview. Stop only APRIL with Ctrl+C; leave shared AM/Ollama services intact.
 
+## Optional “Hey April” desktop widget
+
+[Desktop companion setup](docs/WIDGET.md) adds a native tray window, offline
+CPU wake-phrase listener, silence-ended command recording and opt-in login
+startup. It reuses the existing model/voice and face, with manual Record,
+microphone pause and dismiss controls. Install its optional dependencies and
+wake model before running:
+
+```bash
+bash april.sh --widget --with-search
+```
+
+Native Qt/bridge and fake-audio tests passed; real wake accuracy, microphone
+compatibility, KDE popup behavior and login startup still need desktop testing.
+The browser-only app remains unchanged.
+
 ## First installation
 
 Requires Git, a modern browser, and Python 3.12 for the tested dependency set. `uv` can install a separate Python 3.12 without changing CachyOS system Python. Existing virtual environments are preserved. No purchases or API keys are needed.
