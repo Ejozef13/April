@@ -13,14 +13,14 @@ from test_core import wav_bytes
 
 
 class AutomaticSearchTests(unittest.IsolatedAsyncioTestCase):
-    async def run_turn(self, text, *, sources=None, failure=None, audio=False, **settings):
+    async def run_turn(self, text, *, sources=None, failure=None, audio=False, answer="Fixture answer [1].", **settings):
         messages = []
         async def send(message):
             messages.append(message)
         async def synthesize(reply, output):
             output.write_bytes(wav_bytes())
-        backend = SimpleNamespace(respond=AsyncMock(return_value='Fixture answer [1].'),
-                                  synthesize=synthesize, transcribe=AsyncMock(return_value=text))
+        backend = SimpleNamespace(respond=AsyncMock(return_value=answer),
+                                  synthesize=AsyncMock(side_effect=synthesize), transcribe=AsyncMock(return_value=text))
         session = Session(Config(**settings), backend, send, asyncio.Lock())
         retrieval = AsyncMock(side_effect=failure, return_value=sources or [])
         try:
@@ -86,3 +86,15 @@ class AutomaticSearchTests(unittest.IsolatedAsyncioTestCase):
         backend.transcribe.assert_awaited_once()
         retrieval.assert_awaited_once_with(unittest.mock.ANY, 'web', 'what is a terrier')
         self.assertTrue(any(e['type']=='transcript' and e['text']=='What is a terrier?' for e in events))
+
+    async def test_spoken_citations_removed_but_display_and_sources_preserved(self):
+        sources=[{'title':'First','excerpt':'Fixture','kind':'web'},
+                 {'title':'Second','excerpt':'Fixture','kind':'web'}]
+        answer='A terrier is a dog [1][2]. It is energetic [1, 2].'
+        events,backend,_=await self.run_turn('What is a terrier?',sources=sources,answer=answer)
+        self.assertEqual(next(e['text'] for e in events if e['type']=='reply'),answer)
+        self.assertEqual(next(e['sources'] for e in events if e['type']=='sources'),sources)
+        self.assertEqual(backend.synthesize.await_args.args[0],'A terrier is a dog. It is energetic.')
+        from april.audio import spoken_answer
+        self.assertEqual(spoken_answer('Use values[1] and [99].',2),'Use values[1] and [99].')
+        self.assertEqual(spoken_answer('The array is [1, 2].',0),'The array is [1, 2].')

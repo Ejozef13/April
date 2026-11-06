@@ -7,7 +7,7 @@ import sqlite3
 import uuid
 from pathlib import Path
 
-from .audio import validate_wav
+from .audio import validate_wav, spoken_answer
 from .state import State, StateMachine
 from .tools import current_time, is_time_request, is_goodbye_request
 from .errors import BackendError
@@ -287,7 +287,7 @@ class Session:
                     await self.send({"type": "reply", "text": reply, "source": "current_time" if tool else ('retrieval' if action else self.config.mode)})
                     output = root / "reply.wav"
                     tick = time.perf_counter()
-                    await self.backends.synthesize(reply, output)
+                    await self.backends.synthesize(spoken_answer(reply, len(sources)), output)
                     if self.memory and memory_reply is None and not self.private_conversation and model_called:
                         self.memory.completed(text,reply,self.backends,allow_extract=not sources and search_action is None and sources_override is None,conversation_id=self.conversation_id)
                     timings["tts_ms"] = round((time.perf_counter() - tick) * 1000, 1)

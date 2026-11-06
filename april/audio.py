@@ -1,5 +1,6 @@
 """Bounded WAV validation. Audio exists only in memory and temporary job files."""
 import io
+import re
 import wave
 
 
@@ -30,3 +31,19 @@ def validate_wav(data: bytes, seconds: int):
                 raise ValueError("Truncated audio")
     except (wave.Error, EOFError) as exc:
         raise ValueError("Invalid WAV recording") from exc
+
+
+def spoken_answer(text, source_count=0):
+    """Omit known numeric citations from TTS, keeping the displayed answer intact."""
+    if not source_count:
+        return text
+
+    def citation(match):
+        ids = [int(value) for value in re.findall(r"\d+", match[1])]
+        return "" if all(1 <= value <= source_count for value in ids) else match[0]
+
+    # Avoid changing code such as values[1], and leave non-citation brackets alone.
+    text = re.sub(r"(?<![\w])\[(\d+(?:\s*[,;]\s*\d+)*)\]", citation, text)
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r" +([.,!?;:])", r"\1", text).strip()
+    return text or "The response contained only source citations."

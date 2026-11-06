@@ -59,7 +59,7 @@ portal behavior and personal Google consent remain pending.
 | Recording bounds, serial requests, cancellation, retry and actionable errors | Automated fixtures and browser regressions; repeated physical cancellation measurements pending |
 | Actual time/date | Deterministic clock routing for recognized spoken/typed requests and the clock button |
 | Approved-folder RAG | SQLite FTS5 retrieval; Enrique confirmed access to his approved `~/Documents/aprilfiles` folder |
-| Automatic web lookup and visible sources | SearXNG; desktop screenshot shows three retrieved sources and a cited answer |
+| Automatic web lookup and visible sources | Citation markers remain visible but are omitted from spoken audio. SearXNG; desktop screenshot shows three retrieved sources and a cited answer |
 | Native popup, tray controls, wake listener and login startup | Implemented; Qt simulation, fake-audio and process-lifecycle checks passed. Real wake accuracy, device compatibility, KDE focus and login test pending |
 | Read-only Gmail | OAuth/search adapter and fixtures implemented; personal consent and real mailbox queries pending |
 | CalDAV calendar and private recaps | Reviewed create/edit and bounded calendar/email briefing implemented; authenticated Radicale tests passed. Personal setup pending |
@@ -68,7 +68,7 @@ portal behavior and personal Google consent remain pending.
 | Navidrome | Planned; not implemented |
 | Standalone Pi inference and desktop offload/fallback | Planned; physical Pi operation is not verified |
 
-Latest recorded validation: **81 automated tests**, Chromium playback/source regressions,
+Latest recorded validation: **82 automated tests**, Chromium playback/source regressions,
 actual offscreen Qt widget checks, and clean native-launcher shutdown on SIGINT
 and SIGTERM. These do not substitute for real microphone/model/Pi tests.
 See [the evidence record](docs/VALIDATION.md).

@@ -266,3 +266,10 @@ snapshot mounted at its original project-relative path.
 Memory fixture commands: `python -m unittest discover -s tests -p test_memory.py`
 and `python scripts/memory_browser_check.py`. Physical desktop reminders, model
 extraction accuracy/latency, Obsidian use and Pi operation still need acceptance.
+
+## Spoken citation regression
+
+82 automated tests passed. A source-backed session fixture confirms numeric
+citation markers are absent from TTS input while displayed answer/source events
+remain unchanged; ordinary brackets and code indexing are retained. Physical
+Piper listening acceptance remains a desktop check.

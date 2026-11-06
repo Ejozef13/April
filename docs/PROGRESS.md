@@ -271,3 +271,10 @@ Chromium UI check passed save/reload/edit/delete and private/new-conversation
 controls against temporary notes and fixture model/audio. Actual pretrained
 model extraction accuracy, desktop notifications and Pi synchronization remain
 unverified; cross-device sync is not implemented.
+
+## Citation-free speech
+
+Known numeric source markers are removed only from the text passed to speech
+synthesis. Displayed replies and retrieved sources retain their citations.
+Unrelated brackets and code indexing are preserved. A session-level regression
+checks the actual TTS input alongside the unchanged reply/source events.
