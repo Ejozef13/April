@@ -51,15 +51,16 @@ def credentials_for(config):
     try:
         from google.oauth2.credentials import Credentials
         from google.auth.transport.requests import Request
+        from google.auth.exceptions import RefreshError,TransportError
     except ImportError as exc:
         raise BackendError('gmail_library_missing','Install the optional Gmail dependencies with pip install -e ".[gmail]" in APRIL’s virtual environment.') from exc
     try:
         original=path.read_text()
         info=json.loads(original)
         if not google_endpoint(info.get('token_uri',''),{'oauth2.googleapis.com','accounts.google.com'},{'/token','/o/oauth2/token'}):
-            raise ValueError('Unexpected token origin')
+            raise BackendError('gmail_token_invalid','The saved token metadata is invalid. Reconnect using your local Google Desktop client.')
         if set(info.get('scopes',[])) != set(SCOPES):
-            raise ValueError('Stored scopes must be read-only')
+            raise BackendError('gmail_scope_invalid','The saved grant is not the dedicated Gmail read-only scope. Reconnect with the APRIL Desktop client; do not add broader permissions.')
         credentials=Credentials.from_authorized_user_info(info,SCOPES)
         if not credentials.has_scopes(SCOPES):
             raise ValueError('Missing read scope')
@@ -77,6 +78,12 @@ def credentials_for(config):
                 raise ValueError('Local grant was changed or disconnected during refresh')
             save_credentials(path,credentials)
         return credentials
+    except BackendError:
+        raise
+    except TransportError as exc:
+        raise BackendError('gmail_network_failed','Google token refresh could not reach the authentication service. Check your network, VPN, proxy and TLS configuration; consent may already be valid.') from exc
+    except RefreshError as exc:
+        raise BackendError('gmail_refresh_failed','Google rejected the token refresh. Reconnect using the existing Desktop client and your approved test account.') from exc
     except Exception as exc:
         raise BackendError('gmail_auth_failed','Gmail authentication failed. Reconnect locally; do not share credentials or raw authentication errors.') from exc
 
@@ -96,6 +103,31 @@ def message_excerpt(payload,depth=0):
     return ''
 
 
+def require_gmail_success(response):
+    """Map allowlisted Google error reasons to static messages; never echo bodies."""
+    if response.is_success:return
+    reasons=set()
+    try:
+        if len(response.content)<=32_000:
+            error=response.json().get('error',{})
+            for item in error.get('errors',[])[:10]+error.get('details',[])[:10]:
+                if isinstance(item,dict) and isinstance(item.get('reason'),str):reasons.add(item['reason'])
+    except (ValueError,TypeError,AttributeError):pass
+    if reasons & {'accessNotConfigured','SERVICE_DISABLED','API_DISABLED'}:
+        raise BackendError('gmail_api_disabled','Gmail API is disabled or not yet available in the OAuth client project. Enable Gmail API in that same Google Cloud project, allow time for propagation, then retry. Your consent does not need to be repeated for this error.')
+    if reasons & {'insufficientPermissions','ACCESS_TOKEN_SCOPE_INSUFFICIENT','insufficient_scope'}:
+        raise BackendError('gmail_scope_rejected','Google rejected the granted scopes. Confirm gmail.readonly for this Desktop client and reconnect; broader permissions are not needed.')
+    if response.status_code==401:
+        raise BackendError('gmail_token_rejected','Google rejected the access token. Reconnect with your existing Desktop client and approved test account.')
+    if response.status_code==429 or reasons & {'rateLimitExceeded','userRateLimitExceeded','quotaExceeded','RATE_LIMIT_EXCEEDED'}:
+        raise BackendError('gmail_rate_limited','Google temporarily limited Gmail requests. Wait and retry; do not repeat consent.')
+    if response.status_code>=500:
+        raise BackendError('gmail_service_unavailable','Google Gmail is temporarily unavailable. Retry later; no consent change is indicated.')
+    if response.status_code==403:
+        raise BackendError('gmail_access_denied','Google denied Gmail API access (HTTP 403). Check Gmail API enablement in the client project and Google account or Workspace policies. This check cannot determine which policy denied access.')
+    raise BackendError('gmail_request_rejected','Google rejected the Gmail API request (HTTP '+str(response.status_code)+'). Verify Gmail API enablement and the Desktop client configuration.')
+
+
 async def search_gmail(config,query,*,credentials=None,transport=None):
     if credentials is None:
         credentials=await asyncio.to_thread(credentials_for,config)
@@ -103,13 +135,13 @@ async def search_gmail(config,query,*,credentials=None,transport=None):
         async with httpx.AsyncClient(timeout=12,transport=transport) as client:
             headers={'Authorization':'Bearer '+credentials.token}
             listing=await client.get(API+'/messages',params={'q':query[:500],'maxResults':3},headers=headers)
-            listing.raise_for_status()
+            require_gmail_success(listing)
             sources=[]
             for item in listing.json().get('messages',[])[:3]:
                 message_id=item.get('id','')
                 if not re.fullmatch(r'[A-Za-z0-9_-]{1,128}',message_id):continue
                 response=await client.get(API+'/messages/'+message_id,params={'format':'full'},headers=headers)
-                response.raise_for_status()
+                require_gmail_success(response)
                 message=response.json();payload=message.get('payload',{})
                 fields={h.get('name','').casefold():h.get('value','') for h in payload.get('headers',[])[:80]}
                 title=clean_text(fields.get('subject','(No subject)'),180)
@@ -117,6 +149,10 @@ async def search_gmail(config,query,*,credentials=None,transport=None):
                 source={'title':title,'excerpt':clean_text('From: '+fields.get('from','')+'\nDate: '+fields.get('date','')+'\n'+text,2200),
                         'url':None,'kind':'gmail'}
                 sources.append(source)
+    except httpx.TimeoutException as exc:
+        raise BackendError('gmail_network_timeout','Gmail search timed out. Check your network or VPN and retry; consent may already be valid.') from exc
+    except httpx.RequestError as exc:
+        raise BackendError('gmail_network_failed','Could not reach Gmail. Check network, VPN, proxy and TLS settings; consent may already be valid.') from exc
     except (httpx.HTTPError,ValueError,TypeError,AttributeError) as exc:
         raise BackendError('gmail_search_failed','Gmail search failed. Check local OAuth access, Gmail API settings and network; no email was sent or modified.') from exc
     return sources
@@ -128,11 +164,15 @@ async def check_gmail(config, *, credentials=None, transport=None):
     try:
         async with httpx.AsyncClient(timeout=12,transport=transport) as client:
             response=await client.get(API+'/profile',headers={'Authorization':'Bearer '+credentials.token})
-            response.raise_for_status()
+            require_gmail_success(response)
             if not isinstance(response.json().get('emailAddress'),str):raise ValueError('Invalid profile')
         return True
+    except httpx.TimeoutException as exc:
+        raise BackendError('gmail_network_timeout','Gmail connection check timed out. Check your network or VPN and retry; consent may already be valid.') from exc
+    except httpx.RequestError as exc:
+        raise BackendError('gmail_network_failed','Could not reach Gmail. Check network, VPN, proxy and TLS settings; consent may already be valid.') from exc
     except (httpx.HTTPError,ValueError,TypeError,AttributeError) as exc:
-        raise BackendError('gmail_check_failed','Gmail connection check failed. Complete read-only consent locally and retry.') from exc
+        raise BackendError('gmail_check_failed','Google returned an unexpected Gmail response. Check API availability; no message bodies were read by this check.') from exc
 
 
 def main():
@@ -144,7 +184,7 @@ def main():
     path=Path(config.gmail_token_path).expanduser()
     if args.action=='check':
         try:asyncio.run(check_gmail(config))
-        except BackendError:parser.exit(1,'Gmail check failed. Complete local Google consent, then retry.\n')
+        except BackendError as exc:parser.exit(1,'Gmail check failed ['+exc.code+']: '+str(exc)+'\n')
         print('Authenticated Gmail connection verified. No message bodies were read by this check.')
         return
     if args.action=='disconnect':

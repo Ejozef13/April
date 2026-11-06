@@ -191,3 +191,25 @@ on Enrique's desktop or establish personal Gmail consent. Actual login/reboot,
 microphone/Goodbye, automatic memory accuracy, private GPU inference and the
 personal-account recap remain acceptance checks above. Pi synchronization and
 offline inference are separate later milestones.
+
+## Gmail consent succeeds but the connection check fails
+
+A successful browser callback confirms consent/token exchange, not Gmail API
+availability. Pull the latest update and rerun `python -m april.gmail check`.
+The check prints a static diagnostic code and repair guidance without returning
+raw Google responses, tokens or your email address.
+
+- `gmail_api_disabled`: enable Gmail API in the same project that created the
+  downloaded OAuth client, allow propagation, then retry. Reconsent is not the fix.
+- `gmail_scope_rejected` / `gmail_token_rejected`: review the dedicated read-only
+  grant or reconnect with the existing Desktop client as directed.
+- `gmail_network_failed` / `gmail_network_timeout`: check network, VPN, proxy and
+  TLS configuration; consent may already be valid.
+- `gmail_access_denied`: generic Google HTTP 403; check project/API and account
+  policy. The code does not invent a specific cause from an unrecognized error.
+- `gmail_rate_limited` / `gmail_service_unavailable`: wait and retry rather than
+  repeatedly authorizing.
+
+Only share the printed diagnostic, never the client JSON, token file, request
+headers or raw authentication responses. The check remains profile-only and
+read-only; it does not download message bodies or broaden permissions.

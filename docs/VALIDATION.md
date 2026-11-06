@@ -300,3 +300,11 @@ Radicale: discovery/create preservation, event read/update/conflict handling,
 existing-server preservation and temporary bootstrap/shutdown. Existing browser
 editor/playback/source/cancel checks passed. These are not claims of physical
 desktop boot/wake acceptance, real model memory accuracy or Google account consent.
+
+## Safe Gmail diagnostics
+
+97 automated tests passed, including API/network classification without response
+body/token leakage, a real optional Google Credentials save/load round-trip with
+fixture values and CLI preservation of the safe diagnostic code. No personal
+mailbox or Google account was used by these tests. A real consent success does
+not prove Gmail API availability; desktop diagnosis is still required.

@@ -315,3 +315,13 @@ walkthrough. No personal calendar files or Google grants were created in cloud.
 Radicale bootstrap/read/write/conflict tests and browser regressions passed.
 Actual desktop login/Goodbye/reboot, model extraction quality and personal Google
 consent remain acceptance work. The 3D prototype is unchanged for later authoring.
+
+## Gmail connection-check diagnostics
+
+User completed browser consent, then the check failed. The previous CLI hid all
+causes behind a misleading reconsent instruction. Added safe API-disabled, scope,
+token, network, rate-limit and service-error classifications shared by check and
+search. CLI preserves application-generated diagnostic messages, never raw
+Google errors or credentials. Credentials remain unchanged. Fixture round-trip
+and failure tests bring the full suite to 97; the user's actual failure cause
+remains unverified until the updated check is run on the desktop.
