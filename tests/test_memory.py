@@ -146,6 +146,9 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
             reminder=self.store.list()[0]
             self.assertTrue(reminder['due_at'])
             self.assertIn('review an application',reminder['content'])
+            self.store.save('Parser prototype is ready.',category='projects',key='audino-status')
+            await ask('What do you know about my Audino project?')
+            self.assertIn('Parser prototype',json.dumps(observed[-1]['context']))
         await session.cancel()
 
     async def test_retrieved_content_not_extracted_and_failure_is_visible(self):
@@ -177,3 +180,48 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('UNTRUSTED_PERSONAL_CONTEXT_JSON',payloads[0]['messages'][1]['content'])
         self.assertEqual(payloads[1]['format'],'json')
         self.assertNotIn('Hello!',json.dumps(payloads[1]))
+
+    async def test_project_export_is_scoped_private_and_never_overwrites(self):
+        self.store.save('Audino status: parser prototype.',category='projects',key='audino-status')
+        self.store.save('April status: memory preview.',category='projects',key='april-status')
+        self.store.save('I prefer short answers.',category='preferences')
+        output=Path(self.tmp.name)/'audino-context.md'
+        self.store.export_project('audino',output)
+        text=output.read_text()
+        self.assertIn('Audino status',text)
+        self.assertNotIn('April status',text)
+        self.assertNotIn('short answers',text)
+        self.assertEqual(output.stat().st_mode & 0o777,0o600)
+        with self.assertRaises(FileExistsError):self.store.export_project('audino',output)
+        with self.assertRaises(ValueError):self.store.export_project('../profile',Path(self.tmp.name)/'other.md')
+        with self.assertRaises(ValueError):self.store.export_project('audino',Path.cwd()/'context.md')
+
+    async def test_simultaneous_agents_use_versions_and_preserve_other_notes(self):
+        import subprocess
+        import sys
+        code='''import sys
+from april.config import Config
+from april.memory import MemoryStore
+s=MemoryStore(Config(memory_vault=sys.argv[1]))
+s.save('Independent agent note '+sys.argv[2],category='projects',key='agent-'+sys.argv[2])
+try:
+ s.save('Competing status '+sys.argv[2],category='projects',key='audino-status',expected_version='new')
+except ValueError:
+ sys.exit(3)
+'''
+        processes=[subprocess.Popen([sys.executable,'-c',code,str(self.store.root),str(i)],
+                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE) for i in range(5)]
+        results=[]
+        for process in processes:
+            _,stderr=process.communicate(timeout=10)
+            self.assertFalse(stderr,stderr.decode())
+            results.append(process.returncode)
+        self.assertEqual(results.count(0),1)
+        self.assertEqual(results.count(3),4)
+        items=self.store.list()
+        self.assertEqual(len(items),6)
+        old=next(i for i in items if i['id']=='audino-status')
+        changed=self.store.save('Reviewed new status',category='projects',key='audino-status',expected_version=old['updated_at'])
+        self.assertEqual(changed['content'],'Reviewed new status')
+        with self.assertRaises(ValueError):
+            self.store.save('Stale write',category='projects',key='audino-status',expected_version=old['updated_at'])

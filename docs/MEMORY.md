@@ -99,6 +99,9 @@ latest extraction failure/queue notice; use “Remember this” for reliable exp
 storage when automatic analysis fails. No live-model extraction accuracy or Pi
 latency is claimed by the fixture tests.
 
+For CachyOS installation, shared local agents and scoped cloud snapshots,
+see [OBSIDIAN.md](OBSIDIAN.md).
+
 ## Obsidian and portable Markdown
 
 Obsidian is an optional editor; it does not need to run. It is free for personal

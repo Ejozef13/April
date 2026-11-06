@@ -15,7 +15,7 @@ Raspberry Pi companion with authenticated desktop acceleration.
 
 [Project progression](docs/PROGRESS.md) · [Widget setup](docs/WIDGET.md) ·
 [Validation](docs/VALIDATION.md) · [Architecture](docs/ARCHITECTURE.md) ·
-[Roadmap](docs/ROADMAP.md) · [Personality & memory](docs/MEMORY.md)
+[Roadmap](docs/ROADMAP.md) · [Personality & memory](docs/MEMORY.md) · [Obsidian & shared agents](docs/OBSIDIAN.md)
 
 ## New personal-companion preview
 
@@ -68,7 +68,7 @@ portal behavior and personal Google consent remain pending.
 | Navidrome | Planned; not implemented |
 | Standalone Pi inference and desktop offload/fallback | Planned; physical Pi operation is not verified |
 
-Latest recorded validation: **82 automated tests**, Chromium playback/source regressions,
+Latest recorded validation: **84 automated tests**, Chromium playback/source regressions,
 actual offscreen Qt widget checks, and clean native-launcher shutdown on SIGINT
 and SIGTERM. These do not substitute for real microphone/model/Pi tests.
 See [the evidence record](docs/VALIDATION.md).

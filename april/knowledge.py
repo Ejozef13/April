@@ -16,6 +16,7 @@ def private_request(text):
     return bool(re.search(
         r'\b(?:my|our)\s+(?:e-?mails?|gmail|inbox|mailbox|mail|files?|folders?|documents?|aprilfiles|'
         r'account|password|secret|token|private key|api key|desktop|computer|server|address|phone|calendar|contacts|name)\b'
+        r'|\b(?:my|our)\s+(?:[\w-]+\s+){0,4}(?:projects?|notes|memories|preferences|tasks|plans)\b'
         r'|\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b|(?:/home/|~/|[A-Z]:\\)|-----BEGIN .*PRIVATE KEY-----',
         normalized,re.I))
 

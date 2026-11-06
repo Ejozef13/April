@@ -273,3 +273,11 @@ extraction accuracy/latency, Obsidian use and Pi operation still need acceptance
 citation markers are absent from TTS input while displayed answer/source events
 remain unchanged; ordinary brackets and code indexing are retained. Physical
 Piper listening acceptance remains a desktop check.
+
+## Shared-agent vault checks
+
+84 automated tests passed. Five simultaneous fixture processes preserve separate
+notes and exactly one create-only competing update succeeds. Stale versions are
+rejected. Project exports omit other namespaces/categories, use private file
+permissions and refuse overwriting or Git-repository destinations. These tests
+do not establish desktop Obsidian installation or live cloud-agent access.

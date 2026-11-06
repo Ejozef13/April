@@ -278,3 +278,13 @@ Known numeric source markers are removed only from the text passed to speech
 synthesis. Displayed replies and retrieved sources retain their citations.
 Unrelated brackets and code indexing are preserved. A session-level regression
 checks the actual TTS input alongside the unchanged reply/source events.
+
+## Obsidian and shared-agent setup
+
+Added CachyOS installation/open-existing-vault instructions and local Audino
+configuration guidance. Added a cross-project CLI wrapper, category/prefix
+filters, stable IDs, optimistic version checks and advisory vault locking for
+cooperating April/CLI processes. A project-only Markdown exporter supports an
+explicit, reviewed cloud handoff; no automatic upload or two-way cloud sync.
+No desktop package was installed or Audino permissions changed from the cloud.
+Concurrent-process and scoped-export fixtures are included in the 84-test suite.
