@@ -325,3 +325,12 @@ search. CLI preserves application-generated diagnostic messages, never raw
 Google errors or credentials. Credentials remain unchanged. Fixture round-trip
 and failure tests bring the full suite to 97; the user's actual failure cause
 remains unverified until the updated check is run on the desktop.
+
+## Calendar read-back routing
+
+Enrique confirmed approved event creation and appearance in Thunderbird. Read-back
+failed because “What do I have planned for tomorrow?” missed an exact-string
+route. Added anchored calendar intent variants, calendar-only dispatch (no Gmail
+or web), and timezone-aware today/tomorrow REPORT windows. Regression coverage
+includes the exact displayed transcript and DST day boundaries. 99 tests passed;
+actual desktop read-back after applying this fix remains an acceptance check.

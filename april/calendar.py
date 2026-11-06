@@ -44,10 +44,18 @@ async def request(config, method, resource='', *, content=None, headers=None, tr
             raise BackendError('calendar_unavailable','CalDAV request failed. Check the local calendar service and private credentials; no change is claimed.')
 
 
-async def events(config, *, transport=None):
+async def events(config, *, transport=None, period=None, now=None):
     from icalendar import Calendar
-    start=datetime.now(timezone.utc)
-    end=start+timedelta(days=7)
+    start=now or datetime.now(timezone.utc)
+    if period in {'today','tomorrow'}:
+        from zoneinfo import ZoneInfo
+        local=start.astimezone(ZoneInfo(config.timezone))
+        start=local.replace(hour=0,minute=0,second=0,microsecond=0)
+        if period=='tomorrow':start+=timedelta(days=1)
+        end=(start+timedelta(days=1)).astimezone(timezone.utc)
+        start=start.astimezone(timezone.utc)
+    elif period is None:end=start+timedelta(days=7)
+    else:raise ValueError('Unsupported calendar period')
     stamp=lambda value:value.strftime('%Y%m%dT%H%M%SZ')
     body=f'''<c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
 <d:prop><d:getetag/><c:calendar-data><c:expand start="{stamp(start)}" end="{stamp(end)}"/></c:calendar-data></d:prop>

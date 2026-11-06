@@ -29,3 +29,21 @@ def current_time(arguments: dict, timezone: str) -> str:
 def is_goodbye_request(text):
     cleaned=' '.join(re.findall(r'[a-z]+', text.casefold()))
     return cleaned in {'goodbye april', 'good bye april', 'hey april goodbye', 'april goodbye'}
+
+
+def is_calendar_read_request(text):
+    """Recognize personal agenda questions without depending on one exact sentence."""
+    period=r'(?:today|tomorrow|this week)'
+    return bool(re.fullmatch(
+        r'(?:what do i have planned(?: (?:for )?'+period+r')?|'
+        r"what(?:'s| is) on my (?:calendar|schedule|agenda)(?: (?:for )?"+period+r')?|'
+        r'what am i doing(?: '+period+r')?|'
+        r'(?:show|read|tell me) my (?:calendar|schedule|agenda)(?: (?:for )?'+period+r')?)',
+        normalize_request(text)))
+
+
+def calendar_period(text):
+    request=normalize_request(text)
+    if re.search(r'\btomorrow\b',request):return 'tomorrow'
+    if re.search(r'\btoday\b',request):return 'today'
+    return None

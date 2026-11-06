@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .audio import validate_wav, spoken_answer
 from .state import State, StateMachine
-from .tools import current_time, is_time_request, is_goodbye_request
+from .tools import current_time, is_time_request, is_goodbye_request, is_calendar_read_request
 from .errors import BackendError
 from .knowledge import route_knowledge, retrieve
 
@@ -238,11 +238,12 @@ class Session:
                         self.release()
                         await self.state(State.IDLE)
                         return
+                    if not tool and not search_action and sources_override is None and is_calendar_read_request(text):
+                        from .assistant_actions import run
+                        await run(self,{"type":"calendar_read","text":text},started=started,timings=timings)
+                        return
                     if not tool and not search_action and sources_override is None and command in {
-                        'brief me on my day','what do i have planned','what do i have planned this week',
-                        'give me a weekly recap','summarize my emails','any internship updates',
-                        'what do i have planned today','what do i have planned tomorrow',
-                        "what's on my calendar",'what is on my calendar','what am i doing today'}:
+                        'brief me on my day','give me a weekly recap','summarize my emails','any internship updates'}:
                         from .assistant_actions import run
                         await run(self,{"type":"briefing","text":text},started=started,timings=timings)
                         return

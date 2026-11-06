@@ -33,9 +33,11 @@ async def _run(session,message,*,started=None,timings=None):
         if kind in {'calendar_read','briefing'}:
             from .calendar import events
             question=message.get('text','').casefold()
+            from .tools import calendar_period
+            period=calendar_period(question) if kind=='calendar_read' else None
             sources=[]
             if not any(word in question for word in ('emails','internship')):
-                sources=await events(session.config)
+                sources=await events(session.config,period=period) if period else await events(session.config)
             if kind=='briefing' and 'have planned' not in question:
                 from .gmail import search_gmail
                 query='newer_than:7d'
@@ -45,7 +47,7 @@ async def _run(session,message,*,started=None,timings=None):
             await session.send({'type':'calendar_events','events':sources if kind=='calendar_read' else []})
             if not sources:
                 sources=[{'title':'Completed private query','kind':'status',
-                          'excerpt':'The configured private query completed and returned no matching items in its bounded date range.'}]
+                          'excerpt':'The configured private query completed and returned no matching items '+('for '+period if period else 'in its bounded date range')+'.'}]
             await session.run(text=message.get('text') or 'Summarize the next seven days. Mention that results are bounded, not an exhaustive inbox/calendar audit.',
                               sources_override=sources[:6],job_started=started,
                               inherited_timings={**timings,'preparation_ms':round((time.perf_counter()-preparation)*1000,1)})

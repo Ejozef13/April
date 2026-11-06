@@ -308,3 +308,11 @@ body/token leakage, a real optional Google Credentials save/load round-trip with
 fixture values and CLI preservation of the safe diagnostic code. No personal
 mailbox or Google account was used by these tests. A real consent success does
 not prove Gmail API availability; desktop diagnosis is still required.
+
+## Calendar read-back regression
+
+99 automated tests passed. The reported “planned for tomorrow” transcript and
+three variants retrieve CalDAV evidence without Gmail/web calls. Day windows
+follow America/New_York midnight boundaries, including the 23-hour DST day.
+User screenshots separately confirm approved event creation in Thunderbird;
+fixed spoken read-back still requires desktop verification.

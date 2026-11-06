@@ -213,3 +213,11 @@ raw Google responses, tokens or your email address.
 Only share the printed diagnostic, never the client JSON, token file, request
 headers or raw authentication responses. The check remains profile-only and
 read-only; it does not download message bodies or broaden permissions.
+
+## Calendar question phrasing
+
+Calendar-only questions accept “What do I have planned for tomorrow?”, the same
+phrase without “for”, “What's on my calendar/schedule?”, and “Show my calendar
+for tomorrow.” They read CalDAV without querying Gmail or the web. Today and
+tomorrow use local-midnight bounds in the configured timezone, including DST.
+The explicit calendar panel still defaults to a bounded seven-day read.

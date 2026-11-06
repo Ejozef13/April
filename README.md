@@ -72,7 +72,7 @@ portal behavior and personal Google consent remain pending.
 | Navidrome | Planned; not implemented |
 | Standalone Pi inference and desktop offload/fallback | Planned; physical Pi operation is not verified |
 
-Latest recorded validation: **97 automated tests**, Chromium playback/source regressions,
+Latest recorded validation: **99 automated tests**, Chromium playback/source regressions,
 actual offscreen Qt widget checks, and clean native-launcher shutdown on SIGINT
 and SIGTERM. These do not substitute for real microphone/model/Pi tests.
 See [the evidence record](docs/VALIDATION.md).
