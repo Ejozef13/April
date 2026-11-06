@@ -147,3 +147,59 @@ async def draft_from_text(config,text):
         response=await client.post(config.ollama_url.rstrip('/')+'/api/chat',json=payload)
         response.raise_for_status()
         return proposal(json.loads(response.json()['message']['content']))
+
+
+def readback(config, items, *, period=None):
+    """Speak verified structured calendar fields; no model decides if an event exists."""
+    from datetime import date
+    from zoneinfo import ZoneInfo
+    zone=ZoneInfo(config.timezone)
+    label=period or 'the next seven days'
+    if not items:
+        reply='No calendar events were returned for '+label+'.'
+        return reply if len(reply)<=config.max_response_chars else 'No events returned. See calendar.'
+
+    def parse(value):
+        if not isinstance(value,str) or not value:raise ValueError('Missing event date')
+        if 'T' in value or ' ' in value:
+            stamp=datetime.fromisoformat(value)
+            return stamp.replace(tzinfo=zone) if stamp.tzinfo is None else stamp.astimezone(zone)
+        return date.fromisoformat(value)
+
+    def day(value):return value.strftime('%A, %B ')+str(value.day)
+    def clock(value):return value.strftime('%I:%M %p').lstrip('0')
+    parsed=[]
+    for item in items:
+        start=parse(item.get('start'))
+        end=parse(item['end']) if item.get('end') else None
+        title=' '.join(str(item.get('title') or 'Untitled event').split())[:120]
+        if isinstance(start,datetime):
+            if end is not None and not isinstance(end,datetime):raise ValueError('Mixed calendar date types')
+            timing='at '+clock(start)+' '+start.tzname()
+            if end:
+                if end<start:raise ValueError('Invalid event interval')
+                if end.date()==start.date() and end.tzname()==start.tzname():
+                    timing='from '+clock(start)+' to '+clock(end)+' '+end.tzname()
+                else:timing='from '+clock(start)+' '+start.tzname()+' to '+day(end)+' at '+clock(end)+' '+end.tzname()
+            text=title+' on '+day(start)+', '+timing+'.'
+            order=start.timestamp()
+        else:
+            if end is not None and (isinstance(end,datetime) or end<=start):raise ValueError('Invalid all-day interval')
+            text=title+', all day on '+day(start)
+            if end and end>start+timedelta(days=1):text+=' through '+day(end-timedelta(days=1))
+            text+='.'
+            order=datetime.combine(start,datetime.min.time(),zone).timestamp()
+        parsed.append((order,text))
+    descriptions=[value for _,value in sorted(parsed)]
+    # Fit complete events, never cut a title/time in half. Full sources stay visible.
+    selected=[]
+    prefix='For '+label+': '
+    for value in descriptions[:3]:
+        remaining=len(descriptions)-len(selected)-1
+        suffix=(' '+str(remaining)+' more returned events are in the sources.') if remaining else ''
+        if len(prefix+' '.join(selected+[value])+suffix)>config.max_response_chars:break
+        selected.append(value)
+    if not selected:
+        return str(len(items))+' event'+('s' if len(items)!=1 else '')+'. See calendar sources.'
+    remaining=len(descriptions)-len(selected)
+    return prefix+' '.join(selected)+((' '+str(remaining)+' more returned events are in the sources.') if remaining else '')

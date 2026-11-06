@@ -316,3 +316,12 @@ three variants retrieve CalDAV evidence without Gmail/web calls. Day windows
 follow America/New_York midnight boundaries, including the 23-hour DST day.
 User screenshots separately confirm approved event creation in Thunderbird;
 fixed spoken read-back still requires desktop verification.
+
+## Deterministic calendar read-back
+
+100 automated tests passed. Calendar routes use structured verified replies: a
+fixture model deliberately raises if called, yet the source event is correctly
+displayed and spoken at its Eastern time. Sources remain visible, LLM timing is
+absent, and all-day/overnight/empty/long-list cases are checked. Real authenticated
+Radicale fixture data also passes the read-back formatter. Combined narrative
+briefings remain model-generated and are not covered by this deterministic claim.

@@ -334,3 +334,17 @@ route. Added anchored calendar intent variants, calendar-only dispatch (no Gmail
 or web), and timezone-aware today/tomorrow REPORT windows. Regression coverage
 includes the exact displayed transcript and DST day boundaries. 99 tests passed;
 actual desktop read-back after applying this fix remains an acceptance check.
+
+## Verified calendar speech
+
+A desktop screenshot showed April Test in retrieved sources while the model
+claimed no schedule details were available. Routing was working after the prior
+fix; the remaining failure was model interpretation. Calendar-only read-back now
+formats structured event data directly, converts UTC into the configured local
+timezone and preserves visible sources. The same verified text reaches speech.
+No LLM is called for these calendar facts, and no LLM timing is reported.
+
+100 automated tests passed, including the exact fixture event at 20:00 UTC
+becoming 3:00 PM EST, all-day/overnight events, empty results and bounded lists.
+Real temporary authenticated Radicale read/write/bootstrap checks also passed
+with actual event formatting. Desktop verification remains the next step.

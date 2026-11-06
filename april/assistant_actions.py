@@ -45,11 +45,15 @@ async def _run(session,message,*,started=None,timings=None):
                 mail=await search_gmail(session.config,query)
                 sources=sources[:3]+mail[:3]
             await session.send({'type':'calendar_events','events':sources if kind=='calendar_read' else []})
+            verified_reply=None
+            if kind=='calendar_read':
+                from .calendar import readback
+                verified_reply=readback(session.config,sources,period=period)
             if not sources:
                 sources=[{'title':'Completed private query','kind':'status',
                           'excerpt':'The configured private query completed and returned no matching items '+('for '+period if period else 'in its bounded date range')+'.'}]
             await session.run(text=message.get('text') or 'Summarize the next seven days. Mention that results are bounded, not an exhaustive inbox/calendar audit.',
-                              sources_override=sources[:6],job_started=started,
+                              sources_override=sources[:6],verified_reply=verified_reply,job_started=started,
                               inherited_timings={**timings,'preparation_ms':round((time.perf_counter()-preparation)*1000,1)})
             return
         if kind in {'calendar_propose','calendar_draft'}:

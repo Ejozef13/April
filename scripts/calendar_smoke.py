@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import httpx
 from passlib.hash import sha512_crypt
-from april.calendar import request, proposal, commit, events
+from april.calendar import request, proposal, commit, events, readback
 from april.config import Config
 from april.calendar_setup import ensure_collection,bootstrap
 from april.errors import BackendError
@@ -61,6 +61,9 @@ level = warning
                 listed=await events(config)
                 assert listed[0]['title']=='Public test event',listed
                 assert listed[0]['uid']==item['uid']
+                spoken=readback(config,listed)
+                assert 'Public test event' in spoken
+                assert start.strftime('%I:%M %p').lstrip('0') in spoken
                 change=proposal({'title':'Updated public event','start':item['start'],'end':item['end'],'uid':item['uid'],'etag':etag})
                 await commit(config,change)
                 assert (await events(config))[0]['title']=='Updated public event'

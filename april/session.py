@@ -199,7 +199,7 @@ class Session:
             return 'That memory has been removed, along with recent conversation context.' if count else 'I could not find an exact memory match. Open My memories and delete the note you mean.'
         return None
 
-    async def run(self, text="", audio=None, tool=False, arguments=None,search_action=None, sources_override=None, job_started=None, inherited_timings=None):
+    async def run(self, text="", audio=None, tool=False, arguments=None,search_action=None, sources_override=None, job_started=None, inherited_timings=None, verified_reply=None):
         timings = dict(inherited_timings or {})
         started = time.perf_counter() if job_started is None else job_started
         try:
@@ -260,6 +260,12 @@ class Session:
                     if memory_reply is not None:
                         reply=memory_reply[:self.config.max_response_chars]
                         action=None
+                    elif verified_reply is not None:
+                        reply=verified_reply
+                        action='calendar'
+                        sources=sources_override or []
+                        await self.send({'type':'lookup','state':'complete','kind':'calendar'})
+                        await self.send({'type':'sources','sources':sources})
                     elif not tool:
                         detected,query=('context',text) if sources_override is not None else route_knowledge(text,automatic_web_search=self.config.automatic_web_search and self.config.mode=='live' and not local_conversation(command) and not (self.memory and not self.private_conversation and self.memory.is_followup(command)))
                         action=search_action or detected
@@ -285,14 +291,14 @@ class Session:
                     else:
                         await self.send({'type':'lookup','state':'clock','kind':'local'})
                         reply=current_time(arguments,self.config.timezone)
-                    if tool or model_called:
-                        timings["tool_ms" if tool else "llm_ms"] = round((time.perf_counter() - tick) * 1000, 1)
-                    await self.send({"type": "reply", "text": reply, "source": "current_time" if tool else ('retrieval' if action else self.config.mode)})
+                    if tool or model_called or verified_reply is not None:
+                        timings["tool_ms" if tool or verified_reply is not None else "llm_ms"] = round((time.perf_counter() - tick) * 1000, 1)
+                    await self.send({"type": "reply", "text": reply, "source": "calendar" if verified_reply is not None else "current_time" if tool else ('retrieval' if action else self.config.mode)})
                     output = root / "reply.wav"
                     tick = time.perf_counter()
-                    await self.backends.synthesize(spoken_answer(reply, len(sources)), output)
-                    if self.memory and memory_reply is None and not self.private_conversation and model_called:
-                        job=self.memory.completed(text,reply,self.backends,allow_extract=not sources and search_action is None and sources_override is None,conversation_id=self.conversation_id,source_kind=action or 'conversation')
+                    await self.backends.synthesize(spoken_answer(reply, 0 if verified_reply is not None else len(sources)), output)
+                    if self.memory and memory_reply is None and not self.private_conversation and (model_called or verified_reply is not None):
+                        job=self.memory.completed(text,reply,self.backends,allow_extract=verified_reply is None and not sources and search_action is None and sources_override is None,conversation_id=self.conversation_id,source_kind=action or 'conversation')
                         if job:
                             await self.send({'type':'memory_status','message':'Considering a short personal memory in the background…'})
                             observer=asyncio.create_task(self.memory_finished(job,self.memory.epoch))

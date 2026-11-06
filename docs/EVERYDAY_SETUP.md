@@ -221,3 +221,9 @@ phrase without “for”, “What's on my calendar/schedule?”, and “Show my 
 for tomorrow.” They read CalDAV without querying Gmail or the web. Today and
 tomorrow use local-midnight bounds in the configured timezone, including DST.
 The explicit calendar panel still defaults to a bounded seven-day read.
+
+Calendar-only read-back formats verified event titles and dates directly instead
+of asking the language model whether an event exists. UTC event times are
+converted to the configured local timezone, and full source excerpts remain
+visible. This prevents a model refusal from contradicting a retrieved calendar
+event. Combined email/calendar narrative briefings still use the local model.
