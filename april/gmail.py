@@ -122,13 +122,31 @@ async def search_gmail(config,query,*,credentials=None,transport=None):
     return sources
 
 
+async def check_gmail(config, *, credentials=None, transport=None):
+    """Verify a read-only grant using profile metadata; do not fetch message bodies."""
+    if credentials is None:credentials=await asyncio.to_thread(credentials_for,config)
+    try:
+        async with httpx.AsyncClient(timeout=12,transport=transport) as client:
+            response=await client.get(API+'/profile',headers={'Authorization':'Bearer '+credentials.token})
+            response.raise_for_status()
+            if not isinstance(response.json().get('emailAddress'),str):raise ValueError('Invalid profile')
+        return True
+    except (httpx.HTTPError,ValueError,TypeError,AttributeError) as exc:
+        raise BackendError('gmail_check_failed','Gmail connection check failed. Complete read-only consent locally and retry.') from exc
+
+
 def main():
     parser=argparse.ArgumentParser(description='Connect Gmail using local read-only OAuth; never upload client files or tokens to Git.')
-    parser.add_argument('action',choices=['connect','disconnect'])
+    parser.add_argument('action',choices=['connect','disconnect','check'])
     parser.add_argument('--client',type=Path,help='Google Desktop OAuth client JSON stored outside the repository')
     args=parser.parse_args()
     config=load_config()
     path=Path(config.gmail_token_path).expanduser()
+    if args.action=='check':
+        try:asyncio.run(check_gmail(config))
+        except BackendError:parser.exit(1,'Gmail check failed. Complete local Google consent, then retry.\n')
+        print('Authenticated Gmail connection verified. No message bodies were read by this check.')
+        return
     if args.action=='disconnect':
         if path.is_symlink():parser.exit(1,'Refusing to remove a symlinked token file.\n')
         path.unlink(missing_ok=True)

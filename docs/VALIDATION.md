@@ -281,3 +281,22 @@ notes and exactly one create-only competing update succeeds. Stale versions are
 rejected. Project exports omit other namespaces/categories, use private file
 permissions and refuse overwriting or Git-repository destinations. These tests
 do not establish desktop Obsidian installation or live cloud-agent access.
+
+## Everyday companion setup
+
+93 automated tests cover retrying existing-model discovery without download,
+preserved configuration, source-backed follow-up RAM context, automatic personal
+statement selection through the session, privacy clearing, context expiry,
+private CalDAV initialization, idempotent collection setup and Gmail profile-only
+verification. Ownership metadata cannot target a process with a false identity.
+
+`python scripts/managed_lifecycle_check.py` passed actual fixture-process startup,
+readiness, owned-port release, unrelated-process preservation, Off persistence
+across a login-style start and manual restart. Model/widget/search were fake
+local services; no shared Docker/Ollama service was changed.
+
+`python scripts/calendar_smoke.py` passed against real temporary authenticated
+Radicale: discovery/create preservation, event read/update/conflict handling,
+existing-server preservation and temporary bootstrap/shutdown. Existing browser
+editor/playback/source/cancel checks passed. These are not claims of physical
+desktop boot/wake acceptance, real model memory accuracy or Google account consent.

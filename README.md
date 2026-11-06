@@ -10,18 +10,22 @@ expecting to graduate in **May 2028**.
 
 **Current milestone:** a user-tested desktop voice assistant, approved-folder
 retrieval and source-cited web search, plus an optional native “Hey April” tray
-widget awaiting physical desktop acceptance. The long-term goal is an always-on
+widget with login/shutdown acceptance in progress. Enrique confirmed native
+wake activation and explicit Obsidian memory recall after restart. The long-term goal is an always-on
 Raspberry Pi companion with authenticated desktop acceleration.
 
 [Project progression](docs/PROGRESS.md) · [Widget setup](docs/WIDGET.md) ·
 [Validation](docs/VALIDATION.md) · [Architecture](docs/ARCHITECTURE.md) ·
-[Roadmap](docs/ROADMAP.md) · [Personality & memory](docs/MEMORY.md) · [Obsidian & shared agents](docs/OBSIDIAN.md)
+[Roadmap](docs/ROADMAP.md) · [Personality & memory](docs/MEMORY.md) · [Obsidian & shared agents](docs/OBSIDIAN.md) · [Everyday desktop setup](docs/EVERYDAY_SETUP.md)
 
 ## New personal-companion preview
 
 [Full setup and updated goals](docs/ASSISTANT.md) cover managed on/off, an original
 replaceable 3D terrier, explicit screen/code review, a self-hosted CalDAV calendar
-and private email/calendar recaps.
+and private email/calendar recaps. The [guided everyday setup](docs/EVERYDAY_SETUP.md)
+now discovers the existing model store, registers managed login startup, verifies
+CalDAV, and walks through Google consent. It also enables more conversational
+context and shows automatic-memory progress.
 
 **New: [persistent personal memory](docs/MEMORY.md).** April has a cheerful female
 Jack Russell persona, bounded recent context, background local extraction of
@@ -60,15 +64,15 @@ portal behavior and personal Google consent remain pending.
 | Actual time/date | Deterministic clock routing for recognized spoken/typed requests and the clock button |
 | Approved-folder RAG | SQLite FTS5 retrieval; Enrique confirmed access to his approved `~/Documents/aprilfiles` folder |
 | Automatic web lookup and visible sources | Citation markers remain visible but are omitted from spoken audio. SearXNG; desktop screenshot shows three retrieved sources and a cited answer |
-| Native popup, tray controls, wake listener and login startup | Implemented; Qt simulation, fake-audio and process-lifecycle checks passed. Real wake accuracy, device compatibility, KDE focus and login test pending |
+| Native popup, tray controls, wake listener and login startup | Enrique confirmed native wake activation. Qt/fake-audio/owned-process fixtures passed; reboot/login, focus and broader wake accuracy acceptance pending |
 | Read-only Gmail | OAuth/search adapter and fixtures implemented; personal consent and real mailbox queries pending |
 | CalDAV calendar and private recaps | Reviewed create/edit and bounded calendar/email briefing implemented; authenticated Radicale tests passed. Personal setup pending |
 | Screen/code assistance | Explicit local OCR snapshot, approved Python-file review, separately approved container run and VS Code preview; desktop/IDE acceptance pending |
-| Personal memory | Markdown vault + SQLite lexical recall, local extraction, review/edit/forget/private controls, explicit reminders and opt-in briefing notices; automated fixtures/browser checked, real-model memory quality pending |
+| Personal memory | Markdown vault + SQLite lexical recall, local extraction, review/edit/forget/private controls, explicit reminders and opt-in briefing notices; Enrique confirmed explicit save/Obsidian/restart recall; automatic selection quality remains pending; follow-up context and private-mode fixtures passed |
 | Navidrome | Planned; not implemented |
 | Standalone Pi inference and desktop offload/fallback | Planned; physical Pi operation is not verified |
 
-Latest recorded validation: **84 automated tests**, Chromium playback/source regressions,
+Latest recorded validation: **93 automated tests**, Chromium playback/source regressions,
 actual offscreen Qt widget checks, and clean native-launcher shutdown on SIGINT
 and SIGTERM. These do not substitute for real microphone/model/Pi tests.
 See [the evidence record](docs/VALIDATION.md).

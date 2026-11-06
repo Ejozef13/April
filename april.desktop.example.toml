@@ -34,3 +34,11 @@ memory_vault = "~/.local/share/april/memory"
 # Explicit reminder times opt their notes into notifications; daily recaps are opt-in.
 proactive_briefings = false
 briefing_hour = 9
+
+# Bounded conversational context and selected durable summaries.
+conversation_history_turns = 12
+conversation_context_turns = 6
+conversation_idle_minutes = 30
+memory_max_notes = 500
+# Keep only April's private model warm briefly; Off terminates that process.
+private_ollama_keep_alive_seconds = 300

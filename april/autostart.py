@@ -14,7 +14,7 @@ def desktop_argument(value):
     return '"' + value + '"'
 
 
-def install(root, directory, *, remove=False):
+def install(root, directory, *, remove=False, config_path=None):
     root, directory = Path(root).resolve(), Path(directory)
     path = directory / 'april.desktop'
     if path.is_symlink():
@@ -27,11 +27,11 @@ def install(root, directory, *, remove=False):
         return path
     if not (root / 'april.sh').is_file():
         raise ValueError('Run from the APRIL project directory')
-    if any(c in str(root) for c in '\n\r'):
+    if any(c in str(root)+str(config_path or '') for c in '\n\r'):
         raise ValueError('Project path cannot contain a newline')
     directory.mkdir(parents=True, exist_ok=True)
     # Explicit env preserves the absolute configuration even if KDE starts in HOME.
-    command = ['/usr/bin/env', 'APRIL_CONFIG=' + str(root / 'april.local.toml'),
+    command = ['/usr/bin/env', 'APRIL_CONFIG=' + str(config_path or root / 'april.local.toml'),
                str(root / '.venv/bin/python'), '-m', 'april.power', 'start', '--login']
     text = ('[Desktop Entry]\nType=Application\nName=APRIL Companion\n'
             'Comment=Local voice companion and wake listener\n'

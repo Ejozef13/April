@@ -34,6 +34,10 @@ class Config:
     web_provider: str = 'searxng'
     automatic_web_search: bool = True
     searxng_url: str = 'http://127.0.0.1:8888'
+    conversation_history_turns: int = 12
+    conversation_context_turns: int = 6
+    conversation_idle_minutes: int = 30
+    memory_max_notes: int = 500
     memory_enabled: bool = True
     memory_vault: str = "~/.local/share/april/memory"
     proactive_briefings: bool = False
@@ -49,6 +53,7 @@ class Config:
     avatar_model_url: str = "/static/assets/april-prototype.glb"
     private_ollama_port: int = 11435
     private_ollama_models: str = ""
+    private_ollama_keep_alive_seconds: int = 300
     wake_model: str = "models/vosk-model-small-en-us-0.15"
     wake_phrases: tuple[str, ...] = ("hey april", "okay april")
     desktop_input_device: str = "default"  # PortAudio name; browser IDs are different.
@@ -62,6 +67,12 @@ class Config:
 
     def __post_init__(self):
         import re
+        for key,low,high in [('conversation_history_turns',2,32),('conversation_context_turns',1,12),
+                             ('conversation_idle_minutes',1,240),('memory_max_notes',50,2000)]:
+            value=getattr(self,key)
+            if type(value) is not int or not low<=value<=high:raise ValueError('Invalid '+key)
+        if self.conversation_context_turns>self.conversation_history_turns:
+            raise ValueError('Conversation context cannot exceed retained RAM history')
         if not isinstance(self.memory_enabled,bool) or not isinstance(self.proactive_briefings,bool):
             raise ValueError("Memory and proactive briefing switches must be boolean")
         if not isinstance(self.memory_vault,str) or not self.memory_vault.strip():
@@ -78,6 +89,8 @@ class Config:
             raise ValueError("CalDAV must use authenticated HTTPS or a loopback HTTP URL")
         if not re.fullmatch(r"/static/assets/[A-Za-z0-9_.-]+\.glb", self.avatar_model_url):
             raise ValueError("Use a local GLB in april/web/assets")
+        if type(self.private_ollama_keep_alive_seconds) is not int or not 0<=self.private_ollama_keep_alive_seconds<=3600:
+            raise ValueError('Private model keep-alive must be 0–3600 seconds')
         if not 1024 <= self.private_ollama_port <= 65535:
             raise ValueError("Invalid private Ollama port")
         if (not isinstance(self.wake_phrases, (list, tuple)) or not 1 <= len(self.wake_phrases) <= 5

@@ -108,7 +108,7 @@ class MemoryTests(unittest.IsolatedAsyncioTestCase):
         for i in range(20):self.store.save('Coding preference '+str(i)+' '+'short hints '*15)
         self.store.save('Unconfirmed private guess',category='pending')
         context=self.store.context('coding')
-        self.assertLess(len(json.dumps(context)),2300)
+        self.assertLess(len(json.dumps(context)),self.config.context_tokens*3//2+100)
         self.assertNotIn('Unconfirmed',json.dumps(context))
         self.store.history=[{'user':'What did I just ask?','assistant':'An earlier answer.'}]
         self.assertIn('What did I just ask?',json.dumps(self.store.context('coding')))

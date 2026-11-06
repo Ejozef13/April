@@ -18,7 +18,8 @@ read/reviewed-write/briefing paths. Read [ASSISTANT.md](ASSISTANT.md) for setup
 and evidence. It is not a completed desktop/account acceptance claim.
 
 Immediate goals:
-1. Configure the existing readable model store and verify start/Goodbye/stop,
+1. Apply [EVERYDAY_SETUP.md](EVERYDAY_SETUP.md), which discovers the model store,
+   registers login startup and verifies local CalDAV. Configure the existing readable model store and verify start/Goodbye/stop,
    off-until-manual-start behavior and actual login startup.
 2. Accept the 3D popup on KDE/AMD; personalize the included Blender source or
    replace its GLB. Verify wake detection, microphone pause and cancellation.

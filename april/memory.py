@@ -17,11 +17,16 @@ from pathlib import Path
 import re
 import sqlite3
 import tempfile
+import time
 
 PERSONALITY = (
     "You are April, a cheerful female Jack Russell AI companion. Be warm, playful, "
     "affectionate and loyal to your user, and eager to make their life easier. "
-    "Use natural spoken language, usually 1–3 short sentences, without Markdown or emoji. "
+    "Speak like a warm, cute, eager pet companion with a consistent female voice and gentle humor. "
+    "Use natural conversational language without Markdown or emoji. Keep simple answers brief, "
+    "but allow a few more sentences for meaningful conversation. Respond to the user's feelings "
+    "and interests, connect relevant remembered details, and ask one thoughtful follow-up when "
+    "it helps the conversation, not after every answer. Don't sound like a search-result reader. "
     "Be encouraging without constant praise or barking. Respect the user's independence; "
     "never imply exclusive attachment, consciousness, or feelings you actually experience. "
     "Being loyal means giving honest, useful help, including kindly correcting mistakes. "
@@ -50,13 +55,15 @@ def safe_text(value, limit=600):
 
 def personal_turn(text):
     """Conservative prefilter: ordinary trivia, retrieved text and questions aren't memories."""
-    return bool(re.search(r"\b(?:i am|i'm|i prefer|i like|i want|i need|i work|i study|i use|my |we are building|we're building)\b",text,re.I)) and not SECRET.search(text)
+    return bool(re.search(r"\b(?:i am|i'm|i prefer|i like|i want|i need|i work|i study|i use|i enjoy|i usually|i have|i feel|my |we are building|we're building)\b",text,re.I)) and not SECRET.search(text)
 
 
 def local_conversation(text):
+    if re.search(r"^(?:let'?s talk|can we talk|how are you|how was your day|are you there|good morning|good evening|good night)\b",text,re.I):
+        return True
     if re.search(r"\bi (?:want|need) to (?:know|learn|understand)\b",text,re.I) and not re.search(r"\b(?:my|our|about me)\b",text,re.I):
         return False
-    return bool(re.search(r"\b(?:remember|recall|forget|about me|who am i|what did i tell|what have i told|earlier conversation|previous conversation|my preferences|my projects|my tasks|my reminders|what are we working|our project|our plans|my favorite|my favourite|my hobbies|my goals|my plans|my life|my birthday|my job|my school|my dog|we discussed|we talked|last time|you said|you remember|what does that mean|tell me more about that|why did you say|i prefer|i like|i am|i'm|i use|i study|i work|i want|i need)\b",text,re.I) or re.fullmatch(r'\s*(?:hi|hello|thanks|thank you|how are you)[.!? ]*',text,re.I))
+    return personal_turn(text) or bool(re.search(r"\b(?:remember|recall|forget|about me|who am i|what did i tell|what have i told|earlier conversation|previous conversation|my preferences|my projects|my tasks|my reminders|what are we working|our project|our plans|my favorite|my favourite|my hobbies|my goals|my plans|my life|my birthday|my job|my school|my dog|we discussed|we talked|last time|you said|you remember|what does that mean|tell me more about that|why did you say|i prefer|i like|i am|i'm|i use|i study|i work|i want|i need)\b",text,re.I) or re.fullmatch(r'\s*(?:hi|hello|thanks|thank you|how are you|how was your day|let.s talk|lets talk|can we talk|tell me a story|i feel.*|i had a.*)[.!? ]*',text,re.I))
 
 
 def inside_git(path):
@@ -83,6 +90,7 @@ class MemoryStore:
         self.enabled = config.memory_enabled and config.mode == 'live'
         self.epoch = 0
         self.tasks = set()
+        self.history_at=time.monotonic()
         self.history = []  # Bounded RAM only, shared between this server's views.
         self.notice = None
         self._mutex=threading.RLock()
@@ -129,7 +137,7 @@ class MemoryStore:
         items=[]
         seen=set()
         for kind in sorted(CATEGORIES):
-            for path in sorted((self.root/kind).glob('*.md'))[:200]:
+            for path in sorted((self.root/kind).glob('*.md'))[:self.config.memory_max_notes]:
                 if path.is_symlink() or path.stat().st_size>4096:continue
                 try:
                     header,body=path.read_text().split('\n',1)
@@ -177,7 +185,7 @@ class MemoryStore:
             if origin!='explicit' or duplicate['origin']=='explicit':return duplicate
             key=duplicate['id']
             old=duplicate
-        if not old and len(existing)>=150:raise ValueError('Memory limit reached; review and remove old notes.')
+        if not old and len(existing)>=self.config.memory_max_notes:raise ValueError('Memory limit reached; review and remove old notes.')
         if old and old.get('origin')=='explicit' and origin!='explicit':return old
         now=datetime.now(timezone.utc).isoformat()
         meta={'id':key,'created_at':old['created_at'] if old else now,'updated_at':now,
@@ -252,18 +260,34 @@ class MemoryStore:
         def score(item):
             return len(words & set(re.findall(r'[a-z0-9]{3,}',(item['id']+' '+item['content']).casefold())))
         chosen=sorted((i for i in items if score(i)>0 or i['category'] in {'profile','preferences','recent'} or (project_overview and i['category']=='projects')),key=lambda i:(score(i),i['updated_at']),reverse=True)[:6]
-        budget=min(2200,max(600,self.config.context_tokens))
+        budget=min(6000,max(600,self.config.context_tokens*3//2))
         compact=[{k:i[k] for k in ('id','category','content','updated_at','certainty')} for i in chosen]
-        recent=[{'user':turn['user'][:300],'assistant':turn['assistant'][:200]} for turn in self.history[-2:]]
+        if time.monotonic()-self.history_at>self.config.conversation_idle_minutes*60:self.history.clear()
+        recent=[{'user':turn['user'][:400],'assistant':turn['assistant'][:400],
+                 'source_kind':turn.get('source_kind','conversation')}
+                for turn in self.history[-self.config.conversation_context_turns:]]
         note_budget=budget//2 if recent else budget-50
         while compact and len(json.dumps(compact))>note_budget:compact.pop()
         while recent and len(json.dumps({'memories':compact,'recent_turns':recent}))>budget:recent=recent[1:]
         return {'memories':compact,'recent_turns':recent} if compact or recent else None
 
-    def completed(self,text,reply,backends, *, allow_extract=True, conversation_id=None):
-        if not self.enabled or SECRET.search(text) or SECRET.search(reply) or not allow_extract:return
-        # Only successful plain conversation, never retrieved/private account contents.
-        self.history=(self.history+[{'user':text[:600],'assistant':reply[:600]}])[-4:]
+    def is_followup(self,text):
+        if not self.enabled or not self.history or time.monotonic()-self.history_at>self.config.conversation_idle_minutes*60:
+            return False
+        text=text.casefold().strip(' .?!')
+        return bool(re.fullmatch(r"(?:and |but )?(?:why|how so|tell me more|go on|what do you mean|"
+                                 r"what does that mean|can you explain that|explain that|"
+                                 r"what about (?:that|it|the other one)|what should i do next)",text))
+
+    def completed(self,text,reply,backends, *, allow_extract=True, conversation_id=None, source_kind="conversation"):
+        if not self.enabled or SECRET.search(text) or SECRET.search(reply):return
+        # Visible turn pairs stay in RAM, including source-backed conversations.
+        # Only plain user statements are eligible for durable extraction.
+        if time.monotonic()-self.history_at>self.config.conversation_idle_minutes*60:self.history.clear()
+        self.history_at=time.monotonic()
+        self.history=(self.history+[{'user':text[:1000],'assistant':reply[:1000],
+                                    'source_kind':source_kind}])[-self.config.conversation_history_turns:]
+        if not allow_extract:return
         if not personal_turn(text) or not hasattr(backends,'extract_memories'):return
         if len(self.tasks)>=2:
             self.notice='Memory analysis queue is full; this turn was not saved.'
@@ -272,6 +296,7 @@ class MemoryStore:
         task=asyncio.create_task(self._extract(text,backends,epoch,conversation_id))
         self.tasks.add(task)
         task.add_done_callback(self.tasks.discard)
+        return task
 
     async def _extract(self,text,backends,epoch,conversation_id):
         try:

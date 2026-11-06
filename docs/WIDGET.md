@@ -174,3 +174,8 @@ The native launcher also passed actual simulation subprocess checks for SIGINT
 and SIGTERM, releasing its owned server after exit. Run
 `.venv/bin/python scripts/widget_lifecycle_check.py` to reproduce that lifecycle
 test. Window close still dismisses to tray; explicit Quit exits the application.
+
+For the latest managed login/on/off setup, conversational-memory acceptance,
+CalDAV bootstrap and Gmail consent, follow [EVERYDAY_SETUP.md](EVERYDAY_SETUP.md).
+Native wake activation and explicit memory were confirmed by Enrique; managed
+reboot/off-marker behavior still needs physical desktop acceptance.

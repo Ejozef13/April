@@ -6,6 +6,7 @@ if [[ ! -x .venv/bin/python ]]; then
   exit 1
 fi
 case "${1:-}" in
+  setup) shift; exec .venv/bin/python -m april.onboarding "$@" ;;
   start|stop|status) exec .venv/bin/python -m april.power "$@" ;;
 esac
 exec .venv/bin/python -m april.launch "$@"

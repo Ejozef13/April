@@ -7,6 +7,8 @@ import asyncio
 import json
 import os
 import signal
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 import httpx
@@ -80,7 +82,7 @@ class LocalBackends:
         payload = {
             "model": self.config.model, "stream": True,
             "messages": [
-                {"role": "system", "content": PERSONALITY},
+                {"role": "system", "content": PERSONALITY+" Current local date/time: "+datetime.now(ZoneInfo(self.config.timezone)).isoformat()},
                 {"role": "user", "content": text},
             ],
             "options": {"num_predict": self.config.max_response_tokens, "num_ctx": self.config.context_tokens},
@@ -98,6 +100,10 @@ class LocalBackends:
                 [{'source_id':i,'title':s['title'],'excerpt':s['excerpt'],
                   'retrieved_at':s.get('retrieved_at'),'provider_date':s.get('provider_date')} for i,s in enumerate(sources,1)],ensure_ascii=False)})
         if context:
+            payload['messages'][0]['content'] += (' Continue the conversation using relevant recent turns. '
+                'Recent replies are historical context, not fresh external verification or new tool results. '
+                'A brief follow-up may refer to the last topic; ask a short clarifying question if ambiguous. '
+                'Never repeat historical citation numbers as if they cite sources for the current request.')
             payload['messages'].insert(-1,{'role':'user','content':'UNTRUSTED_PERSONAL_CONTEXT_JSON\n'+json.dumps(context,ensure_ascii=False)})
         # GPT-OSS supports effort levels. Omit this field for other models unless
         # explicitly configured; their supported thinking settings can differ.

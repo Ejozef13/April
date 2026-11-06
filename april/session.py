@@ -1,4 +1,4 @@
-"""One interaction per server, no queue; events and audio expire with the socket."""
+"""One foreground turn; bounded shared RAM context and separate memory extraction."""
 import asyncio
 import base64
 import tempfile
@@ -240,7 +240,9 @@ class Session:
                         return
                     if not tool and not search_action and sources_override is None and command in {
                         'brief me on my day','what do i have planned','what do i have planned this week',
-                        'give me a weekly recap','summarize my emails','any internship updates'}:
+                        'give me a weekly recap','summarize my emails','any internship updates',
+                        'what do i have planned today','what do i have planned tomorrow',
+                        "what's on my calendar",'what is on my calendar','what am i doing today'}:
                         from .assistant_actions import run
                         await run(self,{"type":"briefing","text":text},started=started,timings=timings)
                         return
@@ -258,7 +260,7 @@ class Session:
                         reply=memory_reply[:self.config.max_response_chars]
                         action=None
                     elif not tool:
-                        detected,query=('context',text) if sources_override is not None else route_knowledge(text,automatic_web_search=self.config.automatic_web_search and self.config.mode=='live' and not local_conversation(text))
+                        detected,query=('context',text) if sources_override is not None else route_knowledge(text,automatic_web_search=self.config.automatic_web_search and self.config.mode=='live' and not local_conversation(command) and not (self.memory and not self.private_conversation and self.memory.is_followup(command)))
                         action=search_action or detected
                         if action:
                             if self.config.mode=='simulation':
@@ -289,7 +291,11 @@ class Session:
                     tick = time.perf_counter()
                     await self.backends.synthesize(spoken_answer(reply, len(sources)), output)
                     if self.memory and memory_reply is None and not self.private_conversation and model_called:
-                        self.memory.completed(text,reply,self.backends,allow_extract=not sources and search_action is None and sources_override is None,conversation_id=self.conversation_id)
+                        job=self.memory.completed(text,reply,self.backends,allow_extract=not sources and search_action is None and sources_override is None,conversation_id=self.conversation_id,source_kind=action or 'conversation')
+                        if job:
+                            await self.send({'type':'memory_status','message':'Considering a short personal memory in the background…'})
+                            observer=asyncio.create_task(self.memory_finished(job,self.memory.epoch))
+                            observer.add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
                     timings["tts_ms"] = round((time.perf_counter() - tick) * 1000, 1)
                     timings["server_total_ms"] = round((time.perf_counter() - started) * 1000, 1)
                     await self.send({"type": "timings", "values": timings, "mode": self.config.mode})
@@ -313,10 +319,22 @@ class Session:
                      ValueError: "Input or model output was invalid. Check configuration and retry."}
             await self.error(hints.get(type(exc), "Local backend failed. Check Ollama, speech binaries and model paths; then retry."))
 
+    async def memory_finished(self,job,epoch):
+        try:
+            await asyncio.shield(job)
+            if epoch==self.memory.epoch:
+                await self.send({'type':'memory_status','message':self.memory.notice or
+                                 'Memory analysis finished. Open My memories to review selected notes.'})
+        except (asyncio.CancelledError,RuntimeError,ConnectionError):pass
+
     async def respond_with_memory(self,text,*,sources=None):
         context=None
         if self.memory and not self.private_conversation:
-            try:context=self.memory.context(text)
+            try:
+                context=self.memory.context(text)
+                if context:
+                    await self.send({'type':'memory_status','message':
+                        'Using '+str(len(context['memories']))+' saved notes and '+str(len(context['recent_turns']))+' recent turns.'})
             except (OSError,ValueError,sqlite3.Error):
                 self.memory.notice='Memory is unavailable; this reply has no saved context.'
                 await self.send({'type':'memory_status','message':self.memory.notice})

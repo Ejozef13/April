@@ -4,7 +4,9 @@ April's conversational persona is a cheerful female Jack Russell: affectionate,
 playful, loyal, and eager to make your day easier. Loyalty means honest help,
 including gentle correction, rather than invented certainty or agreement with
 everything. She does not claim consciousness, actual feelings, perfect recall,
-or access/actions she has not been given. This uses the existing pretrained
+or access/actions she has not been given. Natural follow-ups such as “tell me more” use actual recent context, including
+previous source-backed answers, without launching an unrelated new web search.
+Historical answers do not establish fresh external facts. This uses the existing pretrained
 local model, not training or fine-tuning. The persona is defined in
 `april/memory.py` and supplied by the Ollama adapter on every answer.
 
@@ -27,6 +29,10 @@ the personal vault. No new Python dependencies or embedding model are required.
 Optional settings in ignored `april.local.toml`:
 
 ```toml
+conversation_history_turns = 12
+conversation_context_turns = 6
+conversation_idle_minutes = 30
+memory_max_notes = 500
 memory_enabled = true
 memory_vault = "~/.local/share/april/memory"
 proactive_briefings = false
@@ -67,8 +73,11 @@ for one trusted desktop user, not a multi-user account system.
 
 ## How automatic memory works
 
-1. A successful plain conversation adds at most four short user/assistant turn
-   pairs to RAM. Raw transcripts/audio are never archived by this feature.
+1. Successful plain and source-backed conversations retain up to 12 short
+   user/assistant turn pairs in RAM, with up to six supplied as bounded context.
+   After 30 minutes of inactivity, that recent RAM context expires. Turn pairs are not archived to disk. Retrieved snippets, message bodies and
+   screen images themselves are not added to RAM history; only the visible
+   question/answer is retained locally. A private conversation disables this too.
 2. A conservative first-person/personal-statement filter selects turns that may
    contain lasting preferences, profile facts or project updates. Trivia,
    greetings and most questions do not trigger extraction.
@@ -91,11 +100,11 @@ for one trusted desktop user, not a multi-user account system.
    model. They do not authorize tool calls or replace current factual evidence.
    This is lexical retrieval, not semantic embedding search.
 
-Extraction is limited to two queued jobs, 25 seconds per job and 150 managed
-notes. The local model serializes foreground and extraction requests; extraction
+Extraction is limited to two queued jobs, 25 seconds per job and 500 managed
+notes by default. The local model serializes foreground and extraction requests; extraction
 may add latency to the next turn, especially on a Pi. Queue pressure skips a
-save rather than building an unbounded backlog. Open My memories to see the
-latest extraction failure/queue notice; use “Remember this” for reliable explicit
+save rather than building an unbounded backlog. The memory status line shows context use and analysis progress; open My memories
+to see the latest extraction failure/queue notice; use “Remember this” for reliable explicit
 storage when automatic analysis fails. No live-model extraction accuracy or Pi
 latency is claimed by the fixture tests.
 

@@ -288,3 +288,30 @@ cooperating April/CLI processes. A project-only Markdown exporter supports an
 explicit, reviewed cloud handoff; no automatic upload or two-way cloud sync.
 No desktop package was installed or Audino permissions changed from the cloud.
 Concurrent-process and scoped-export fixtures are included in the 84-test suite.
+
+## Everyday desktop setup and conversational continuity
+
+Enrique confirmed native Hey April activation and explicit memory appearing in
+Obsidian and surviving a restart. Added a desktop setup helper that discovers
+the existing Ollama model store via /api/show, configures bounded conversational
+settings and can install the managed XDG login entry. No model download or shared
+service shutdown. Managed status now reports phases; --wait verifies runtime
+startup/shutdown, with atomic PID identity records and stronger rejection of
+invalid/recycled ownership metadata. Private model keep-alive is configurable
+(default five minutes) for follow-up latency.
+
+Recent visible source-backed turn pairs now remain in bounded RAM for follow-up
+conversation, without entering durable extraction. Casual/social statements and
+short contextual follow-ups stay local; the female Jack Russell persona responds
+more naturally. Defaults retain 12 turn pairs, use up to six within the prompt
+budget, expire RAM after 30 idle minutes and permit 500 selected memory notes.
+Memory context/analysis progress is visible. Privacy controls remain in place.
+
+Added an idempotent, authenticated CalDAV bootstrap/check and managed calendar
+readiness, plus a read-only Gmail profile check and a desktop Google consent
+walkthrough. No personal calendar files or Google grants were created in cloud.
+
+93 automated tests, actual fixture-service managed lifecycle, real authenticated
+Radicale bootstrap/read/write/conflict tests and browser regressions passed.
+Actual desktop login/Goodbye/reboot, model extraction quality and personal Google
+consent remain acceptance work. The 3D prototype is unchanged for later authoring.

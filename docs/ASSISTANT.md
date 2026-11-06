@@ -7,6 +7,8 @@ software tests from the desktop/account acceptance still needed.
 For the new persona, Markdown/Obsidian memory vault, remembering/forgetting,
 private conversations and local reminder/briefing notifications, see [MEMORY.md](MEMORY.md).
 
+For the guided login/memory/CalDAV/Google setup sequence, see [EVERYDAY_SETUP.md](EVERYDAY_SETUP.md).
+
 ## 1. One owner for April's runtime
 
 ```bash
@@ -29,7 +31,7 @@ account must have socket access; one-time boot enablement is
 
 **Private Ollama is deliberate.** AM may share the existing port 11434. Managed
 April starts its own `ollama serve` on port 11435, using one loaded model/one
-parallel request and zero idle model keep-alive. Off can then stop that process
+parallel request and a configurable five-minute idle model keep-alive. Off can then stop that process
 and release April's model without killing AM's service. A private process does
 not guarantee enough VRAM if AM is concurrently using it; check contention.
 
@@ -49,8 +51,8 @@ private_ollama_models = "/actual/existing/model/store"
 
 No model is silently downloaded. If the configured model is not visible, startup
 stops and explains the missing store. Do not change ownership of another
-application's model store blindly. We still need Enrique's actual desktop path
-and acceptance before describing private Ollama startup as verified.
+application's model store blindly. The new `bash april.sh setup --login` helper can discover this path on the desktop;
+managed desktop acceptance is still required before calling it verified.
 
 ```bash
 bash april.sh start

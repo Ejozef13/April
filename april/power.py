@@ -10,6 +10,7 @@ import socket
 import subprocess
 import sys
 import time
+import tempfile
 import tomllib
 
 import httpx
@@ -33,11 +34,20 @@ def owner():
     try:
         data=json.loads(STATE.read_text())
         pid=data['pid']
-        if isinstance(pid,int) and pid>1 and process_identity(pid)==data['started']:
+        identity=process_identity(pid) if type(pid) is int and pid>1 else None
+        if identity and identity==data['started']:
             return pid
     except (OSError,ValueError,KeyError,TypeError):
         pass
     return None
+
+
+def write_state(data):
+    fd,name=tempfile.mkstemp(dir=STATE.parent,prefix='.power-state-')
+    try:
+        with os.fdopen(fd,'w') as stream:json.dump(data,stream)
+        os.replace(name,STATE)
+    finally:Path(name).unlink(missing_ok=True)
 
 
 def stop():
@@ -81,8 +91,10 @@ def supervise():
         try:probe.bind(('127.0.0.1',port))
         except OSError:raise SystemExit('Private Ollama port is occupied; no existing process was stopped.')
     if DISABLED.exists():return
-    STATE.write_text(json.dumps({'pid':os.getpid(),'started':process_identity(os.getpid())}))
-    STATE.chmod(0o600)
+    write_state({'pid':os.getpid(),'started':process_identity(os.getpid())})
+    def phase(value):
+        write_state({'pid':os.getpid(),'started':process_identity(os.getpid()),'phase':value})
+    phase('starting_ollama')
     interrupted=False
     def shutdown(signum,frame):
         nonlocal interrupted
@@ -96,7 +108,7 @@ def supervise():
         environment['OLLAMA_NUM_PARALLEL']='1'
         environment['OLLAMA_MAX_QUEUE']='1'
         environment['OLLAMA_MAX_LOADED_MODELS']='1'
-        environment['OLLAMA_KEEP_ALIVE']='0'
+        environment['OLLAMA_KEEP_ALIVE']=str(config.private_ollama_keep_alive_seconds)+'s'
         if config.private_ollama_models:
             store=Path(config.private_ollama_models).expanduser()
             if not store.is_dir():
@@ -118,6 +130,7 @@ def supervise():
                     time.sleep(.25)
             else:raise ValueError('Private Ollama startup timed out')
         if interrupted:return
+        phase("starting_search")
         search_started=True
         search_job=subprocess.Popen(['bash','scripts/searxng.sh','up'],start_new_session=True)
         deadline=time.monotonic()+65
@@ -128,11 +141,48 @@ def supervise():
         if search_job.returncode:raise ValueError('APRIL Search startup failed')
         calendar_config=Path(config.caldav_server_config).expanduser()
         if calendar_config.is_file():
+            phase('starting_calendar')
             calendar=subprocess.Popen([sys.executable,'-m','radicale','--config',str(calendar_config)],start_new_session=True)
+            # Ensure the collection exists and an authenticated read succeeds.
+            # Only the calendar process created above is owned by this supervisor.
+            from .calendar_setup import ensure_collection
+            from .calendar import events
+            import asyncio
+            async def calendar_ready():
+                for _ in range(40):
+                    if interrupted:return
+                    if calendar.poll() is not None:raise ValueError('APRIL calendar exited during startup')
+                    try:
+                        await ensure_collection(config)
+                        await events(config)
+                        return
+                    except Exception:
+                        await asyncio.sleep(.25)
+                raise ValueError('Private calendar startup/authentication failed; inspect local configuration')
+            async def bounded_calendar_ready():
+                async with asyncio.timeout(25):await calendar_ready()
+            asyncio.run(bounded_calendar_ready())
+        if interrupted:return
+        phase('starting_widget')
         environment=dict(os.environ)
         environment['APRIL_CONFIG']=str(runtime.absolute())
         widget=subprocess.Popen([sys.executable,'-m','april.launch','--widget','--hidden'],env=environment,start_new_session=True)
+        ready=False
+        widget_deadline=time.monotonic()+45
         while not interrupted and widget.poll() is None:
+            if ollama.poll() is not None:raise ValueError('Private Ollama exited; restart April')
+            if calendar and calendar.poll() is not None:raise ValueError('Private calendar exited; restart April')
+            if not ready:
+                try:
+                    with httpx.Client(trust_env=False,timeout=.5) as client:
+                        host='['+config.host+']' if ':' in config.host else config.host
+                        response=client.get(f'http://{host}:{config.port}/health')
+                        response.raise_for_status()
+                        if response.json().get('mode')=='live':
+                            phase('ready')
+                            ready=True
+                except (httpx.HTTPError,ValueError):pass
+                if not ready and time.monotonic()>widget_deadline:raise ValueError('Native companion startup timed out')
             log=Path('artifacts/power.log')
             if log.exists() and log.stat().st_size>2_000_000:
                 log.write_text('')  # Child FDs use append mode; bounded local diagnostics.
@@ -163,15 +213,24 @@ def supervise():
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action',choices=['start','stop','status'])
+    parser.add_argument('--wait',action='store_true',help='Wait for managed startup or shutdown completion')
     parser.add_argument('--foreground',action='store_true')
     parser.add_argument('--login',action='store_true')
     parser.add_argument('--child',action='store_true',help=argparse.SUPPRESS)
     args=parser.parse_args()
     if args.action=='stop':
-        stop();print('April off. Login startup is paused until a manual start.')
+        stop()
+        if args.wait:
+            deadline=time.monotonic()+60
+            while owner() and time.monotonic()<deadline:time.sleep(.2)
+            if owner():parser.exit(1,'Shutdown is still in progress; check status and power.log.\n')
+        print('April off. Login startup is paused until a manual start.')
     elif args.action=='status':
         current=owner()
-        print('Stopping' if current and DISABLED.exists() else 'Running' if current else 'Off')
+        stage=None
+        try:stage=json.loads(STATE.read_text()).get('phase')
+        except (OSError,ValueError,TypeError):pass
+        print('Stopping' if current and DISABLED.exists() else ('Running' if stage=='ready' else 'Starting: '+str(stage or 'preflight')) if current else 'Off')
         print('Login startup paused' if DISABLED.exists() else 'Login startup enabled if installed')
     elif (args.login or args.child) and DISABLED.exists():
         print('April remains off; start manually to resume.')
@@ -186,9 +245,26 @@ def main():
             # Bound startup logs by truncating each launch; no prompt/audio logs.
             log.write_text('')
             with log.open('a') as output:
-                subprocess.Popen([sys.executable,'-m','april.power','start','--foreground','--child'],
+                supervisor=subprocess.Popen([sys.executable,'-m','april.power','start','--foreground','--child'],
                                  stdout=output,stderr=subprocess.STDOUT,start_new_session=True)
             log.chmod(0o600)
+            if args.wait:
+                deadline=time.monotonic()+135
+                seen=False
+                while time.monotonic()<deadline:
+                    current=owner()
+                    if current:
+                        seen=True
+                        try:
+                            if json.loads(STATE.read_text()).get('phase')=='ready':
+                                print('April runtime is ready. Verify Hey April and Goodbye April on this desktop.')
+                                return
+                        except (OSError,ValueError,TypeError):pass
+                    if seen and not current:break
+                    # A failed preflight may exit before writing state.
+                    if supervisor.poll() is not None:break
+                    time.sleep(.2)
+                parser.exit(1,'April did not reach ready. Read artifacts/power.log; no successful startup is claimed.\n')
             print('Starting April. Check python -m april.power status and artifacts/power.log.')
 
 
