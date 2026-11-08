@@ -1,22 +1,43 @@
-# Editable 3D prototype
+# Editable 3D April
 
-`april-prototype.blend` and `../april/web/assets/april-prototype.glb` are original
-procedural cartoon geometry created by `build_april_model.py`. The uploaded
-Tripo showcase MP4 was inspected as a proportions/color reference; no mesh,
-texture, watermark or video frame was extracted into this asset.
+`april-approved.blend` is Enrique's edited model, saved with Blender 5.2.
+`../april/web/assets/april-prototype.glb` is its app-ready export and remains the
+runtime default. The GLB filename stays the same so existing local settings load the new
+design without migration. The original `april-prototype.blend` remains untouched
+so pulling this update preserves local edits to that older working file. Use Blender 5.2 or newer for the source file.
 
-Rebuild with Blender (no Python pip dependencies required):
+The edited geometry began with our original procedural cartoon terrier. The
+uploaded Tripo showcase MP4 was only a visual reference; its original mesh,
+texture, watermark and frames were not extracted into this model.
+
+The approved export preserves the edited geometry and transforms, attaches both ears to
+HeadPivot, removes unused duplicate pivots and brings Tongue forward below the
+edited muzzle. TailPivot and runtime tongue visibility remain compatible with
+the existing app. Tail wagging, idle breathing and tongue state changes are
+app-driven; they are not baked Blender timeline clips. Preserve HeadPivot,
+TailPivot and Tongue names and parenting during future edits.
+
+Open the current design:
+
+```bash
+blender tools/april-approved.blend
+```
+
+Save a separate working copy before editing. Export GLB with cameras/lights off
+and no baked animation clips to preserve the app-driven prototype animations.
+
+To regenerate the **original procedural base**, rather than overwrite the
+approved design:
 
 ```bash
 blender -b --python tools/build_april_model.py
 ```
 
-This also writes a transparent still to `/tmp/april-3d-prototype.png`.
-The source provides named HeadPivot, TailPivot and Tongue objects. The local
-renderer uses these for simple state animation. It can instead play GLB
-animation clips named idle, listening, transcribing, thinking, speaking and error.
-Reduced motion is respected. This is a prototype, not a reconstruction of the
-video's original model.
+This now writes `tools/april-procedural.blend`,
+`april/web/assets/april-procedural.glb` and `/tmp/april-procedural.png`.
+It does not overwrite the approved runtime model. Future fully rigged models
+can use clips named idle, listening, transcribing, thinking, speaking and error;
+the renderer supports these separately. Reduced motion is respected.
 
 To replace: create/export your own GLB into `april/web/assets/`, then set
 `avatar_model_url = "/static/assets/your-model.glb"` in ignored local settings.

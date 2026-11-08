@@ -90,7 +90,9 @@ button for immediate interruption.
 
 The uploaded Tripo MP4 was inspected as a visual reference. It contains a
 showcase video, not an editable mesh. The bundled **original procedural cartoon
-prototype** is real GLB geometry, with an editable Blender source. It is not the
+prototype** is real GLB geometry, with an editable Blender source. It now
+includes Enrique’s approved Blender edits; the current source is
+`tools/april-approved.blend`. It is not the
 original Tripo model extracted from the video.
 
 ![Original prototype rendered in Blender](evidence/april-3d-prototype.png)

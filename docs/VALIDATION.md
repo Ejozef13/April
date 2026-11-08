@@ -325,3 +325,11 @@ displayed and spoken at its Eastern time. Sources remain visible, LLM timing is
 absent, and all-day/overnight/empty/long-list cases are checked. Real authenticated
 Radicale fixture data also passes the read-back formatter. Combined narrative
 briefings remain model-generated and are not covered by this deterministic claim.
+
+## Edited default avatar
+
+The approved uploaded Blender 5.2 model was opened with script auto-execution
+disabled and exported with the official bpy 5.2.3 module in a temporary build
+environment. Browser renderer checks passed for tail/tongue state behavior and
+head parenting; the default GLB rendering/click test also passed. No runtime
+Python dependencies were changed. Physical desktop appearance remains acceptance.

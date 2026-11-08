@@ -348,3 +348,18 @@ No LLM is called for these calendar facts, and no LLM timing is reported.
 becoming 3:00 PM EST, all-day/overnight events, empty results and bounded lists.
 Real temporary authenticated Radicale read/write/bootstrap checks also passed
 with actual event formatting. Desktop verification remains the next step.
+
+## Approved custom 3D April
+
+Enrique approved his edited Blender model for publication and runtime use.
+Replaced the default GLB at its stable path so old local settings load the
+updated design. Added tools/april-approved.blend as the current editable source,
+leaving the old working source untouched to preserve desktop edits on pull. Corrected ear parenting and tongue
+placement in the approved copy; preserved runtime tail wagging, head movement
+and tongue visibility. Source requires Blender 5.2; desktop display uses GLB and
+needs no Blender/Python package upgrade. The original procedural generator now
+writes separate procedural filenames so rebuilding cannot overwrite the design.
+
+Actual browser checks cover default-model rendering/click-to-expand, idle tail
+and tongue state, thinking tongue visibility, speaking tail motion and ear
+parenting. These are simulation renderer checks, not physical audio tests.

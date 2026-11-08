@@ -90,8 +90,8 @@ scene.render.engine='CYCLES';scene.cycles.samples=24;scene.cycles.use_denoising=
 scene.render.resolution_x=700;scene.render.resolution_y=700;scene.render.resolution_percentage=100
 scene.render.film_transparent=True
 scene.world.color=(.3,.3,.3)
-bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'tools/april-prototype.blend'))
-bpy.ops.export_scene.gltf(filepath=str(ROOT/'april/web/assets/april-prototype.glb'),export_format='GLB',
+bpy.ops.wm.save_as_mainfile(filepath=str(ROOT/'tools/april-procedural.blend'))
+bpy.ops.export_scene.gltf(filepath=str(ROOT/'april/web/assets/april-procedural.glb'),export_format='GLB',
                          export_cameras=False,export_lights=False)
-scene.render.filepath='/tmp/april-3d-prototype.png'
+scene.render.filepath='/tmp/april-procedural.png'
 bpy.ops.render.render(write_still=True)

@@ -34,11 +34,11 @@ Use **My memories** or say “Remember this…” / “What do you remember abou
 “Don’t remember this conversation.” Explicit reminders and opt-in daily briefing
 notifications are local; Pi synchronization remains a later milestone.
 
-![Original editable 3D prototype, rendered in Blender](docs/evidence/april-3d-prototype.png)
+![Enrique’s edited 3D April, rendered in Blender](docs/evidence/april-3d-prototype.png)
 
-The uploaded MP4 informed this original procedural prototype; it was not an
-editable mesh and was not converted into the video's original asset. The Blender
-source and GLB are included. [Edit/replace the model](tools/README.md).
+The default model now includes Enrique’s Blender edits. Its procedural base
+was inspired by the uploaded MP4; the video’s original mesh was not extracted.
+The editable Blender 5.2 source and app-ready GLB are included. [Edit/replace the model](tools/README.md).
 
 After one-time dependencies and readable existing model-store configuration:
 
